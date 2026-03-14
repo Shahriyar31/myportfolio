@@ -60,7 +60,7 @@ export default function HeroChat({ T }) {
             {!started && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 }}>
                     {SUGGS.map(s => (
-                        <button key={s} onClick={() => send(s)}
+                        <button type="button" key={s} onClick={() => send(s)}
                             style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}
                             onMouseEnter={e => { e.target.style.color = T.a; e.target.style.borderColor = T.a; e.target.style.background = `${T.a}12`; e.target.style.transform = "translateY(-2px)"; }}
                             onMouseLeave={e => { e.target.style.color = T.m; e.target.style.borderColor = T.border; e.target.style.background = dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)"; e.target.style.transform = "translateY(0)"; }}>
@@ -84,7 +84,7 @@ export default function HeroChat({ T }) {
                 <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${T.a},${T.a2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "'Playfair Display',serif", fontSize: 13, color: "white", fontWeight: 700 }}>F</div>
                 <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(inp); } }}
                     placeholder="Ask Farhan anything..." style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, outline: "none", minWidth: 0 }} />
-                <button onClick={() => send(inp)} disabled={busy || !inp.trim()}
+                <button type="button" onClick={() => send(inp)} disabled={busy || !inp.trim()}
                     style={{ width: 40, height: 40, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "none", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.45 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={(busy || !inp.trim()) ? T.m : "white"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
