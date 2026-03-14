@@ -4,7 +4,7 @@ export default function ChatFloat({ T }) {
     const [open, setOpen] = useState(false);
     const [msgs, setMsgs] = useState([{ r: "b", t: "Hey! I'm Farhan's AI — ask me anything about projects, skills, or experience 👋" }]);
     const [inp, setInp] = useState(""); const [busy, setBusy] = useState(false);
-    const [key, setKey] = useState(""); const [showKey, setShowKey] = useState(false);
+    const [key, setKey] = useState(import.meta.env.VITE_GROQ_KEY || ""); const [showKey, setShowKey] = useState(false); const [started, setStarted] = useState(false);
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
