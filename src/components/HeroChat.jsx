@@ -1,23 +1,33 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { SUGGS } from "../data/constants";
 
 export default function HeroChat({ T }) {
-    const [msgs, setMsgs] = useState([]); const [inp, setInp] = useState(""); const [busy, setBusy] = useState(false);
-    const [key, setKey] = useState(import.meta.env.VITE_GROQ_KEY || ""); const [showKey, setShowKey] = useState(false); const [started, setStarted] = useState(false);
-    const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
-    useEffect(() => {
-        if (btm.current) {
-            const container = btm.current.parentElement;
-            container.scrollTop = container.scrollHeight;
+    const [msgs, setMsgs] = useState([]);
+    const [inp, setInp] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [key, setKey] = useState(import.meta.env.VITE_GROQ_KEY || "");
+    const [showKey, setShowKey] = useState(false);
+    const [started, setStarted] = useState(false);
+    const hist = useRef([]);
+    const scrollRef = useRef(null);
+    const dark = T.bg === "#1a1a22";
+    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+
+    const scrollToBottom = () => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [msgs, busy]);
+    };
 
     const send = useCallback(async txt => {
         if (!txt.trim() || busy) return;
         if (!key) { setShowKey(true); return; }
         if (!started) setStarted(true);
-        setMsgs(p => [...p, { r: "u", t: txt }]); setInp(""); setBusy(true);
+        setMsgs(p => [...p, { r: "u", t: txt }]);
+        setInp("");
+        setBusy(true);
         hist.current = [...hist.current, { role: "user", content: txt }];
+        setTimeout(scrollToBottom, 50);
         try {
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -35,51 +45,49 @@ export default function HeroChat({ T }) {
             const reply = d.choices[0].message.content;
             hist.current = [...hist.current, { role: "assistant", content: reply }];
             setMsgs(p => [...p, { r: "b", t: reply }]);
-        } catch { setMsgs(p => [...p, { r: "b", t: "Check your Groq API key and try again!" }]); }
-        finally { setBusy(false); }
+            setTimeout(scrollToBottom, 50);
+        } catch {
+            setMsgs(p => [...p, { r: "b", t: "Check your Groq API key and try again!" }]);
+        } finally {
+            setBusy(false);
+        }
     }, [key, busy, started]);
 
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
-            {started && (
-                <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", maxHeight: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent` }}>
-                    {msgs.map((m, i) => (
-                        <div key={i} style={{ display: "flex", justifyContent: m.r === "u" ? "flex-end" : "flex-start" }}>
-                            <div style={{
-                                maxWidth: "82%", fontSize: 13, lineHeight: 1.65, ...fm,
-                                background: m.r === "u" ? T.a : dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)",
-                                color: m.r === "u" ? "white" : T.t, padding: "10px 16px",
-                                borderRadius: m.r === "u" ? "18px 18px 4px 18px" : "4px 18px 18px 18px",
-                                boxShadow: m.r === "b" ? `0 2px 12px ${T.a}20` : "none",
-                                border: m.r === "b" ? `1px solid ${T.border}` : "none"
-                            }}>{m.t}</div>
-                        </div>
-                    ))}
-                    {busy && <div style={{ display: "flex", justifyContent: "flex-start" }}><div style={{ background: dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)", padding: "12px 16px", borderRadius: "4px 18px 18px 18px", border: `1px solid ${T.border}`, display: "flex", gap: 5, alignItems: "center" }}>{[0, .2, .4].map(d => <div key={d} style={{ width: 6, height: 6, background: T.a, borderRadius: "50%", animation: `blink 1.1s ${d}s infinite` }} />)}</div></div>}
-                    <div ref={btm} />
-                </div>
-            )}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 300 }}>
 
-            {!started && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-                    {SUGGS.map(s => (
-                        <button type="button" key={s} onClick={() => send(s)}
-                            style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}
-                            onMouseEnter={e => { e.target.style.color = T.a; e.target.style.borderColor = T.a; e.target.style.background = `${T.a}12`; e.target.style.transform = "translateY(-2px)"; }}
-                            onMouseLeave={e => { e.target.style.color = T.m; e.target.style.borderColor = T.border; e.target.style.background = dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)"; e.target.style.transform = "translateY(0)"; }}>
-                            {s}
-                        </button>
-                    ))}
-                </div>
-            )}
+            {/* Fixed height message area — never changes size so page never jumps */}
+            <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", height: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent` }}>
+                {!started && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", paddingTop: 60 }}>
+                        {SUGGS.map(s => (
+                            <button type="button" key={s} onClick={() => send(s)}
+                                style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}
+                                onMouseEnter={e => { e.currentTarget.style.color = T.a; e.currentTarget.style.borderColor = T.a; e.currentTarget.style.background = `${T.a}12`; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = T.m; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {msgs.map((m, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: m.r === "u" ? "flex-end" : "flex-start" }}>
+                        <div style={{ maxWidth: "82%", fontSize: 13, lineHeight: 1.65, ...fm, background: m.r === "u" ? T.a : dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)", color: m.r === "u" ? "white" : T.t, padding: "10px 16px", borderRadius: m.r === "u" ? "18px 18px 4px 18px" : "4px 18px 18px 18px", boxShadow: m.r === "b" ? `0 2px 12px ${T.a}20` : "none", border: m.r === "b" ? `1px solid ${T.border}` : "none" }}>{m.t}</div>
+                    </div>
+                ))}
+                {busy && (
+                    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                        <div style={{ background: dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)", padding: "12px 16px", borderRadius: "4px 18px 18px 18px", border: `1px solid ${T.border}`, display: "flex", gap: 5, alignItems: "center" }}>
+                            {[0, .2, .4].map(d => <div key={d} style={{ width: 6, height: 6, background: T.a, borderRadius: "50%", animation: `blink 1.1s ${d}s infinite` }} />)}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {showKey && !key && (
                 <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", marginBottom: 10, padding: "12px 18px", background: dark ? "rgba(251,191,36,.06)" : "rgba(251,191,36,.1)", border: "1px solid rgba(251,191,36,.35)", borderRadius: 14 }}>
                     <div style={{ ...fm, fontSize: 10, color: "#fbbf24", marginBottom: 6 }}>⚡ Paste your free Groq API key (groq.com) to activate</div>
-                    <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === "Enter" && key && setShowKey(false)} placeholder="gsk_..."
-                        style={{ width: "100%", background: "transparent", border: "1px solid rgba(251,191,36,.4)", color: T.t, padding: "8px 14px", ...fm, fontSize: 11, outline: "none", borderRadius: 8 }} />
+                    <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === "Enter" && key && setShowKey(false)} placeholder="gsk_..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(251,191,36,.4)", color: T.t, padding: "8px 14px", ...fm, fontSize: 11, outline: "none", borderRadius: 8 }} />
                 </div>
             )}
 
@@ -87,8 +95,7 @@ export default function HeroChat({ T }) {
                 onFocus={e => { if (e.target.tagName !== "INPUT") return; e.currentTarget.style.boxShadow = `0 8px 40px ${T.a}25, 0 0 0 1px ${T.a}40`; }}
                 onBlur={e => { e.currentTarget.style.boxShadow = dark ? "0 8px 40px rgba(0,0,0,.4)" : "0 8px 40px rgba(91,33,182,.1)"; }}>
                 <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${T.a},${T.a2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "'Playfair Display',serif", fontSize: 13, color: "white", fontWeight: 700 }}>F</div>
-                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(inp); } }}
-                    placeholder="Ask Farhan anything..." style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, outline: "none", minWidth: 0 }} />
+                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(inp); } }} placeholder="Ask Farhan anything..." style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, outline: "none", minWidth: 0 }} />
                 <button type="button" onClick={() => send(inp)} disabled={busy || !inp.trim()}
                     style={{ width: 40, height: 40, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "none", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.45 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={(busy || !inp.trim()) ? T.m : "white"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
