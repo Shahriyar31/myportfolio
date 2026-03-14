@@ -98,12 +98,12 @@ export default function App() {
             </nav>
 
             {/* ── HERO ── */}
-            <section id="home" className="section hero-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "96px 24px 40px", position: "relative", overflow: "hidden" }}>
+            <section id="home" className="section hero-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: 48, padding: "96px 24px 40px", position: "relative", overflow: "hidden" }}>
                 <NeuralCanvas T={T} />
                 <div style={{ position: "absolute", top: "10%", right: "15%", width: 600, height: 600, borderRadius: "50%", background: dark ? "rgba(0,212,255,.04)" : "rgba(91,33,182,.04)", filter: "blur(100px)", pointerEvents: "none", animation: "pulse 7s ease-in-out infinite" }} />
                 <div style={{ position: "absolute", bottom: "15%", left: "5%", width: 400, height: 400, borderRadius: "50%", background: dark ? "rgba(73,77,95,.04)" : "rgba(9,124,135,.03)", filter: "blur(80px)", pointerEvents: "none", animation: "pulse 8s 2s ease-in-out infinite" }} />
 
-                <div className="hero-cols" style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", gap: 48, alignItems: "flex-start", justifyContent: "center", flex: 1, paddingBottom: 32 }}>
+                <div className="hero-cols" style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", gap: 48, alignItems: "flex-start", justifyContent: "center", paddingBottom: 0 }}>
                     {/* Profile */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, flexShrink: 0, animation: "fadeUp .8s .1s both" }}>
                         <HeroProfile T={T} dark={dark} />
@@ -167,7 +167,8 @@ export default function App() {
                     </div>
                 </div>
 
-                <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, borderTop: `1px solid ${T.border}`, minHeight: 420 }}>
+                {/* ── HERO CHAT — fixed height so page never jumps ── */}
+                <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, borderTop: `1px solid ${T.border}`, minHeight: 460, flexShrink: 0 }}>
                     <h3 style={{ ...sf, fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, color: T.t, marginBottom: 4, textAlign: "center" }}>
                         Query my portfolio <span style={{ color: T.a, animation: "blink 2s ease-in-out infinite", display: "inline-block" }}>✦</span>
                     </h3>
@@ -276,8 +277,6 @@ export default function App() {
                 <SkillsCanvas T={T} />
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1 }}>
                     <SH n="04" title="Skills" T={T} />
-
-                    {/* ── Subtitle ── */}
                     <div className="rv" style={{ textAlign: "center", marginBottom: 48 }}>
                         <p style={{ ...sf, fontSize: "clamp(18px,2.5vw,28px)", fontWeight: 600, color: T.t, marginBottom: 8, lineHeight: 1.3 }}>
                             A constellation of <span style={{ color: T.a, fontStyle: "italic" }}>26 skills</span> across 4 domains
@@ -286,13 +285,9 @@ export default function App() {
                             Hover the radar vertices · Move your mouse through the galaxy
                         </p>
                     </div>
-
-                    {/* ── Radar Chart ── */}
                     <div className="rv">
                         <SkillRadar T={T} />
                     </div>
-
-                    {/* ── Category Cards with Skill Nodes ── */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, width: "100%" }}>
                         {(() => {
                             const catColors = [T.a, T.a2, T.a3, "#f59e0b"];
@@ -309,8 +304,6 @@ export default function App() {
                             ));
                         })()}
                     </div>
-
-                    {/* ── Summary stats ── */}
                     <div className="rv3" style={{ display: "flex", justifyContent: "center", gap: 40, marginTop: 56, flexWrap: "wrap" }}>
                         {[["26", "Total Skills"], ["4", "Domains"], ["83%", "Avg Proficiency"], ["2+", "Years Production"]].map(([n, l]) => (
                             <div key={l} style={{ textAlign: "center" }}>
