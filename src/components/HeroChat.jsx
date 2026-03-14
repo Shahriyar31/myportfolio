@@ -5,7 +5,12 @@ export default function HeroChat({ T }) {
     const [msgs, setMsgs] = useState([]); const [inp, setInp] = useState(""); const [busy, setBusy] = useState(false);
     const [key, setKey] = useState(import.meta.env.VITE_GROQ_KEY || ""); const [showKey, setShowKey] = useState(false); const [started, setStarted] = useState(false);
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
-    useEffect(() => { btm.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+    useEffect(() => {
+        if (btm.current) {
+            const container = btm.current.parentElement;
+            container.scrollTop = container.scrollHeight;
+        }
+    }, [msgs, busy]);
 
     const send = useCallback(async txt => {
         if (!txt.trim() || busy) return;
