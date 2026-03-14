@@ -167,7 +167,7 @@ export default function App() {
                     </div>
                 </div>
 
-                <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, borderTop: `1px solid ${T.border}` }}>
+                <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, borderTop: `1px solid ${T.border}`, minHeight: 420 }}>
                     <h3 style={{ ...sf, fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, color: T.t, marginBottom: 4, textAlign: "center" }}>
                         Query my portfolio <span style={{ color: T.a, animation: "blink 2s ease-in-out infinite", display: "inline-block" }}>✦</span>
                     </h3>
