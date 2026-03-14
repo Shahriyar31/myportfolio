@@ -8,9 +8,10 @@ export default function ChatFloat({ T }) {
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
+    const scrollRef = useRef(null);
     useEffect(() => { 
-        if (btm.current && btm.current.parentElement) {
-            btm.current.parentElement.scrollTo({ top: btm.current.parentElement.scrollHeight, behavior: "smooth" });
+        if (scrollRef.current) {
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
         }
     }, [msgs, busy]);
 
@@ -78,7 +79,7 @@ export default function ChatFloat({ T }) {
                     </div>
 
                     {/* Messages */}
-                    <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent` }}>
+                    <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none" }}>
                         {msgs.map((m, i) => (
                             <div key={i} style={{ display: "flex", justifyContent: m.r === "u" ? "flex-end" : "flex-start" }}>
                                 <div style={{
@@ -98,7 +99,6 @@ export default function ChatFloat({ T }) {
                                 </div>
                             </div>
                         )}
-                        <div ref={btm} />
                     </div>
 
                     {/* API key */}
