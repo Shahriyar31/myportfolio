@@ -54,7 +54,7 @@ export default function HeroChat({ T }) {
     }, [key, busy, started]);
 
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 300 }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 0, height: 380, contain: "layout style" }}>
 
             {/* Fixed height message area — never changes size so page never jumps */}
             <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", height: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none" }}>
