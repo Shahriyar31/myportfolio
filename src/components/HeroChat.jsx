@@ -15,7 +15,7 @@ export default function HeroChat({ T }) {
 
     const scrollToBottom = () => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
         }
     };
 
@@ -57,7 +57,7 @@ export default function HeroChat({ T }) {
         <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 300 }}>
 
             {/* Fixed height message area — never changes size so page never jumps */}
-            <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", height: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent` }}>
+            <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", height: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none" }}>
                 {!started && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", paddingTop: 60 }}>
                         {SUGGS.map(s => (

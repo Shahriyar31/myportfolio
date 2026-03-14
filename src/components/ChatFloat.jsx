@@ -8,7 +8,11 @@ export default function ChatFloat({ T }) {
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
-    useEffect(() => { btm.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+    useEffect(() => { 
+        if (btm.current && btm.current.parentElement) {
+            btm.current.parentElement.scrollTo({ top: btm.current.parentElement.scrollHeight, behavior: "smooth" });
+        }
+    }, [msgs, busy]);
 
     const send = useCallback(async txt => {
         if (!txt.trim() || busy) return;
