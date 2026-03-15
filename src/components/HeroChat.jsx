@@ -59,7 +59,7 @@ export default function HeroChat({ T }) {
             {/* Smoothly expanding accordion message area */}
             <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", flex: started ? "1 1 0" : "0 0 auto", minHeight: 0, overflowY: "auto", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none", transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}>
                 {!started && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", paddingTop: 4 }}>
+                    <div style={{ display: "flex", flexWrap: "nowrap", gap: 8, justifyContent: "flex-start", marginBottom: 12, width: "100%", maxWidth: "clamp(320px,60vw,700px)", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", paddingBottom: 4 }}>
                         {SUGGS.map(s => (
                             <button type="button" key={s} onClick={() => send(s)}
                                 style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}
