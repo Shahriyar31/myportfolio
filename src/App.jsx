@@ -70,7 +70,9 @@ export default function App() {
     }, [T, menuOpen]);
 
     useEffect(() => {
-        const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { threshold: .35 });
+        const obs = new IntersectionObserver(es => {
+            es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
+        }, { threshold: 0, rootMargin: "-40% 0px -55% 0px" });
         document.querySelectorAll(".section").forEach(s => obs.observe(s));
         return () => obs.disconnect();
     }, []);
