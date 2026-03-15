@@ -31,7 +31,7 @@ import { AboutBG, ExperienceBG, ProjectsBG, EducationBG, SkillsBG, ContactBG, Ph
 function useReveal() {
     useEffect(() => {
         const go = () => document.querySelectorAll(".rv,.rv2,.rv3,.section").forEach(el => {
-            if (el.getBoundingClientRect().top < window.innerHeight * .85) el.classList.add("vi");
+            if (el.getBoundingClientRect().top < window.innerHeight * .95) el.classList.add("vi");
         });
         go(); window.addEventListener("scroll", go, { passive: true });
         return () => window.removeEventListener("scroll", go);
@@ -72,7 +72,7 @@ export default function App() {
     useEffect(() => {
         const obs = new IntersectionObserver(es => {
             es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
-        }, { threshold: 0, rootMargin: "-40% 0px -55% 0px" });
+        }, { threshold: 0, rootMargin: "-20% 0px -20% 0px" });
         document.querySelectorAll(".section").forEach(s => obs.observe(s));
         return () => obs.disconnect();
     }, []);
