@@ -78,22 +78,47 @@ export default function App() {
             {/* NAV */}
             <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, backdropFilter: "blur(24px)", borderBottom: `1px solid ${T.border}` }}>
                 <span style={{ ...fm, fontSize: 14, color: T.a, fontWeight: 700, letterSpacing: ".1em" }}>FS<span style={{ color: T.m }}>.</span>dev</span>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    {[["about", "About"], ["experience", "Exp"], ["projects", "Projects"], ["skills", "Skills"], ["contact", "Contact"]].map(([id, label]) => (
-                        <a key={id} href={`#${id}`} onClick={e => scrollTo(id, e)}
-                            className={`nav-link${active === id ? " active-link" : ""}`}
-                            style={{ color: active === id ? "#fff" : T.m, "--ca": T.a, "--ca2": T.a2 }}>
-                            {label}
-                        </a>
-                    ))}
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <div className="desktop-nav" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        {[["about", "About"], ["experience", "Exp"], ["projects", "Projects"], ["skills", "Skills"], ["contact", "Contact"]].map(([id, label]) => (
+                            <a key={id} href={`#${id}`} onClick={e => scrollTo(id, e)}
+                                className={`nav-link${active === id ? " active-link" : ""}`}
+                                style={{ color: active === id ? "#fff" : T.m, "--ca": T.a, "--ca2": T.a2 }}>
+                                {label}
+                            </a>
+                        ))}
+                    </div>
+
                     <Mag as="a" href="https://shahriyar31.github.io/Farhan-Shahriyar.github.io/Farhan_Shahriyar_Resume.pdf" target="_blank" rel="noreferrer"
+                        className="desktop-nav"
                         style={{ ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", color: T.bg, background: T.a, padding: "9px 22px", borderRadius: 24, fontWeight: 700, transition: "opacity .2s" }}>
                         Download CV
                     </Mag>
-                    <Mag as="button" onClick={() => setDark(d => !d)}
-                        style={{ width: 38, height: 38, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all .2s" }}>
-                        {dark ? "☀" : "🌙"}
-                    </Mag>
+
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <Mag as="button" onClick={() => setDark(d => !d)}
+                            title="Toggle Theme"
+                            style={{ width: 38, height: 38, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all .2s" }}>
+                            {dark ? "☀" : "🌙"}
+                        </Mag>
+
+                        {/* Unique Mobile Menu Trigger (Binary Diamond design) */}
+                        <Mag as="button" className="mobile-nav-toggle" onClick={() => scrollTo("home")}
+                            style={{
+                                display: "none", width: 40, height: 40, borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
+                                background: `linear-gradient(135deg, ${T.a}25, ${T.a}08)`,
+                                border: `1px solid ${T.a}45`,
+                                alignItems: "center", justifyContent: "center",
+                                transform: "rotate(45deg)",
+                                boxShadow: `0 4px 15px ${T.a}20`
+                            }}>
+                            <div style={{ transform: "rotate(-45deg)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
+                                {[0, 1, 2, 3].map(i => (
+                                    <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, boxShadow: `0 0 5px ${T.a}` }} />
+                                ))}
+                            </div>
+                        </Mag>
+                    </div>
                 </div>
             </nav>
 

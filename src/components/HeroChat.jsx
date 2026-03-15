@@ -54,12 +54,12 @@ export default function HeroChat({ T }) {
     }, [key, busy, started]);
 
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 0, height: 380, contain: "layout style" }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 0, height: started ? 380 : (showKey && !key ? 210 : 140), transition: "height 0.4s cubic-bezier(0.16, 1, 0.3, 1)", contain: "layout style" }}>
 
-            {/* Fixed height message area — never changes size so page never jumps */}
-            <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", height: 200, overflowY: "auto", marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none" }}>
+            {/* Smoothly expanding accordion message area */}
+            <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", flex: started ? "1 1 0" : "0 0 auto", minHeight: 0, overflowY: "auto", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none", transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}>
                 {!started && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", paddingTop: 60 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", paddingTop: 4 }}>
                         {SUGGS.map(s => (
                             <button type="button" key={s} onClick={() => send(s)}
                                 style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}

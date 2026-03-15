@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
-/* 3D tilt profile card with orbital rings and glassmorphism */
+/* Hologram Parallax Glitch Profile Card */
 export default function ProfileCard({ T, dark }) {
     const ref = useRef(null);
     const [hov, setHov] = useState(false);
+    const [m, setM] = useState({ x: 0, y: 0 });
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
 
@@ -11,12 +12,19 @@ export default function ProfileCard({ T, dark }) {
         const r = ref.current?.getBoundingClientRect(); if (!r) return;
         const x = (e.clientX - r.left) / r.width - .5;
         const y = (e.clientY - r.top) / r.height - .5;
-        ref.current.style.transform = `perspective(600px) rotateY(${x * 10}deg) rotateX(${-y * 8}deg) scale(1.02)`;
+        // Ease the mouse movement for smoothness
+        setM({ x, y });
+        ref.current.style.transform = `perspective(800px) rotateY(${x * 20}deg) rotateX(${-y * 20}deg) scale(1.05)`;
     };
+    
     const onLeave = () => {
-        if (ref.current) ref.current.style.transform = "perspective(600px) rotateY(0) rotateX(0) scale(1)";
+        if (ref.current) ref.current.style.transform = "perspective(800px) rotateY(0) rotateX(0) scale(1)";
         setHov(false);
+        setM({ x: 0, y: 0 });
     };
+
+    const imgSrc = "/images/profile-cartoon.jpg";
+    const fbSrc = "https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/profile.jpg";
 
     return (
         <div ref={ref}
@@ -24,69 +32,95 @@ export default function ProfileCard({ T, dark }) {
             onMouseEnter={() => setHov(true)}
             onMouseLeave={onLeave}
             style={{
-                position: "relative", borderRadius: 20, overflow: "hidden",
-                transition: "transform .12s ease",
-                willChange: "transform", cursor: "none",
+                position: "relative", borderRadius: 24, overflow: "hidden", cursor: "none",
+                willChange: "transform", width: "100%", aspectRatio: "1",
+                transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+                boxShadow: hov ? `0 30px 60px ${T.a}40` : "0 10px 30px rgba(0,0,0,0.2)",
+                border: `1px solid ${hov ? T.a : T.border}`,
+                background: dark ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.8)"
             }}>
-            {/* Image */}
-            <div style={{ position: "relative", aspectRatio: "1", borderRadius: 20, overflow: "hidden" }}>
-                {/* Animated border ring */}
-                <div style={{
-                    position: "absolute", inset: -3, borderRadius: 22,
-                    background: `conic-gradient(from ${hov ? "180deg" : "0deg"},${T.a},${T.a2},${T.a3},${T.a})`,
-                    animation: "spin 6s linear infinite",
-                    opacity: hov ? .8 : .4,
-                    transition: "opacity .4s",
-                }} />
-                <div style={{ position: "absolute", inset: 0, borderRadius: 20, background: T.bg }} />
+            
+            {/* Spinning Neon Core Border */}
+            {hov && <div style={{
+                position: "absolute", inset: -20, borderRadius: 24,
+                background: `conic-gradient(from 0deg, ${T.a}, transparent 40%, ${T.a} 50%, transparent 90%, ${T.a})`,
+                animation: "spin 3s linear infinite", opacity: 0.6, zIndex: 0
+            }} />}
+            
+            {/* Main Content Mask */}
+            <div style={{ position: "absolute", inset: 2, borderRadius: 22, overflow: "hidden", background: T.bg, zIndex: 1 }}>
+                
+                {/* Base Image Container */}
+                <div style={{ position: "absolute", inset: 0, perspective: "1000px" }}>
+                    {/* Base Image */}
+                    <img src={imgSrc} alt="Farhan Shahriyar" 
+                        style={{
+                            position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+                            filter: hov ? "grayscale(30%) contrast(1.1) brightness(0.6)" : "saturate(0.9)",
+                            transition: "all 0.5s ease"
+                        }}
+                        onError={e => { e.target.src = fbSrc; }} 
+                    />
 
-                <img src="https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/profile.jpg" alt="Farhan Shahriyar"
-                    style={{
-                        width: "100%", height: "100%", objectFit: "cover", display: "block",
-                        position: "relative", zIndex: 1, borderRadius: 20,
-                        filter: hov ? "saturate(1.1) brightness(1.05)" : "saturate(.9)",
-                        transition: "filter .4s",
-                    }}
-                    onError={e => { e.target.parentElement.style.background = T.card; e.target.style.display = "none"; }} />
+                    {/* Glitch Hologram Layer 1 : Cyan */}
+                    <div style={{
+                        position: "absolute", inset: -20, backgroundImage: `url(${imgSrc})`, backgroundSize: "cover", backgroundPosition: "center",
+                        mixBlendMode: "screen", filter: "sepia(100%) hue-rotate(150deg) saturate(400%) contrast(1.5)",
+                        opacity: hov ? 0.8 : 0, pointerEvents: "none",
+                        transform: hov ? `translate(${m.x * -40}px, ${m.y * -40}px) scale(1.1)` : "scale(1)",
+                        transition: "opacity 0.4s, transform 0.1s linear"
+                    }} />
 
-                {/* Gradient overlay */}
-                <div style={{
-                    position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 2,
-                    padding: "32px 18px 16px",
-                    background: "linear-gradient(to top,rgba(0,0,0,.7) 0%,rgba(0,0,0,.3) 50%,transparent 100%)",
-                    borderRadius: "0 0 20px 20px",
-                }}>
-                    <div style={{ ...sf, fontSize: 16, fontWeight: 700, color: "white", marginBottom: 3 }}>Farhan Shahriyar</div>
-                    <div style={{ ...fm, fontSize: 9, color: "rgba(255,255,255,.7)", letterSpacing: ".08em" }}>Hamburg, Germany 🇩🇪</div>
+                    {/* Glitch Hologram Layer 2 : Red */}
+                    <div style={{
+                        position: "absolute", inset: -20, backgroundImage: `url(${imgSrc})`, backgroundSize: "cover", backgroundPosition: "center",
+                        mixBlendMode: "screen", filter: "sepia(100%) hue-rotate(300deg) saturate(400%) contrast(1.5)",
+                        opacity: hov ? 0.8 : 0, pointerEvents: "none",
+                        transform: hov ? `translate(${m.x * 40}px, ${m.y * 40}px) scale(1.1)` : "scale(1)",
+                        transition: "opacity 0.4s, transform 0.1s linear"
+                    }} />
+
+                    {/* Cyber Grid Overlay */}
+                    <div style={{
+                        position: "absolute", inset: 0, pointerEvents: "none",
+                        backgroundImage: `linear-gradient(${T.a}40 1px, transparent 1px), linear-gradient(90deg, ${T.a}40 1px, transparent 1px)`,
+                        backgroundSize: "20px 20px", opacity: hov ? 0.4 : 0.05,
+                        transition: "opacity 0.5s"
+                    }} />
+                    
+                    {/* Interactive Cyber Scanline */}
+                    <div style={{
+                        position: "absolute", top: 0, left: 0, right: 0, height: "4px", pointerEvents: "none",
+                        background: T.a, boxShadow: `0 0 20px 5px ${T.a}`,
+                        opacity: hov ? 0.9 : 0,
+                        transform: `translateY(${hov ? (m.y + 0.5) * 400 + "px" : "-10px"})`,
+                        transition: "opacity 0.3s, transform 0.1s linear"
+                    }} />
                 </div>
 
-                {/* Shine effect on hover */}
+                {/* Permanent Gradient Overlay for Text */}
                 <div style={{
-                    position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none",
-                    background: "linear-gradient(115deg,transparent 35%,rgba(255,255,255,.12) 45%,transparent 55%)",
-                    transform: hov ? "translateX(100%)" : "translateX(-100%)",
-                    transition: "transform .6s ease",
-                    borderRadius: 20,
-                }} />
-            </div>
+                    position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 24px 20px",
+                    background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)",
+                    zIndex: 2, display: "flex", flexDirection: "column", gap: 4,
+                    transform: hov ? "translateY(5px)" : "translateY(0)",
+                    transition: "transform 0.4s"
+                }}>
+                    <div style={{ ...sf, fontSize: 20, fontWeight: 700, color: "white", letterSpacing: "1px" }}>Farhan Shahriyar</div>
+                    <div style={{ ...fm, fontSize: 10, color: T.a, letterSpacing: ".1em", textTransform: "uppercase" }}>Hamburg, Germany 🇩🇪</div>
+                </div>
 
-            {/* Orbiting decorations */}
-            {hov && (
-                <>
-                    <div style={{ position: "absolute", top: "50%", left: "50%", width: 0, height: 0, zIndex: 0 }}>
-                        {[0, 1, 2].map(i => (
-                            <div key={i} style={{
-                                position: "absolute",
-                                width: 6, height: 6, borderRadius: "50%",
-                                background: [T.a, T.a2, T.a3][i],
-                                boxShadow: `0 0 8px ${[T.a, T.a2, T.a3][i]}`,
-                                animation: `orbit${["A", "B", "C"][i]} ${8 + i * 4}s linear infinite`,
-                                opacity: .6,
-                            }} />
-                        ))}
-                    </div>
-                </>
-            )}
+                {/* Floating Status Badge */}
+                <div style={{
+                    position: "absolute", top: 20, right: 20, zIndex: 2,
+                    ...fm, fontSize: 9, color: T.bg, background: T.a, padding: "6px 14px", borderRadius: 20,
+                    fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase",
+                    transform: hov ? `translate(${m.x * 20}px, ${m.y * 20}px)` : "translate(0,0)",
+                    transition: "transform 0.2s ease-out", boxShadow: `0 10px 20px ${T.a}40`
+                }}>
+                    LIVE
+                </div>
+            </div>
         </div>
     );
 }

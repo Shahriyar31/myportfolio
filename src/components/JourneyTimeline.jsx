@@ -1,4 +1,117 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+
+/* ── Animated Life Flow Connector ───────────────────────────────── */
+function LifeFlow({ steps, containerRef, cardRefs, T }) {
+    const svgRef = useRef(null);
+    const [paths, setPaths] = useState([]);
+    const [svgSize, setSvgSize] = useState({ w: 0, h: 0 });
+    const [dotT, setDotT] = useState(0);
+    const rafRef = useRef(null);
+    const startRef = useRef(null);
+    const DURATION = 6000; // ms for full traversal
+
+    const recalc = useCallback(() => {
+        if (!containerRef.current || cardRefs.every(r => !r.current)) return;
+        const cr = containerRef.current.getBoundingClientRect();
+        setSvgSize({ w: cr.width, h: cr.height });
+
+        const centers = cardRefs.map(r => {
+            if (!r.current) return null;
+            const rr = r.current.getBoundingClientRect();
+            return {
+                x: rr.left - cr.left + rr.width / 2,
+                y: rr.top - cr.top + rr.height / 2,
+            };
+        }).filter(Boolean);
+
+        const segs = [];
+        for (let i = 0; i < centers.length - 1; i++) {
+            const a = centers[i], b = centers[i + 1];
+            const cy = (a.y + b.y) / 2;
+            segs.push(`M ${a.x} ${a.y} C ${a.x} ${cy}, ${b.x} ${cy}, ${b.x} ${b.y}`);
+        }
+        setPaths({ segs, centers });
+    }, [cardRefs, containerRef]);
+
+    useEffect(() => {
+        const id = setTimeout(recalc, 200);
+        window.addEventListener("resize", recalc);
+        return () => { clearTimeout(id); window.removeEventListener("resize", recalc); };
+    }, [recalc]);
+
+    // Animate dot along the path
+    useEffect(() => {
+        const tick = (ts) => {
+            if (!startRef.current) startRef.current = ts;
+            const t = ((ts - startRef.current) % DURATION) / DURATION;
+            setDotT(t);
+            rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(rafRef.current);
+    }, []);
+
+    // Get point along full path (distribute t across all segments)
+    const getDotPos = () => {
+        if (!paths.centers || paths.centers.length < 2) return null;
+        const n = paths.centers.length - 1;
+        const seg = Math.min(Math.floor(dotT * n), n - 1);
+        const localT = (dotT * n) - seg;
+        const a = paths.centers[seg], b = paths.centers[seg + 1];
+        const cy = (a.y + b.y) / 2;
+        // Cubic bezier: C(t) with control points (ax,ay), (ax,cy), (bx,cy), (bx,by)
+        const t = localT;
+        const mt = 1 - t;
+        const x = mt*mt*mt*a.x + 3*mt*mt*t*a.x + 3*mt*t*t*b.x + t*t*t*b.x;
+        const y = mt*mt*mt*a.y + 3*mt*mt*t*cy + 3*mt*t*t*cy + t*t*t*b.y;
+        return { x, y };
+    };
+
+    const dot = getDotPos();
+
+    if (!paths.segs || svgSize.w === 0) return null;
+
+    return (
+        <svg
+            ref={svgRef}
+            style={{
+                position: "absolute", top: 0, left: 0, pointerEvents: "none",
+                width: svgSize.w, height: svgSize.h, zIndex: 0, overflow: "visible"
+            }}
+            width={svgSize.w} height={svgSize.h}
+        >
+            <defs>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            {/* Background dim path */}
+            {paths.segs.map((d, i) => (
+                <path key={i} d={d} fill="none" stroke={T.a + "25"} strokeWidth="1.5" strokeDasharray="6 5" />
+            ))}
+            {/* Glowing active path (same, brighter) */}
+            {paths.segs.map((d, i) => (
+                <path key={`g${i}`} d={d} fill="none" stroke={T.a + "60"} strokeWidth="1" />
+            ))}
+            {/* Node circles at each center */}
+            {paths.centers.map((c, i) => (
+                <g key={i}>
+                    <circle cx={c.x} cy={c.y} r={8} fill={T.bg || "transparent"} stroke={T.a + "50"} strokeWidth="1" />
+                    <circle cx={c.x} cy={c.y} r={3} fill={T.a} style={{ filter: `drop-shadow(0 0 4px ${T.a})` }} />
+                </g>
+            ))}
+            {/* Traveling dot */}
+            {dot && (
+                <g>
+                    <circle cx={dot.x} cy={dot.y} r={7} fill={T.a} opacity="0.2" />
+                    <circle cx={dot.x} cy={dot.y} r={4} fill={T.a} style={{ filter: `drop-shadow(0 0 8px ${T.a})` }} />
+                </g>
+            )}
+        </svg>
+    );
+}
+
 
 // A unique, "mind-blowing" 3D interactive floating glass card layout for the timeline.
 // It abandons traditional boring vertical lines and instead creates a scattered, 
@@ -21,6 +134,10 @@ export default function JourneyTimeline({ T, dark }) {
     const canvasRef = useRef(null);
     const [hoverIdx, setHoverIdx] = useState(null);
     const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+    const cardRefs = useRef(steps.map(() => ({ current: null })));
+    if (cardRefs.current.length !== steps.length) {
+        cardRefs.current = steps.map(() => ({ current: null }));
+    }
 
     // Neural Connective Tissue Background
     useEffect(() => {
@@ -136,6 +253,9 @@ export default function JourneyTimeline({ T, dark }) {
             {/* Interactive Background Canvas */}
             <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none", filter: "blur(1px)" }} />
 
+            {/* Life flow connector */}
+            <LifeFlow steps={steps} containerRef={containerRef} cardRefs={cardRefs.current} T={T} />
+
             {/* The Floating 3D Journey Nodes */}
             <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", gap: 80, alignItems: "center", transformStyle: "preserve-3d" }}>
                 
@@ -159,6 +279,7 @@ export default function JourneyTimeline({ T, dark }) {
                             }}
                         >
                             <div 
+                                ref={el => { cardRefs.current[idx] = { current: el }; }}
                                 onMouseEnter={() => setHoverIdx(idx)}
                                 onMouseLeave={() => setHoverIdx(null)}
                                 style={{

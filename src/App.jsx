@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import "./styles/global.js";
 import { PROJECTS, SKILLS, DARK, LIGHT } from "./data/constants";
-
+import LoadingScreen from "./components/LoadingScreen";
 import Cursor from "./components/Cursor";
 import NeuralCanvas from "./components/NeuralCanvas";
 import GlitchName from "./components/GlitchName";
@@ -14,7 +14,7 @@ import TypingRole from "./components/TypingRole";
 import Mag from "./components/Mag";
 import SideNav from "./components/SideNav";
 import SH from "./components/SectionHeading";
-import PCard from "./components/ProjectCard";
+import ProjectShowcase from "./components/ProjectShowcase";
 import SPill from "./components/SkillPill";
 import PhotoGallery from "./components/PhotoGallery";
 import SkillsUniverse from "./components/SkillsUniverse";
@@ -24,12 +24,14 @@ import JourneyTimeline from "./components/JourneyTimeline";
 import HeroChat from "./components/HeroChat";
 import ChatFloat from "./components/ChatFloat";
 import EduScrollBook from "./components/EduScrollBook";
+import ExperienceShowcase from "./components/ExperienceShowcase";
+import AboutSection from "./components/AboutSection";
 import { AboutBG, ExperienceBG, ProjectsBG, EducationBG, SkillsBG, ContactBG, PhotographyBG } from "./components/SectionBgs";
 
 function useReveal() {
     useEffect(() => {
-        const go = () => document.querySelectorAll(".rv,.rv2,.rv3,.section").forEach(el => { 
-            if (el.getBoundingClientRect().top < window.innerHeight * .85) el.classList.add("vi"); 
+        const go = () => document.querySelectorAll(".rv,.rv2,.rv3,.section").forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight * .85) el.classList.add("vi");
         });
         go(); window.addEventListener("scroll", go, { passive: true });
         return () => window.removeEventListener("scroll", go);
@@ -41,9 +43,18 @@ export default function App() {
     const [lightbox, setLightbox] = useState(false); const [lbIdx, setLbIdx] = useState(0);
     const [loading, setLoading] = useState(true);
     const [resumeOpen, setResumeOpen] = useState(false);
-    
-    useEffect(() => { setTimeout(() => setLoading(false), 1200); }, []);
-    
+
+    // Responsive state
+    const [isMobile, setIsMobile] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 900);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     const T = dark ? DARK : LIGHT;
     useReveal();
 
@@ -52,7 +63,11 @@ export default function App() {
         r.style.setProperty("--ca", T.a); r.style.setProperty("--ca2", T.a2); r.style.setProperty("--ct", T.t);
         r.style.setProperty("--cm", T.m); r.style.setProperty("--cbg", T.bg); r.style.setProperty("--cbr", T.border);
         document.body.style.background = T.bg; document.body.style.color = T.t;
-    }, [T]);
+
+        // Prevent body scroll when mobile menu is open
+        if (menuOpen) document.body.style.overflow = "hidden";
+        else document.body.style.overflow = "auto";
+    }, [T, menuOpen]);
 
     useEffect(() => {
         const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { threshold: .35 });
@@ -79,9 +94,7 @@ export default function App() {
     return (
         <div style={{ background: "transparent" }}>
             {/* Global Loading Screen */}
-            <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 0.8s ease, visibility 0.8s", opacity: loading ? 1 : 0, visibility: loading ? "visible" : "hidden" }}>
-                <div style={{ ...fm, color: T.a, fontSize: 14, letterSpacing: ".2em", animation: "pulse 1.5s infinite" }}>INITIALIZING_SYSTEM...</div>
-            </div>
+            {loading && <LoadingScreen T={T} onDone={() => setLoading(false)} />}
 
             {/* Resume Preview Modal */}
             {resumeOpen && (
@@ -97,26 +110,103 @@ export default function App() {
             <SideNav active={active} T={T} />
 
             {/* NAV */}
-            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, backdropFilter: "blur(24px)", borderBottom: `1px solid ${T.border}` }}>
-                <span style={{ ...fm, fontSize: 14, color: T.a, fontWeight: 700, letterSpacing: ".1em" }}>FS<span style={{ color: T.m }}>.</span>dev</span>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    {[["about", "About"], ["experience", "Exp"], ["projects", "Projects"], ["skills", "Skills"], ["contact", "Contact"]].map(([id, label]) => (
-                        <a key={id} href={`#${id}`} onClick={e => scrollTo(id, e)}
-                            className={`nav-link${active === id ? " active-link" : ""}`}
-                            style={{ color: active === id ? "#fff" : T.m, "--ca": T.a, "--ca2": T.a2 }}>
-                            {label}
-                        </a>
-                    ))}
-                    <Mag as="button" onClick={() => setResumeOpen(true)}
-                        style={{ ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", color: T.bg, background: T.a, padding: "9px 22px", borderRadius: 24, fontWeight: 700, transition: "opacity .2s", border: "none", cursor: "pointer" }}>
-                        View CV
-                    </Mag>
-                    <Mag as="button" onClick={() => setDark(d => !d)}
-                        style={{ width: 38, height: 38, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all .2s" }}>
-                        {dark ? "☀" : "🌙"}
-                    </Mag>
+            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? "16px 20px" : "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, backdropFilter: "blur(24px)", borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ position: "relative", zIndex: 300 }}>
+                    <span onClick={e => { scrollTo("home", e); setMenuOpen(false); }} style={{ ...fm, fontSize: 14, color: T.a, fontWeight: 700, letterSpacing: ".1em", cursor: "pointer" }}>FS<span style={{ color: T.m }}>.</span>dev</span>
                 </div>
+
+                {!isMobile ? (
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        {[["about", "About"], ["experience", "Exp"], ["projects", "Projects"], ["skills", "Skills"], ["contact", "Contact"]].map(([id, label]) => (
+                            <a key={id} href={`#${id}`} onClick={e => scrollTo(id, e)}
+                                className={`nav-link${active === id ? " active-link" : ""}`}
+                                style={{ color: active === id ? "#fff" : T.m, "--ca": T.a, "--ca2": T.a2 }}>
+                                {label}
+                            </a>
+                        ))}
+                        <Mag as="button" onClick={() => setResumeOpen(true)}
+                            style={{ ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", color: T.bg, background: T.a, padding: "9px 22px", borderRadius: 24, fontWeight: 700, transition: "opacity .2s", border: "none", cursor: "pointer" }}>
+                            View CV
+                        </Mag>
+                        <Mag as="button" onClick={() => setDark(d => !d)}
+                            style={{ width: 38, height: 38, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all .2s" }}>
+                            {dark ? "☀" : "🌙"}
+                        </Mag>
+                    </div>
+                ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: 16, zIndex: 300 }}>
+                        <button onClick={() => setDark(d => !d)}
+                            style={{ width: 36, height: 36, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, color: T.t, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, transition: "all .2s" }}>
+                            {dark ? "☀" : "🌙"}
+                        </button>
+
+                        <div
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            style={{
+                                width: 42, height: 42, position: "relative", cursor: "pointer", zIndex: 301,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                borderRadius: menuOpen ? "50%" : "30% 70% 70% 30% / 30% 30% 70% 70%",
+                                background: menuOpen ? "transparent" : T.a + "15",
+                                border: menuOpen ? "none" : `1px solid ${T.a}40`,
+                                transform: menuOpen ? "rotate(0deg)" : "rotate(45deg)",
+                                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
+                                boxShadow: menuOpen ? "none" : `0 4px 15px ${T.a}20`
+                            }}
+                        >
+                            {/* Inner icons */}
+                            {!menuOpen ? (
+                                <div style={{ transform: "rotate(-45deg)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
+                                    {[0, 1, 2, 3].map(i => (
+                                        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, boxShadow: `0 0 6px ${T.a}` }} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ position: "relative", width: 24, height: 24 }}>
+                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(45deg)" }} />
+                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(-45deg)" }} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </nav>
+
+            {/* Fullscreen Mobile Menu Overlay */}
+            <div style={{
+                position: "fixed", inset: 0, zIndex: 199,
+                background: dark ? "rgba(10,10,16,0.98)" : "rgba(250,250,250,0.98)",
+                backdropFilter: "blur(20px)",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "32px",
+                transform: menuOpen ? "translateY(0)" : "translateY(-100%)",
+                opacity: menuOpen ? 1 : 0,
+                transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+                pointerEvents: menuOpen ? "auto" : "none"
+            }}>
+                {[["about", "About"], ["experience", "Experience"], ["projects", "Projects"], ["skills", "Skills"], ["education", "Education"], ["contact", "Contact"]].map(([id, label], i) => (
+                    <a key={id} href={`#${id}`} onClick={e => { scrollTo(id, e); setMenuOpen(false); }}
+                        style={{
+                            ...sf, fontSize: "40px", fontWeight: 800,
+                            color: active === id ? T.a : T.t,
+                            textDecoration: "none",
+                            opacity: menuOpen ? 1 : 0,
+                            transform: menuOpen ? "translateY(0)" : "translateY(-20px)",
+                            transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.1 + (i * 0.05) : 0}s`
+                        }}>
+                        {label}
+                    </a>
+                ))}
+
+                <button onClick={() => { setResumeOpen(true); setMenuOpen(false); }}
+                    style={{
+                        marginTop: 20, ...fm, fontSize: 13, letterSpacing: ".1em", textTransform: "uppercase",
+                        color: T.bg, background: T.a, padding: "16px 40px", borderRadius: 30, fontWeight: 700, border: "none",
+                        opacity: menuOpen ? 1 : 0,
+                        transform: menuOpen ? "translateY(0)" : "translateY(-20px)",
+                        transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.4 : 0}s`
+                    }}>
+                    View CV
+                </button>
+            </div>
 
             {/* ── HERO ── */}
             <section id="home" className="section hero-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "96px 24px 40px", position: "relative", overflow: "hidden" }}>
@@ -163,9 +253,6 @@ export default function App() {
                                 <span key={r} style={{ ...fm, fontSize: 10, letterSpacing: ".08em", padding: "5px 14px", border: `1px solid ${c}50`, color: c, background: `${c}0e`, borderRadius: 20, whiteSpace: "nowrap" }}>{r}</span>
                             ))}
                         </div>
-                        <p style={{ fontSize: 14, color: T.m, lineHeight: 1.9, maxWidth: 480, marginBottom: 24, animation: "fadeUp .8s .62s both" }}>
-                            MSc Data Science at TUHH, building production AI systems at Nordex SE — RAG pipelines, LLM evaluation, and real-time data engineering.
-                        </p>
 
                         <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap", animation: "fadeUp .8s .86s both" }}>
                             <Mag as="a" href="#projects" onClick={e => scrollTo("projects", e)}
@@ -195,45 +282,8 @@ export default function App() {
                 <AboutCanvas T={T} />
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1 }}>
                     <SH n="01" title="About" T={T} />
-                    <div className="about-grid rv" style={{ marginBottom: 56 }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                            <ProfileCard T={T} dark={dark} />
-                            <InterestCards T={T} dark={dark} />
-                        </div>
-                        <div>
-                            <p className="rv" style={{ ...sf, fontSize: "clamp(22px,3vw,36px)", fontWeight: 700, lineHeight: 1.25, color: T.t, marginBottom: 24, letterSpacing: "-.01em" }}>
-                                I build <span style={{ color: T.a2 }}>AI systems</span> that<br />
-                                <span style={{ color: T.a, fontStyle: "italic", position: "relative", display: "inline-block" }}>
-                                    actually work
-                                    <span style={{ position: "absolute", bottom: -2, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${T.a},${T.a2})`, borderRadius: 1, opacity: .6 }} />
-                                </span><br />
-                                in <span style={{ color: T.a3 }}>production</span>.
-                            </p>
-                            <p className="rv2" style={{ fontSize: 14, color: T.m, lineHeight: 1.9, marginBottom: 28 }}>
-                                MSc Data Science at <span style={{ color: T.t, fontWeight: 500 }}>TUHH</span>. Currently at{" "}
-                                <span style={{ color: T.a, fontWeight: 500 }}>Nordex SE</span> building a production{" "}
-                                <span style={{ color: T.a2, fontWeight: 500, borderBottom: `1px dashed ${T.a2}40`, paddingBottom: 1 }}>RAG pipeline</span> over{" "}
-                                <span style={{ color: T.t, fontWeight: 600 }}>1,690 documents</span>, a custom{" "}
-                                <span style={{ color: T.a3, fontWeight: 500, borderBottom: `1px dashed ${T.a3}40`, paddingBottom: 1 }}>LLM evaluation</span> framework, and a{" "}
-                                <span style={{ color: T.t, fontWeight: 500 }}>Streamlit-based AI assistant</span>. I moved from West Bengal, India to Hamburg in 2023 — and I'm not done building things yet.
-                            </p>
-                            <div className="rv2" style={{ marginBottom: 28 }}>
-                                <div style={{ ...fm, fontSize: 9, color: T.m, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.a3, animation: "pulse 3s ease-in-out infinite", display: "inline-block" }} />
-                                    Random fact about me
-                                </div>
-                                <CyclingFact T={T} />
-                            </div>
-                            <div className="rv3">
-                                <div style={{ ...fm, fontSize: 9, color: T.m, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ width: 14, height: 1, background: `linear-gradient(90deg,${T.a},${T.a2})`, display: "inline-block" }} />
-                                    Current stack
-                                </div>
-                                <StackPills T={T} dark={dark} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="rv2">
+                    <AboutSection T={T} dark={dark} />
+                    <div className="rv2" style={{ marginTop: 56 }}>
                         <div style={{ ...fm, fontSize: 9, color: T.a, letterSpacing: ".18em", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
                             <span style={{ width: 20, height: 1, background: T.a, display: "inline-block" }} />My Journey
                         </div>
@@ -247,30 +297,7 @@ export default function App() {
                 <ExperienceBG T={T} />
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="02" title="Experience" T={T} />
-                    <div className="rv" style={{ position: "relative", padding: 40, borderRadius: 20, background: T.card, backdropFilter: "blur(16px)", border: `1px solid ${T.border}`, overflow: "hidden" }}>
-                        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: `linear-gradient(to bottom,${T.a},${T.a2})`, borderRadius: "0 2px 2px 0" }} />
-                        {["🤖", "☁️", "🗄️"].map((ic, i) => <div key={i} style={{ position: "absolute", fontSize: 72, opacity: .04, animation: `float ${18 + i * 5}s ease-in-out infinite`, animationDelay: `${-i * 6}s`, top: `${12 + i * 32}%`, left: `${60 + i * 12}%`, pointerEvents: "none" }}>{ic}</div>)}
-                        <div style={{ position: "relative", zIndex: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                                <span style={{ ...fm, fontSize: 10, color: T.a, letterSpacing: ".1em" }}>Aug 2025 → Present</span>
-                                <span style={{ ...fm, fontSize: 9, color: T.a3, border: `1px solid ${T.a3}40`, padding: "2px 10px", borderRadius: 10, background: `${T.a3}10` }}>● CURRENT</span>
-                            </div>
-                            <h3 style={{ ...sf, fontSize: 24, fontWeight: 700, marginBottom: 5, color: T.t }}>Nordex SE</h3>
-                            <div style={{ ...fm, fontSize: 10, color: T.a, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 20 }}>Werkstudent · AI & Data Engineering · Hamburg</div>
-                            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-                                {["Built an end-to-end internal AI assistant using Azure AI Foundry — RAG pipeline over 1,690 documents with GPT-4o / GPT-5 and text-embedding-3-large",
-                                    "Engineered a custom tool router using rapidfuzz (3 algorithms, threshold 70/100) solving a core Azure AI Foundry autonomous tool-calling limitation",
-                                    "Ran a 29-question LLM evaluation pipeline (GPT-4o as judge) — recommended GPT-4o at 11× lower cost, 4× faster inference with only 0.2 quality delta",
-                                    "Delivered Streamlit chat UI, incremental vector store sync, 9 integrated tools, full technical docs & architecture diagrams"
-                                ].map((b, i) => <li key={i} style={{ ...fm, fontSize: 13, color: T.m, lineHeight: 1.8, paddingLeft: 20, position: "relative" }}><span style={{ position: "absolute", left: 0, color: T.a, fontSize: 11 }}>→</span>{b}</li>)}
-                            </ul>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                                {["Azure AI Foundry", "GPT-4o/GPT-5", "RAG", "Python 3.11", "Docker", "Streamlit", "Azure Databricks", "Azure DevOps"].map(t => (
-                                    <span key={t} style={{ ...fm, fontSize: 9, color: T.a, background: `${T.a}0e`, border: `1px solid ${T.a}25`, padding: "3px 10px", borderRadius: 8 }}>{t}</span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    <ExperienceShowcase T={T} dark={dark} />
                 </div>
             </section>
 
@@ -279,9 +306,7 @@ export default function App() {
                 <ProjectsBG T={T} />
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="03" title="Projects" T={T} />
-                    <div className="proj-grid">
-                        {PROJECTS.map((p, i) => <PCard key={p.id} p={p} T={T} i={i} />)}
-                    </div>
+                    <ProjectShowcase T={T} dark={dark} />
                 </div>
             </section>
 
@@ -289,7 +314,7 @@ export default function App() {
             <section id="skills" className="section" style={{ background: "transparent", position: "relative", overflow: "hidden", minHeight: "100vh" }}>
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 0 }}>
                     <SH n="04" title="Skills" T={T} />
-                    
+
                     <div className="rv" style={{ textAlign: "center", marginBottom: 24 }}>
                         <p style={{ ...sf, fontSize: "clamp(18px,2.5vw,28px)", fontWeight: 600, color: T.t, marginBottom: 8, lineHeight: 1.3 }}>
                             A constellation of <span style={{ color: T.a, fontStyle: "italic" }}>26 skills</span> across 4 domains
@@ -299,7 +324,7 @@ export default function App() {
                         </p>
                     </div>
                 </div>
-                
+
                 <div className="rv2">
                     <SkillsUniverse T={T} />
                 </div>

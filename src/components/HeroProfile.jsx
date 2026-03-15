@@ -32,7 +32,7 @@ export default function HeroProfile({ T, dark }) {
                 boxShadow: `0 20px 50px rgba(0,0,0,0.4)`
             }}>
                 <img 
-                    src="/profile-new.jpg"
+                    src="/images/profile-suit.jpg"
                     alt="Farhan Shahriyar"
                     style={{ 
                         width: "115%", // scaled slightly up so corners don't peek out while morphing

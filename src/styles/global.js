@@ -22,13 +22,13 @@ body{overflow-x:hidden;cursor:none;transition:background .4s,color .4s;font-fami
 ::-webkit-scrollbar-thumb{background:var(--ca);border-radius:2px}
 ::-webkit-scrollbar-track{background:var(--cbg)}
 
-#cd{position:fixed;top:0;left:0;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--ca);pointer-events:none;z-index:10000;box-shadow:0 0 12px var(--ca);transition:width .2s,height .2s,margin .2s,background .2s,box-shadow .2s;will-change:transform;opacity:0}
-#cr{position:fixed;top:0;left:0;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;border:1px solid var(--ca);pointer-events:none;z-index:9999;transition:width .3s,height .3s,margin .3s,background .4s,border-color .4s;will-change:transform;opacity:0}
-.satellite{position:absolute;top:50%;left:-4px;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:var(--ca);box-shadow:0 0 8px var(--ca)}
+#cd{position:fixed;top:0;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ca);pointer-events:none;z-index:10000;box-shadow:0 0 12px var(--ca);will-change:transform;opacity:0;transition:opacity .3s}
+#cr{position:fixed;top:0;left:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:1px solid var(--ca);pointer-events:none;z-index:9999;will-change:transform;opacity:0}
+.cr-inner{width:86%;height:86%;border-radius:50%;border:0.5px dashed var(--ca);opacity:0.25;position:absolute;top:7%;left:7%;animation:spin 12s linear infinite}
 body.cursor-active #cd{opacity:1}
-body.cursor-active #cr{opacity:.5}
-body.ch #cd{width:8px;height:8px;margin:-4px 0 0 -4px;background:var(--cbg);box-shadow:0 0 0 2px var(--ca)}
-body.ch #cr{width:64px;height:64px;margin:-32px 0 0 -32px;opacity:.2;border:1px solid var(--ca);background:var(--ca2)}
+body.cursor-active #cr{opacity:.35}
+body.ch #cd{width:16px;height:16px;margin:-8px 0 0 -8px;background:var(--ca)20;box-shadow:0 0 0 1px var(--ca);backdrop-filter:blur(2px)}
+body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5px solid var(--ca);background:var(--ca)08}
 @media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}}
 @media(max-width:768px){body{cursor:auto}#cd,#cr{display:none}}
 
@@ -47,6 +47,8 @@ body.ch #cr{width:64px;height:64px;margin:-32px 0 0 -32px;opacity:.2;border:1px 
 @keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 @keyframes borderGlow{0%,100%{border-color:var(--ca)}50%{border-color:var(--ca2)}}
 @keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-33.33%)}}
+@keyframes drawPath{to{stroke-dashoffset:0}}
 @keyframes lbEnter{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes dnaFloat{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-20px) rotate(180deg)}100%{transform:translateY(0) rotate(360deg)}}
 @keyframes dataStream{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
@@ -124,17 +126,25 @@ body.ch #cr{width:64px;height:64px;margin:-32px 0 0 -32px;opacity:.2;border:1px 
   gap: 8px;
 }
 .snav-item {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  transition: all .3s;
+  transition: all .3s cubic-bezier(.16,1,.3,1);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+.snav-item:hover {
+  border-radius: 16px;
+  transform: scale(1.1);
+}
+.mobile-nav-toggle:hover {
+  filter: brightness(1.2);
+  transform: rotate(45deg) scale(1.05)!important;
 }
 
 /* Responsive */
@@ -160,6 +170,8 @@ body.ch #cr{width:64px;height:64px;margin:-32px 0 0 -32px;opacity:.2;border:1px 
   .contact-grid{grid-template-columns:1fr!important}
   .hero-cols{flex-direction:column!important;align-items:center!important;text-align:center}
   .hero-chips,.hero-stats,.hero-cta{justify-content:center!important}
+  .desktop-nav{display:none!important}
+  .mobile-nav-toggle{display:flex!important}
 }
 @media(max-width:768px){
   .sec-inner{padding:64px 20px}
