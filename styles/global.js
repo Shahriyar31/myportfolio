@@ -165,6 +165,22 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
   .snav-item{width:32px;height:32px}
 }
 
+/* ── Firefox gradient text fix ── */
+@-moz-document url-prefix() {
+  .sec-title { 
+    background: none !important; 
+    color: var(--ct) !important; 
+    -webkit-text-fill-color: unset !important;
+  }
+}
+
+@-moz-document url-prefix() {
+  [style*="-webkit-text-fill-color"] {
+    -webkit-text-fill-color: unset !important;
+    color: inherit !important;
+  }
+}
+
 /* ── Light theme text gradient fix for Firefox ── */
 @supports not (-webkit-background-clip: text) {
   .sec-title { color: var(--ct) !important; background: none !important; -webkit-text-fill-color: unset !important; }

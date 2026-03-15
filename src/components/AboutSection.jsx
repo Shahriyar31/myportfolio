@@ -160,7 +160,7 @@ function BioWidget({ T, dark }) {
                 </div>
                 <h2 style={{ margin: 0, lineHeight: 0.9, letterSpacing: "-.04em", fontSize: "clamp(30px,4vw,58px)", fontWeight: 900 }}>
                     <span style={{ ...sf, display: "block", color: T.t }}>I build</span>
-                    <span style={{ ...sf, display: "inline-block", background: `linear-gradient(135deg, ${T.a} 0%, ${T.a2} 45%, ${T.a3} 90%)`, backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundSize: "200%", animation: "shimmer 4s linear infinite" }}>AI that works</span>
+                    <span style={{ ...sf, display: "inline-block", background: `linear-gradient(135deg, ${T.a} 0%, ${T.a2} 45%, ${T.a3} 90%)`, backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent", backgroundSize: "200%", animation: "shimmer 4s linear infinite" }}>AI that works</span>
                     <span style={{ ...sf, display: "block", color: T.t }}>in production.</span>
                 </h2>
             </div>
