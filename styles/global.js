@@ -150,6 +150,7 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
   .hero-section{padding:80px 20px 40px!important}
   .hero-name{font-size:clamp(40px,12vw,72px)!important}
   .proj-grid{grid-template-columns:1fr!important}
+  section, .section { overflow:hidden !important; }
   .snav-container{top:auto;bottom:24px;right:50%;transform:translateX(50%);flex-direction:row;gap:12px;background:var(--cbg);padding:10px 16px;border-radius:40px;border:1px solid var(--cbr);box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:500}
 
   /* Disable heavy animations on mobile */
