@@ -121,6 +121,13 @@ export default function JourneyTimeline({ T, dark }) {
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
     const isDark = T.bg === "#1a1a22";
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
 
     const steps = [
         { year: "2018", loc: "West Bengal, India 🇮🇳", title: "B.Tech Computer Science", desc: "My journey begins here. I started software engineering at Coochbehar GEC, diving deep into computer science fundamentals. Over four years, I built a strong foundation, learned to write clean algorithmic code, and graduated with honors (8.73/10 CGPA). This was the spark that ignited my passion for technology.", color: "#097C87", icon: "🎓" },
@@ -236,18 +243,18 @@ export default function JourneyTimeline({ T, dark }) {
     };
 
     return (
-        <div 
-            ref={containerRef} 
+        <div
+            ref={containerRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => { mouseRef.current.targetX = -1000; mouseRef.current.targetY = -1000; }}
-            style={{ 
-                position: "relative", 
-                width: "100%", 
-                minHeight: "1000px", 
-                perspective: "2000px", 
+            style={{
+                position: "relative",
+                width: "100%",
+                minHeight: isMobile ? "auto" : "1000px",
+                perspective: isMobile ? "none" : "2000px",
                 overflow: "hidden",
-                cursor: "crosshair",
-                padding: "100px 0"
+                cursor: isMobile ? "default" : "crosshair",
+                padding: isMobile ? "40px 0" : "100px 0"
             }}
         >
             {/* Interactive Background Canvas */}
@@ -265,44 +272,42 @@ export default function JourneyTimeline({ T, dark }) {
                     
                     // Staggering alignment left/right/center
                     const alignments = ['flex-start', 'flex-end', 'center', 'flex-start', 'flex-end'];
-                    const aligns = alignments[idx % 5];
-                    
+                    const aligns = isMobile ? 'center' : alignments[idx % 5];
+
                     return (
-                        <div 
+                        <div
                             key={idx}
                             style={{
                                 width: "100%",
                                 display: "flex",
                                 justifyContent: aligns,
-                                padding: "0 5%",
-                                perspective: "1000px"
+                                padding: isMobile ? "0 8px" : "0 5%",
+                                perspective: isMobile ? "none" : "1000px"
                             }}
                         >
-                            <div 
+                            <div
                                 ref={el => { cardRefs.current[idx] = { current: el }; }}
-                                onMouseEnter={() => setHoverIdx(idx)}
-                                onMouseLeave={() => setHoverIdx(null)}
+                                onMouseEnter={() => !isMobile && setHoverIdx(idx)}
+                                onMouseLeave={() => !isMobile && setHoverIdx(null)}
+                                className="journey-card"
                                 style={{
                                     position: "relative",
-                                    width: "clamp(300px, 45vw, 600px)",
+                                    width: isMobile ? "100%" : "clamp(300px, 45vw, 600px)",
                                     background: isDark ? "rgba(20,20,30,0.4)" : "rgba(255,255,255,0.4)",
                                     backdropFilter: "blur(20px)",
                                     WebkitBackdropFilter: "blur(20px)",
                                     border: `1px solid ${isHovered ? step.color : T.border}`,
                                     borderRadius: "24px",
-                                    padding: "40px",
+                                    padding: isMobile ? "24px 20px" : "40px",
                                     transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-                                    transformStyle: "preserve-3d",
-                                    
-                                    // The mind-blowing 3D shift:
-                                    // When hovered, it pops OUT in Z-space and glows.
-                                    // When NOT hovered, but something else IS, it pushes BACK and blurs (Depth of Field).
-                                    transform: isHovered 
-                                        ? "translateZ(80px) scale(1.05) translateY(-15px)" 
-                                        : (isOtherHovered ? "translateZ(-150px) scale(0.9) translateY(10px)" : "translateZ(0) scale(1)"),
-                                    
-                                    opacity: isOtherHovered ? 0.3 : 1,
-                                    filter: isOtherHovered ? "blur(8px) grayscale(50%)" : "blur(0px) grayscale(0%)",
+                                    transformStyle: isMobile ? "flat" : "preserve-3d",
+
+                                    transform: isMobile ? "none" : (isHovered
+                                        ? "translateZ(80px) scale(1.05) translateY(-15px)"
+                                        : (isOtherHovered ? "translateZ(-150px) scale(0.9) translateY(10px)" : "translateZ(0) scale(1)")),
+
+                                    opacity: !isMobile && isOtherHovered ? 0.3 : 1,
+                                    filter: !isMobile && isOtherHovered ? "blur(8px) grayscale(50%)" : "blur(0px) grayscale(0%)",
                                     boxShadow: isHovered 
                                         ? `0 50px 100px -20px rgba(0,0,0,0.5), 0 0 50px -10px ${step.color}60, inset 0 0 20px ${step.color}20` 
                                         : `0 20px 40px rgba(0,0,0,0.1)`,
@@ -312,10 +317,10 @@ export default function JourneyTimeline({ T, dark }) {
                                 <div style={{
                                     ...sf,
                                     position: "absolute",
-                                    top: "-30px",
-                                    right: aligns === 'flex-start' ? "-20px" : "auto",
-                                    left: aligns === 'flex-end' ? "-20px" : "auto",
-                                    fontSize: "140px",
+                                    top: isMobile ? "-10px" : "-30px",
+                                    right: !isMobile && aligns === 'flex-start' ? "-20px" : (isMobile ? "-10px" : "auto"),
+                                    left: !isMobile && aligns === 'flex-end' ? "-20px" : "auto",
+                                    fontSize: isMobile ? "80px" : "140px",
                                     fontWeight: 900,
                                     color: step.color,
                                     opacity: 0.08,
@@ -328,10 +333,10 @@ export default function JourneyTimeline({ T, dark }) {
                                 </div>
 
                                 {/* Content Layer - Pops OUT towards user */}
-                                <div style={{ 
-                                    position: "relative", 
+                                <div style={{
+                                    position: "relative",
                                     zIndex: 2,
-                                    transform: isHovered ? "translateZ(40px)" : "translateZ(0)",
+                                    transform: !isMobile && isHovered ? "translateZ(40px)" : "translateZ(0)",
                                     transition: "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
                                 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 24 }}>
@@ -345,7 +350,7 @@ export default function JourneyTimeline({ T, dark }) {
                                         </div>
                                         <div>
                                             <span style={{ ...fm, fontSize: 12, color: step.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>{step.year} — {step.loc}</span>
-                                            <h3 style={{ ...sf, fontSize: 32, fontWeight: 700, color: T.t, marginTop: 4 }}>{step.title}</h3>
+                                            <h3 style={{ ...sf, fontSize: isMobile ? 22 : 32, fontWeight: 700, color: T.t, marginTop: 4 }}>{step.title}</h3>
                                         </div>
                                     </div>
                                     <p style={{ fontSize: 16, color: T.m, lineHeight: 1.8 }}>

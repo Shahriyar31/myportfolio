@@ -17,7 +17,7 @@ GS.textContent = `
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{overflow-x:hidden;cursor:none;transition:background .4s,color .4s;font-family:'Inter',sans-serif}
+body{overflow-x:hidden;cursor:none;transition:background .4s,color .4s;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--ca);border-radius:2px}
 ::-webkit-scrollbar-track{background:var(--cbg)}
@@ -29,8 +29,8 @@ body.cursor-active #cd{opacity:1}
 body.cursor-active #cr{opacity:.35}
 body.ch #cd{width:16px;height:16px;margin:-8px 0 0 -8px;background:var(--ca)20;box-shadow:0 0 0 1px var(--ca);backdrop-filter:blur(2px)}
 body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5px solid var(--ca);background:var(--ca)08}
-@media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}}
-@media(max-width:768px){body{cursor:auto}#cd,#cr{display:none}}
+@media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}button,a,input,textarea,select,[role="button"]{cursor:pointer!important}}
+@media(max-width:768px){body{cursor:auto}#cd,#cr{display:none}button,a,input,textarea,select,[role="button"]{cursor:pointer!important}}
 
 /* Animations */
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -178,10 +178,11 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
   .hero-section{padding:80px 20px 40px!important}
   .hero-name{font-size:clamp(40px,12vw,72px)!important}
   .proj-grid{grid-template-columns:1fr!important}
-  
+  .journey-card{width:calc(100% - 16px)!important;min-width:0!important}
+
   .snav-container {
     top: auto;
-    bottom: 24px;
+    bottom: max(24px, env(safe-area-inset-bottom, 24px));
     right: 50%;
     transform: translateX(50%);
     flex-direction: row;
@@ -193,13 +194,17 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     z-index: 500;
   }
+
+  /* Lightbox mobile */
+  .lb-image{max-width:95vw!important;max-height:65vh!important}
+  .lb-thumb{width:44px!important;height:32px!important}
 }
 @media(max-width:480px){
   .sec-inner{padding:48px 16px}
   .edu-wrap{padding-left:36px!important}
   .edu-dot{left:6px!important}
   .proj-grid{grid-template-columns:1fr!important}
-  
+
   .snav-container {
     gap: 6px;
     padding: 8px 12px;
@@ -210,8 +215,19 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
     width: 32px;
     height: 32px;
   }
+
+  /* Mobile menu text size */
+  .mobile-menu-link{font-size:clamp(28px,9vw,40px)!important}
+
+  /* Mobile footer */
+  .site-footer{padding:20px 16px!important;flex-direction:column!important;text-align:center!important;gap:8px!important}
 }
-@media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}}
+@media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}button,a,input,textarea,select,[role="button"]{cursor:pointer!important}}
+
+/* Safe area support for notched devices */
+@supports(padding: max(0px)){
+  nav{padding-left:max(20px,env(safe-area-inset-left))!important;padding-right:max(20px,env(safe-area-inset-right))!important}
+}
 
 /* Page-level transitions */
 .section {

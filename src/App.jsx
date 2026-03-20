@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./styles/global.js";
 import { PROJECTS, SKILLS, DARK, LIGHT } from "./data/constants";
 import LoadingScreen from "./components/LoadingScreen";
@@ -43,6 +43,7 @@ export default function App() {
     const [lightbox, setLightbox] = useState(false); const [lbIdx, setLbIdx] = useState(0);
     const [loading, setLoading] = useState(true);
     const [resumeOpen, setResumeOpen] = useState(false);
+    const lbTouchStart = useRef(null);
 
     // Responsive state
     const [isMobile, setIsMobile] = useState(false);
@@ -62,12 +63,19 @@ export default function App() {
         const r = document.documentElement;
         r.style.setProperty("--ca", T.a); r.style.setProperty("--ca2", T.a2); r.style.setProperty("--ct", T.t);
         r.style.setProperty("--cm", T.m); r.style.setProperty("--cbg", T.bg); r.style.setProperty("--cbr", T.border);
+        r.style.colorScheme = dark ? "dark" : "light";
         document.body.style.background = T.bg; document.body.style.color = T.t;
+
+        // Update theme-color meta for mobile browser UI
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]:not([media])') || (() => {
+            const m = document.createElement("meta"); m.name = "theme-color"; document.head.appendChild(m); return m;
+        })();
+        themeColorMeta.content = T.bg;
 
         // Prevent body scroll when mobile menu is open
         if (menuOpen) document.body.style.overflow = "hidden";
-        else document.body.style.overflow = "auto";
-    }, [T, menuOpen]);
+        else document.body.style.overflow = "";
+    }, [T, dark, menuOpen]);
 
     useEffect(() => {
         const obs = new IntersectionObserver(es => {
@@ -100,11 +108,11 @@ export default function App() {
 
             {/* Resume Preview Modal */}
             {resumeOpen && (
-                <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "fadeUp 0.3s ease", padding: "10px", paddingBottom: "30px" }}>
-                    <div style={{ width: "100%", maxWidth: 1000, display: "flex", justifyContent: "flex-end", paddingBottom: 16 }}>
+                <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "fadeUp 0.3s ease", padding: isMobile ? "8px" : "10px", paddingBottom: isMobile ? "env(safe-area-inset-bottom, 16px)" : "30px" }}>
+                    <div style={{ width: "100%", maxWidth: 1000, display: "flex", justifyContent: "flex-end", paddingBottom: 12 }}>
                         <button onClick={() => setResumeOpen(false)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "8px 24px", borderRadius: 20, ...fm, fontSize: 12, cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = T.a} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}>✕ CLOSE</button>
                     </div>
-                    <iframe src="https://shahriyar31.github.io/Farhan-Shahriyar.github.io/Farhan_Shahriyar_Resume.pdf" style={{ width: "100%", maxWidth: 1000, height: "80vh", borderRadius: 12, border: `1px solid ${T.border}`, background: "white" }} />
+                    <iframe src="https://shahriyar31.github.io/Farhan-Shahriyar.github.io/Farhan_Shahriyar_Resume.pdf" style={{ width: "100%", maxWidth: 1000, height: isMobile ? "75vh" : "80vh", borderRadius: 12, border: `1px solid ${T.border}`, background: "white" }} />
                 </div>
             )}
 
@@ -138,7 +146,7 @@ export default function App() {
                 ) : (
                     <div style={{ display: "flex", alignItems: "center", gap: 16, zIndex: 300 }}>
                         <button onClick={() => setDark(d => !d)}
-                            style={{ width: 36, height: 36, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, color: T.t, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, transition: "all .2s" }}>
+                            style={{ width: 36, height: 36, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, color: T.t, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, transition: "all .2s", cursor: "pointer" }}>
                             {dark ? "☀" : "🌙"}
                         </button>
 
@@ -186,13 +194,15 @@ export default function App() {
             }}>
                 {[["about", "About"], ["experience", "Experience"], ["projects", "Projects"], ["skills", "Skills"], ["education", "Education"], ["contact", "Contact"]].map(([id, label], i) => (
                     <a key={id} href={`#${id}`} onClick={e => { scrollTo(id, e); setMenuOpen(false); }}
+                        className="mobile-menu-link"
                         style={{
                             ...sf, fontSize: "40px", fontWeight: 800,
                             color: active === id ? T.a : T.t,
                             textDecoration: "none",
                             opacity: menuOpen ? 1 : 0,
                             transform: menuOpen ? "translateY(0)" : "translateY(-20px)",
-                            transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.1 + (i * 0.05) : 0}s`
+                            transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.1 + (i * 0.05) : 0}s`,
+                            cursor: "pointer"
                         }}>
                         {label}
                     </a>
@@ -204,7 +214,8 @@ export default function App() {
                         color: T.bg, background: T.a, padding: "16px 40px", borderRadius: 30, fontWeight: 700, border: "none",
                         opacity: menuOpen ? 1 : 0,
                         transform: menuOpen ? "translateY(0)" : "translateY(-20px)",
-                        transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.4 : 0}s`
+                        transition: `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${menuOpen ? 0.4 : 0}s`,
+                        cursor: "pointer"
                     }}>
                     View CV
                 </button>
@@ -386,26 +397,45 @@ export default function App() {
                 </div>
 
                 {lightbox && (
-                    <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "none", backdropFilter: "blur(12px)", animation: "fadeUp .2s ease" }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to bottom,rgba(0,0,0,.6),transparent)" }}>
+                    <div
+                        style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: isMobile ? "default" : "none", backdropFilter: "blur(12px)", animation: "fadeUp .2s ease" }}
+                        onTouchStart={e => { lbTouchStart.current = e.touches[0].clientX; }}
+                        onTouchEnd={e => {
+                            if (lbTouchStart.current === null) return;
+                            const dx = e.changedTouches[0].clientX - lbTouchStart.current;
+                            if (dx < -50) setLbIdx(i => (i + 1) % 20);
+                            else if (dx > 50) setLbIdx(i => (i - 1 + 20) % 20);
+                            lbTouchStart.current = null;
+                        }}
+                    >
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: isMobile ? "16px 16px" : "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to bottom,rgba(0,0,0,.6),transparent)" }}>
                             <span style={{ ...fm, fontSize: 10, color: "rgba(255,255,255,.5)", letterSpacing: ".12em" }}>{lbIdx + 1} / 20</span>
-                            <button onClick={() => setLightbox(false)} style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", color: "white", cursor: "none", padding: "8px 16px", borderRadius: 20, ...fm, fontSize: 11, letterSpacing: ".08em", backdropFilter: "blur(8px)" }}>✕ CLOSE</button>
+                            <button onClick={() => setLightbox(false)} style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", color: "white", cursor: "pointer", padding: "8px 16px", borderRadius: 20, ...fm, fontSize: 11, letterSpacing: ".08em", backdropFilter: "blur(8px)" }}>✕ CLOSE</button>
                         </div>
-                        <img key={lbIdx} src={`https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/photo${lbIdx + 1}.jpg`} alt="" style={{ maxWidth: "80vw", maxHeight: "78vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 40px 100px rgba(0,0,0,.9)", animation: "lbEnter .35s cubic-bezier(.16,1,.3,1)" }} />
-                        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 24, cursor: "none" }} onClick={() => setLbIdx(i => (i - 1 + 20) % 20)}>
+                        <img key={lbIdx} src={`https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/photo${lbIdx + 1}.jpg`} alt="" className="lb-image" style={{ maxWidth: "80vw", maxHeight: "78vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 40px 100px rgba(0,0,0,.9)", animation: "lbEnter .35s cubic-bezier(.16,1,.3,1)" }} />
+                        {!isMobile && <>
+                        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 24, cursor: "pointer" }} onClick={() => setLbIdx(i => (i - 1 + 20) % 20)}>
                             <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "white"; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.color = "rgba(255,255,255,.7)"; }}>←</div>
                         </div>
-                        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 24, cursor: "none" }} onClick={() => setLbIdx(i => (i + 1) % 20)}>
+                        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 24, cursor: "pointer" }} onClick={() => setLbIdx(i => (i + 1) % 20)}>
                             <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "white"; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.color = "rgba(255,255,255,.7)"; }}>→</div>
                         </div>
+                        </>}
+                        {isMobile && (
+                            <div style={{ position: "absolute", bottom: 60, display: "flex", gap: 24, alignItems: "center" }}>
+                                <button onClick={() => setLbIdx(i => (i - 1 + 20) % 20)} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.2)", borderRadius: "50%", width: 48, height: 48, fontSize: 20, color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
+                                <button onClick={() => setLbIdx(i => (i + 1) % 20)} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.2)", borderRadius: "50%", width: 48, height: 48, fontSize: 20, color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>→</button>
+                            </div>
+                        )}
                         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px", background: "linear-gradient(to top,rgba(0,0,0,.7),transparent)", display: "flex", gap: 8, justifyContent: "center", overflowX: "auto", scrollbarWidth: "none" }}>
                             {Array.from({ length: 20 }, (_, i) => (
                                 <div key={i} onClick={e => { e.stopPropagation(); setLbIdx(i); }}
-                                    style={{ width: 56, height: 40, flexShrink: 0, borderRadius: 4, overflow: "hidden", border: lbIdx === i ? "2px solid white" : "2px solid rgba(255,255,255,.2)", opacity: lbIdx === i ? 1 : .55, transition: "all .2s", cursor: "none" }}>
+                                    className="lb-thumb"
+                                    style={{ width: 56, height: 40, flexShrink: 0, borderRadius: 4, overflow: "hidden", border: lbIdx === i ? "2px solid white" : "2px solid rgba(255,255,255,.2)", opacity: lbIdx === i ? 1 : .55, transition: "all .2s", cursor: "pointer" }}>
                                     <img src={`https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/photo${i + 1}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                                 </div>
                             ))}
@@ -425,7 +455,7 @@ export default function App() {
                 </div>
             </section>
 
-            <footer style={{ padding: "28px 56px", borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", ...fm, fontSize: 10, color: T.m, flexWrap: "wrap", gap: 12 }}>
+            <footer className="site-footer" style={{ padding: isMobile ? "20px 16px" : "28px 56px", borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", ...fm, fontSize: 10, color: T.m, flexWrap: "wrap", gap: 12 }}>
                 <span>© 2025 <span style={{ color: T.a }}>Farhan Shahriyar</span></span>
                 <span>Designed & engineered in Hamburg 🇩🇪</span>
                 <span>MSc Data Science · TUHH</span>

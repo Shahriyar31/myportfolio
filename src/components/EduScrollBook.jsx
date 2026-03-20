@@ -23,14 +23,15 @@ export default function EduScrollBook({ T }) {
                 ← {isMobile ? "Tap" : "Hover"} panels to shift timelines →
             </div>
             
-            <div style={{ 
-                display: "flex", 
+            <div style={{
+                display: "flex",
                 flexDirection: isMobile ? "column" : "row",
-                width: "100%", 
-                maxWidth: "1400px", 
-                margin: "0 auto", 
-                height: isMobile ? "900px" : "750px",
-                borderRadius: "32px",
+                width: "100%",
+                maxWidth: "1400px",
+                margin: "0 auto",
+                height: isMobile ? "auto" : "750px",
+                minHeight: isMobile ? "auto" : "750px",
+                borderRadius: isMobile ? "20px" : "32px",
                 overflow: "hidden",
                 border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
                 boxShadow: dark ? "0 40px 100px rgba(0,0,0,0.5)" : "0 40px 100px rgba(0,0,0,0.08)",
@@ -42,14 +43,15 @@ export default function EduScrollBook({ T }) {
                     const ac = T[ch.accent];
                     
                     return (
-                        <div 
+                        <div
                             key={i}
                             onMouseEnter={() => !isMobile && setHoverIndex(i)}
                             onClick={() => isMobile && setHoverIndex(i)}
                             style={{
                                 flex: isActive ? "1 1 80%" : "1 1 20%",
+                                minHeight: isMobile ? (isActive ? "520px" : "64px") : "auto",
                                 position: "relative",
-                                transition: "flex 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.8s",
+                                transition: "flex 0.8s cubic-bezier(0.16, 1, 0.3, 1), min-height 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.8s",
                                 background: isActive 
                                     ? (dark ? `linear-gradient(135deg, rgba(20,20,30,0.9), ${ac}15)` : `linear-gradient(135deg, rgba(255,255,255,0.95), ${ac}15)`)
                                     : (dark ? "rgba(0,0,0,0.2)" : "rgba(240,240,240,0.5)"),
@@ -66,7 +68,7 @@ export default function EduScrollBook({ T }) {
                                 top: isActive ? "10%" : "50%",
                                 transform: isActive ? "none" : "translate(50%, -50%)",
                                 ...sf,
-                                fontSize: isActive ? "clamp(200px, 20vw, 360px)" : "120px",
+                                fontSize: isActive ? (isMobile ? "clamp(80px, 30vw, 160px)" : "clamp(200px, 20vw, 360px)") : (isMobile ? "60px" : "120px"),
                                 fontWeight: 900,
                                 color: ac,
                                 opacity: isActive ? 0.04 : 0.08,
@@ -81,22 +83,24 @@ export default function EduScrollBook({ T }) {
                             <div style={{
                                 position: "absolute",
                                 opacity: isActive ? 0 : 1,
-                                transform: isActive 
-                                    ? (isMobile ? "translate(-50%, -100px)" : "translate(-100px, -50%) rotate(-90deg)") 
-                                    : (isMobile ? "translate(-50%, -50%)" : "translate(-50%, -50%) rotate(-90deg)"),
-                                left: "50%",
-                                top: "50%",
+                                transform: isActive
+                                    ? (isMobile ? "translateY(-30px)" : "translate(-100px, -50%) rotate(-90deg)")
+                                    : (isMobile ? "translateY(-50%)" : "translate(-50%, -50%) rotate(-90deg)"),
+                                left: isMobile ? "0" : "50%",
+                                top: isMobile ? "50%" : "50%",
+                                right: isMobile ? "0" : "auto",
+                                padding: isMobile ? "0 20px" : "0",
                                 transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-                                whiteSpace: "nowrap",
+                                whiteSpace: isMobile ? "normal" : "nowrap",
                                 pointerEvents: "none",
                                 display: "flex",
                                 alignItems: "center",
-                                gap: "24px",
+                                gap: "16px",
                                 zIndex: 2
                             }}>
-                                <span style={{ ...sf, fontSize: isMobile ? 24 : 32, fontWeight: 800, color: T.t, letterSpacing: "2px" }}>{ch.location.split(',')[0]}</span>
-                                <span style={{ width: "40px", height: "1px", background: ac, opacity: 0.5 }} />
-                                <span style={{ ...fm, fontSize: 14, color: ac, letterSpacing: ".2em" }}>{ch.year}</span>
+                                <span style={{ ...sf, fontSize: isMobile ? 18 : 32, fontWeight: 800, color: T.t, letterSpacing: "1px" }}>{ch.location.split(',')[0]}</span>
+                                <span style={{ width: "30px", height: "1px", background: ac, opacity: 0.5, flexShrink: 0 }} />
+                                <span style={{ ...fm, fontSize: 12, color: ac, letterSpacing: ".2em" }}>{ch.year}</span>
                             </div>
 
                             {/* Active State: Full expanded view */}

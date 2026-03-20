@@ -3,15 +3,20 @@ import { useState, useRef, useEffect } from "react";
 export default function ContactTerminal({ T, dark }) {
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
-    
+
     const [msg, setMsg] = useState("");
     const [email, setEmail] = useState("");
     const [focus, setFocus] = useState(null);
     const [sent, setSent] = useState(false);
     const terminalRef = useRef(null);
     const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
-    
-    const isMobile = window.innerWidth <= 768;
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
 
     const onMove = (e) => {
         if (!terminalRef.current || isMobile) return;
@@ -66,7 +71,7 @@ export default function ContactTerminal({ T, dark }) {
                                 background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
                                 border: `1px solid ${T.border}`,
                                 textDecoration: "none", transition: "all .3s ease",
-                                cursor: "none"
+                                cursor: "pointer"
                             }}
                             onMouseEnter={e => { e.currentTarget.style.background = `${T.a}10`; e.currentTarget.style.borderColor = T.a; e.currentTarget.style.transform = "translateX(8px)"; }}
                             onMouseLeave={e => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateX(0)"; }}>
@@ -134,28 +139,28 @@ export default function ContactTerminal({ T, dark }) {
                                 border: `1px solid ${focus === 'email' ? T.a : T.border}`,
                                 color: T.t, ...fm, fontSize: 13,
                                 outline: "none", transition: "all 0.3s",
-                                cursor: "none"
-                            }} 
+                                cursor: "text"
+                            }}
                         />
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         <label style={{ ...fm, fontSize: 10, color: focus === 'msg' ? T.t : T.m, transition: "color 0.3s" }}>PAYLOAD / MESSAGE</label>
-                        <textarea 
+                        <textarea
                             value={msg}
                             onChange={e => setMsg(e.target.value)}
                             onFocus={() => setFocus('msg')}
                             onBlur={() => setFocus(null)}
                             placeholder="Initialize transmission..."
                             rows={4}
-                            style={{ 
-                                width: "100%", padding: "16px", borderRadius: 12, 
+                            style={{
+                                width: "100%", padding: "16px", borderRadius: 12,
                                 background: focus === 'msg' ? `${T.a}08` : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
                                 border: `1px solid ${focus === 'msg' ? T.a : T.border}`,
                                 color: T.t, ...fm, fontSize: 13, resize: "none",
                                 outline: "none", transition: "all 0.3s",
-                                cursor: "none"
-                            }} 
+                                cursor: "text"
+                            }}
                         />
                     </div>
 
@@ -166,7 +171,7 @@ export default function ContactTerminal({ T, dark }) {
                             ...fm, fontSize: 12, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase",
                             padding: "18px", borderRadius: 12, width: "100%",
                             background: sent ? "#10b981" : T.t,
-                            color: T.bg, border: "none", cursor: "none",
+                            color: T.bg, border: "none", cursor: "pointer",
                             opacity: (!msg || !email) ? 0.5 : 1,
                             transition: "all 0.3s ease",
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 8
