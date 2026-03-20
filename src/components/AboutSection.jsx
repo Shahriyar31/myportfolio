@@ -201,7 +201,8 @@ function OriginWidget({ T, dark }) {
             }
             if (!mapRef.current) return;
 
-            const map = L.map(mapRef.current, { center: [40, 50], zoom: 3, zoomControl: false, attributionControl: false, scrollWheelZoom: false, dragging: true, doubleClickZoom: false });
+            const touchDevice = window.matchMedia("(hover: none)").matches;
+            const map = L.map(mapRef.current, { center: [40, 50], zoom: 3, zoomControl: false, attributionControl: false, scrollWheelZoom: false, dragging: !touchDevice, doubleClickZoom: false, tap: false });
             mapInstanceRef.current = map;
 
             L.tileLayer(dark ? "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);

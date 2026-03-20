@@ -63,7 +63,11 @@ export default function App() {
         const r = document.documentElement;
         r.style.setProperty("--ca", T.a); r.style.setProperty("--ca2", T.a2); r.style.setProperty("--ct", T.t);
         r.style.setProperty("--cm", T.m); r.style.setProperty("--cbg", T.bg); r.style.setProperty("--cbr", T.border);
+        r.style.setProperty("--ca3", T.a3); r.style.setProperty("--cdim", T.dim);
         r.style.colorScheme = dark ? "dark" : "light";
+        // Set background on BOTH html and body — some browsers (iOS Safari) paint viewport using html, not body
+        r.style.background = T.bg;
+        r.style.color = T.t;
         document.body.style.background = T.bg; document.body.style.color = T.t;
 
         // Update theme-color meta for mobile browser UI

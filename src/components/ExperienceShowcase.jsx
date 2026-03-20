@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const EXP_DATA = [
     {
@@ -48,7 +48,7 @@ const EXP_DATA = [
     }
 ];
 
-function StickyCard({ item, T, dark, index, total }) {
+function StickyCard({ item, T, dark, index, total, isMobile }) {
     const fm = { fontFamily: "'JetBrains Mono',monospace" };
     const sf = { fontFamily: "'Playfair Display',serif" };
     const cColor = T[item.typeColor];
@@ -65,13 +65,13 @@ function StickyCard({ item, T, dark, index, total }) {
 
     return (
         <div style={{
-            position: "sticky",
-            top: `calc(120px + ${index * 40}px)`,
+            position: isMobile ? "relative" : "sticky",
+            top: isMobile ? "auto" : `calc(120px + ${index * 40}px)`,
             width: "100%",
-            marginBottom: index === total - 1 ? 0 : "40px",
+            marginBottom: index === total - 1 ? 0 : (isMobile ? "16px" : "40px"),
             zIndex: index + 1
         }}>
-            <div 
+            <div
                 ref={cardRef}
                 onMouseMove={onMove}
                 onMouseEnter={() => setHov(true)}
@@ -83,17 +83,18 @@ function StickyCard({ item, T, dark, index, total }) {
                     display: "flex",
                     gap: "64px",
                     padding: "64px",
-                    borderRadius: "32px",
-                    background: dark ? "rgba(10, 10, 16, 0.45)" : "rgba(255, 255, 255, 0.85)",
+                    borderRadius: isMobile ? "20px" : "32px",
+                    // Solid fallback first, then override with semi-transparent + blur for supporting browsers
+                    background: dark ? "rgba(14, 14, 22, 0.96)" : "rgba(255, 255, 255, 0.96)",
                     backdropFilter: "blur(32px)",
                     WebkitBackdropFilter: "blur(32px)",
                     border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`,
                     borderTop: `1px solid ${dark ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,1)"}`,
                     boxShadow: dark ? "0 40px 100px rgba(0,0,0,0.8)" : "0 40px 100px rgba(0,0,0,0.08)",
                     overflow: "hidden",
-                    cursor: "none",
+                    cursor: "default",
                     transition: "transform 0.5s cubic-bezier(0.16,1,0.3,1)",
-                    transform: hov ? "translateY(-4px)" : "translateY(0)"
+                    transform: hov && !isMobile ? "translateY(-4px)" : "translateY(0)"
                 }}
             >
                 {/* Spotlight Cursor Glow */}
@@ -150,8 +151,8 @@ function StickyCard({ item, T, dark, index, total }) {
                     
                     <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "20px", marginBottom: "48px" }}>
                         {item.bullets.map((b, i) => (
-                            <li key={i} style={{ 
-                                fontSize: "16px", color: dark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", lineHeight: 1.8, 
+                            <li key={i} style={{
+                                fontSize: "16px", color: T.m, lineHeight: 1.8,
                                 paddingLeft: "32px", position: "relative", fontFamily: "'Inter', sans-serif"
                             }}>
                                 <svg style={{ position: "absolute", left: 0, top: "6px", color: cColor, opacity: 0.8 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -162,12 +163,12 @@ function StickyCard({ item, T, dark, index, total }) {
                     
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "auto" }}>
                         {item.tech.map((t) => (
-                            <span key={t} style={{ 
-                                ...fm, fontSize: 11, color: T.m, 
-                                background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", 
-                                border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, 
+                            <span key={t} style={{
+                                ...fm, fontSize: 11, color: T.m,
+                                background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+                                border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
                                 padding: "8px 18px", borderRadius: "12px",
-                                transition: "all 0.3s", cursor: "none"
+                                transition: "all 0.3s", cursor: "default"
                             }}
                             onMouseEnter={(e) => { e.target.style.background = `${T.a}15`; e.target.style.color = T.a; e.target.style.borderColor = `${T.a}50`; }}
                             onMouseLeave={(e) => { e.target.style.background = dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"; e.target.style.color = T.m; e.target.style.borderColor = dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"; }}
@@ -197,23 +198,38 @@ function StickyCard({ item, T, dark, index, total }) {
 }
 
 export default function ExperienceShowcase({ T, dark }) {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+
     return (
         <div style={{ position: "relative", width: "100%", margin: "0 auto", marginTop: "40px" }}>
             <style>{`
                 .exp-card-inner { flex-direction: row; }
                 @media (max-width: 1024px) {
-                    .exp-card-inner { flex-direction: column !important; padding: 48px 32px !important; gap: 32px !important; }
-                    .exp-date-col { flex: 0 0 auto !important; margin-bottom: 0px; border-bottom: 1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}; padding-bottom: 32px; flex-direction: row !important; align-items: center; justify-content: space-between; }
-                    .exp-ghost-num { font-size: 200px !important; top: -20px !important; right: 0px !important; }
+                    .exp-card-inner { flex-direction: column !important; padding: 40px 28px !important; gap: 28px !important; }
+                    .exp-date-col { flex: 0 0 auto !important; margin-bottom: 0px; border-bottom: 1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}; padding-bottom: 24px; flex-direction: row !important; align-items: center; justify-content: space-between; }
+                    .exp-ghost-num { font-size: 160px !important; top: -20px !important; right: 0px !important; }
+                }
+                @media (max-width: 768px) {
+                    .exp-card-inner { padding: 28px 20px !important; gap: 20px !important; border-radius: 20px !important; }
+                    .exp-ghost-num { font-size: 100px !important; top: -8px !important; right: -4px !important; }
+                }
+                @media (max-width: 480px) {
+                    .exp-card-inner { padding: 20px 16px !important; }
+                    .exp-ghost-num { display: none !important; }
                 }
                 @media (max-width: 600px) {
-                    .exp-date-col { flex-direction: column !important; align-items: flex-start; gap: 12px !important; }
+                    .exp-date-col { flex-direction: column !important; align-items: flex-start; gap: 12px !important; border-bottom: none !important; padding-bottom: 0 !important; }
                 }
             `}</style>
-            
-            <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingBottom: "120px" }}>
+
+            <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingBottom: isMobile ? "40px" : "120px" }}>
                 {EXP_DATA.map((item, index) => (
-                    <StickyCard key={item.id} item={item} T={T} dark={dark} index={index} total={EXP_DATA.length} />
+                    <StickyCard key={item.id} item={item} T={T} dark={dark} index={index} total={EXP_DATA.length} isMobile={isMobile} />
                 ))}
             </div>
         </div>
