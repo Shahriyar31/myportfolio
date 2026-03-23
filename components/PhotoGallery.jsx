@@ -45,7 +45,7 @@ export default function PhotoGallery({ T, photos, onOpen }) {
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(0,0,0,.5) 0%,transparent 50%)", opacity: 0, transition: "opacity .35s", borderRadius: 10, display: "flex", alignItems: "flex-end", padding: "12px 14px" }}
                         onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
                         onMouseLeave={e => { e.currentTarget.style.opacity = 0; }}>
-                        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,.85)", letterSpacing: ".12em", textTransform: "uppercase" }}>Open ↗</span>
+                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 9, color: "rgba(255,255,255,.85)", letterSpacing: ".12em", textTransform: "uppercase" }}>Open ↗</span>
                     </div>
                 </div>
             ))}

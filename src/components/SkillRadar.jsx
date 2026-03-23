@@ -25,7 +25,7 @@ export default function SkillRadar({ T }) {
     }, []);
 
     const cats = ["AI & MLOps", "Data Eng.", "Cloud & DevOps", "Languages"];
-    const colors = [T.a, T.a2, T.a3, "#f59e0b"];
+    const colors = [T.a, T.a2, T.a3, "#64748B"];
     const levels = [.9, .82, .86, .74];
     const counts = [7, 6, 7, 6];
     const icons = ["🧠", "🗄️", "☁️", "💻"];
@@ -41,7 +41,7 @@ export default function SkillRadar({ T }) {
     return (
         <div ref={ref} style={{ position: "relative", width: "100%", maxWidth: 460, margin: "0 auto 56px", aspectRatio: "1" }}>
             {/* Glow behind */}
-            <div style={{ position: "absolute", left: "50%", top: "50%", width: "70%", height: "70%", transform: "translate(-50%,-50%)", borderRadius: "50%", background: `radial-gradient(circle,${T.a}12,transparent)`, filter: "blur(40px)", pointerEvents: "none", opacity: prog }} />
+            <div style={{ position: "absolute", left: "50%", top: "50%", width: "70%", height: "70%", transform: "translate(-50%,-50%)", borderRadius: "50%", background: "none", filter: "blur(40px)", pointerEvents: "none", opacity: prog }} />
 
             <svg width="100%" height="100%" viewBox="0 0 400 400">
                 <defs>
@@ -74,7 +74,7 @@ export default function SkillRadar({ T }) {
                     const [lx, ly] = pt(angles[0], R * r);
                     return (
                         <text key={i} x={lx + 6} y={ly - 4} fill={T.dim} fontSize="7"
-                            fontFamily="'JetBrains Mono',monospace" opacity={prog * .5}>
+                            fontFamily="'Inter', sans-serif" opacity={prog * .5}>
                             {Math.round(r * 100)}%
                         </text>
                     );
@@ -131,13 +131,13 @@ export default function SkillRadar({ T }) {
                     return (
                         <g key={`l${i}`} style={{ transition: "transform .2s" }}>
                             <text x={lx} y={ly - 8} textAnchor="middle" fill={isH ? colors[i] : T.t}
-                                fontSize={isH ? "11" : "9.5"} fontFamily="'JetBrains Mono',monospace"
+                                fontSize={isH ? "11" : "9.5"} fontFamily="'Inter', sans-serif"
                                 letterSpacing=".08em" opacity={prog}
                                 style={{ textTransform: "uppercase", fontWeight: isH ? 700 : 500, transition: "all .2s" }}>
                                 {cats[i]}
                             </text>
                             <text x={lx} y={ly + 6} textAnchor="middle" fill={T.m}
-                                fontSize="8" fontFamily="'JetBrains Mono',monospace"
+                                fontSize="8" fontFamily="'Inter', sans-serif"
                                 opacity={prog * .6}>
                                 {counts[i]} skills · {Math.round(levels[i] * 100)}%
                             </text>
@@ -166,7 +166,7 @@ export default function SkillRadar({ T }) {
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, cursor: "none" }}
                         onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(-1)}>
                         <div style={{ width: 6, height: 6, borderRadius: "50%", background: colors[i], boxShadow: hov === i ? `0 0 10px ${colors[i]}` : "none", transition: "box-shadow .2s" }} />
-                        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: hov === i ? colors[i] : T.m, transition: "color .2s", letterSpacing: ".06em" }}>{c}</span>
+                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 8, color: hov === i ? colors[i] : T.m, transition: "color .2s", letterSpacing: ".06em" }}>{c}</span>
                     </div>
                 ))}
             </div>

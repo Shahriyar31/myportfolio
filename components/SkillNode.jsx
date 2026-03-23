@@ -81,7 +81,7 @@ export default function SkillNode({ label, level, color, T, delay = 0, dark, isA
                 <div style={{
                     position: "absolute", inset: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "'JetBrains Mono',monospace",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: expanded ? 11 : 9, fontWeight: 700,
                     color: expanded ? color : T.m,
                     transition: "all .25s",
@@ -100,7 +100,7 @@ export default function SkillNode({ label, level, color, T, delay = 0, dark, isA
             </div>
             {/* Label */}
             <span style={{
-                fontFamily: "'JetBrains Mono',monospace",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: expanded ? 10 : 9, letterSpacing: ".04em",
                 color: expanded ? color : T.m,
                 textAlign: "center",
@@ -114,7 +114,7 @@ export default function SkillNode({ label, level, color, T, delay = 0, dark, isA
             {/* Expanded tooltip */}
             {expanded && (
                 <div style={{
-                    ...{ fontFamily: "'JetBrains Mono',monospace" },
+                    ...{ fontFamily: "'Inter', sans-serif" },
                     fontSize: 8, color: T.m,
                     background: dark ? "rgba(0,0,0,.6)" : "rgba(255,255,255,.85)",
                     backdropFilter: "blur(8px)",

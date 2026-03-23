@@ -70,8 +70,8 @@ export default function App() {
     }, [lightbox]);
 
     const scrollTo = useCallback((id, e) => { e?.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); }, []);
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const sp = { padding: "100px clamp(20px,6vw,120px)", width: "100%" };
 
     return (
@@ -341,7 +341,7 @@ export default function App() {
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="06" title="Photography" T={T} />
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40, flexWrap: "wrap", gap: 16 }}>
-                        <p className="rv" style={{ fontSize: 15, color: T.m, maxWidth: 480, lineHeight: 1.8, fontStyle: "italic", fontFamily: "'Playfair Display',serif", margin: 0 }}>
+                        <p className="rv" style={{ fontSize: 15, color: T.m, maxWidth: 480, lineHeight: 1.8, fontStyle: "italic", fontFamily: "'Sora', sans-serif", margin: 0 }}>
                             Beyond the code — landscape and street photography from Hamburg and beyond.
                         </p>
                         <div className="rv2" style={{ display: "flex", gap: 16, ...fm, fontSize: 10, color: T.m }}>

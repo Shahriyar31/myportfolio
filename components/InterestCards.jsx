@@ -8,7 +8,7 @@ const INTERESTS = [
 ];
 
 export default function InterestCards({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>

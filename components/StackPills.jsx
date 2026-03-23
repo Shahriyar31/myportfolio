@@ -13,7 +13,7 @@ const STACK = [
 ];
 
 export default function StackPills({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     const catColors = {
         ai: T.a,

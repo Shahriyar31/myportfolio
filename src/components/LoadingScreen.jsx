@@ -43,7 +43,7 @@ export default function LoadingScreen({ onDone }) {
                 width:${size};height:${size};
                 transform:translate(-50%,-50%);
                 border-radius:50%;
-                background:radial-gradient(circle,${color}18 0%,transparent 70%);
+                background: none;
                 animation:ls-pulse ${3 + Math.random()}s ease-in-out infinite;
                 pointer-events:none;
                 will-change:transform,opacity;
@@ -104,7 +104,7 @@ export default function LoadingScreen({ onDone }) {
                 will-change:background-position;
             ">Farhan Shahriyar</div>
             <div style="
-                font-family:'JetBrains Mono',monospace;
+                font-family:'Inter', sans-serif;
                 font-size:10px;
                 color:rgba(255,255,255,0.35);
                 letter-spacing:.22em;

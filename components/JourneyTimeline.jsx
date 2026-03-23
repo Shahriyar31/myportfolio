@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
 export default function JourneyTimeline({ T }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const steps = [
         { year: "2018", loc: "West Bengal, India 🇮🇳", title: "B.Tech Computer Science", desc: "Started engineering at Coochbehar GEC. Graduated with 8.73/10 CGPA.", color: T.a2, icon: "🎓" },
         { year: "2022", loc: "India", title: "Graduated & Prepared", desc: "One year of focused preparation — language learning, applications, life planning.", color: T.a3, icon: "📚" },

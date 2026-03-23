@@ -1,195 +1,243 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { EDU_CHAPTERS } from "../data/constants";
 
+/* ── Holographic Perspective Card ────────────────────────────────── */
+function PerspectiveCard({ ch, active, side, onClick, T, dark, isMobile }) {
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
+    const accent = T[ch.accent];
+    const cardRef = useRef(null);
+    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e) => {
+        if (!active || isMobile) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        setMouse({
+            x: ((e.clientX - rect.left) / rect.width) * 100,
+            y: ((e.clientY - rect.top) / rect.height) * 100,
+        });
+    };
+
+    // Calculate 3D transforms
+    const transform = isMobile
+        ? (active ? "translateY(0) scale(1)" : `translateY(${side === "next" ? "60px" : "-60px"}) scale(0.9) rotateX(${side === "next" ? "-10deg" : "10deg"})`)
+        : (active 
+            ? "translateX(0) scale(1) rotateY(0deg) translateZ(0)" 
+            : `translateX(${side === "next" ? "35%" : "-35%"}) scale(0.85) rotateY(${side === "next" ? "-28deg" : "28deg"}) translateZ(-150px)`);
+
+    return (
+        <div
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setMouse({ x: 50, y: 50 })}
+            onClick={onClick}
+            className="edu-persp-card"
+            style={{
+                position: isMobile ? "relative" : "absolute",
+                width: isMobile ? "100%" : "880px",
+                height: isMobile ? "auto" : "560px",
+                left: isMobile ? 0 : "50%",
+                top: isMobile ? 0 : "50%",
+                marginLeft: isMobile ? 0 : "-440px",
+                marginTop: isMobile ? 0 : "-280px",
+                zIndex: active ? 10 : 5,
+                transform,
+                opacity: active ? 1 : 0.35,
+                filter: active ? "none" : "blur(3px)",
+                transition: "all 0.9s cubic-bezier(0.16, 1, 0.3, 1)",
+                cursor: active ? "default" : "pointer",
+                borderRadius: 36,
+                padding: 0,
+                background: dark ? "rgba(20, 22, 28, 0.85)" : "rgba(255, 255, 255, 0.9)",
+                border: `1px solid ${active ? accent + "70" : "rgba(255,255,255,0.08)"}`,
+                backdropFilter: "blur(24px)",
+                overflow: "hidden",
+                boxShadow: active 
+                    ? `0 60px 120px rgba(0,0,0,0.6), 0 0 50px ${accent}25` 
+                    : "0 15px 45px rgba(0,0,0,0.15)",
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+            }}
+        >
+            <style>{`
+                .edu-persp-card:hover {
+                    ${active && !isMobile ? "transform: translateX(0) scale(1.02) rotateY(0deg) translateZ(20px) !important;" : ""}
+                    ${!active && !isMobile ? "opacity: 0.6 !important; filter: blur(1px) !important;" : ""}
+                }
+            `}</style>
+            {/* Holographic Flash Effect */}
+            {active && !isMobile && (
+                <div style={{
+                    position: "absolute", inset: 0,
+                    background: `radial-gradient(circle at ${mouse.x}% ${mouse.y}%, ${accent}15 0%, transparent 60%)`,
+                    pointerEvents: "none", zIndex: 0
+                }} />
+            )}
+
+            {/* Left: Decorative Number + Year */}
+            <div style={{
+                width: isMobile ? "100%" : "120px",
+                background: active ? `${accent}10` : "transparent",
+                borderRight: isMobile ? "none" : `1px solid ${dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}`,
+                display: "flex", flexDirection: isMobile ? "row" : "column",
+                alignItems: "center", justifyContent: "space-between",
+                padding: isMobile ? "20px" : "40px 0",
+                position: "relative", zIndex: 1
+            }}>
+                <div style={{ ...sf, fontSize: 42, fontWeight: 900, color: accent, opacity: 0.5 }}>{ch.num}</div>
+                <div style={{ 
+                    ...fm, fontSize: 12, fontWeight: 700, color: T.m, 
+                    transform: isMobile ? "none" : "rotate(-90deg)", 
+                    whiteSpace: "nowrap", letterSpacing: "2px"
+                }}>
+                    {ch.year}
+                </div>
+            </div>
+
+            {/* Right: Content Area */}
+            <div style={{ flex: 1, padding: isMobile ? "30px 24px" : "48px 54px", position: "relative", zIndex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                    <div style={{ 
+                        background: `${accent}14`, border: `1px solid ${accent}30`, 
+                        padding: "6px 16px", borderRadius: 100,
+                        ...fm, fontSize: 10, color: accent, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase"
+                    }}>
+                        {ch.tag}
+                    </div>
+                    {ch.live && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
+                            <span style={{ ...fm, fontSize: 10, fontWeight: 800, color: "#10b981" }}>ACTIVE</span>
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ display: "flex", gap: 24, alignItems: "flex-start", marginBottom: 24 }}>
+                    <div style={{ 
+                        width: isMobile ? 50 : 70, height: isMobile ? 50 : 70, borderRadius: 20, 
+                        background: dark ? "#111" : "#f0f0f0", border: `1px solid ${T.border}`,
+                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 24 : 32
+                    }}>
+                        {ch.icon}
+                    </div>
+                    <div>
+                        <h2 style={{ ...sf, fontSize: isMobile ? 24 : 32, fontWeight: 800, color: T.t, margin: 0, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+                            {ch.degree}
+                        </h2>
+                        <div style={{ ...fm, fontSize: isMobile ? 14 : 16, color: T.m, marginTop: 8 }}>
+                            {ch.school}
+                        </div>
+                    </div>
+                </div>
+
+                <p style={{ ...fm, fontSize: isMobile ? 14 : 15, lineHeight: 1.8, color: T.m, marginBottom: 32, maxWidth: 500 }}>
+                    {ch.body}
+                </p>
+
+                {/* Perspective Stats */}
+                <div style={{ display: "flex", gap: isMobile ? 24 : 48, marginBottom: 32 }}>
+                    {ch.stats.map(([v, l], i) => (
+                        <div key={i}>
+                            <div style={{ ...sf, fontSize: 28, fontWeight: 900, color: accent }}>{v}</div>
+                            <div style={{ ...fm, fontSize: 9, color: T.m, letterSpacing: "1px", textTransform: "uppercase" }}>{l}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Knowledge Dots */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {ch.pills.map(p => (
+                        <span key={p} style={{
+                            ...fm, fontSize: 10, fontWeight: 600, color: T.m,
+                            background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                            padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.border}`
+                        }}>
+                            {p}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function EduScrollBook({ T }) {
-    const dark = T.bg === "#1a1a22";
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
-    
-    // Default to the master's degree being active
-    const [hoverIndex, setHoverIndex] = useState(1); 
+    const dark = T.bg === "#0F1115" || T.bg === "#1a1a22";
+    const [activeIndex, setActiveIndex] = useState(1); // Default to MSc
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 1000);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        const check = () => setIsMobile(window.innerWidth < 900);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
     }, []);
 
     return (
-        <div style={{ width: "100%", padding: isMobile ? "20px 0" : "40px 20px 100px 20px" }}>
-            <div style={{ textAlign: "center", marginBottom: "32px", ...fm, fontSize: 11, color: T.m, letterSpacing: ".06em" }}>
-                ← {isMobile ? "Tap" : "Hover"} panels to shift timelines →
-            </div>
+        <div style={{ 
+            width: "100%", 
+            height: isMobile ? "auto" : "750px", 
+            position: "relative",
+            perspective: "2000px",
+            padding: isMobile ? "40px 0" : 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center"
+        }}>
             
+            {!isMobile && (
+                <>
+                {/* Background Constellation Decor */}
+                <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.1, pointerEvents: "none" }}>
+                    <pattern id="dotPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1.5" fill={activeIndex === 1 ? T.a : T.a2} />
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#dotPattern)" />
+                    {/* Connection Line */}
+                    <line x1="20%" y1="50%" x2="80%" y2="50%" stroke={activeIndex === 1 ? T.a : T.a2} strokeWidth="1" strokeDasharray="10,10" />
+                </svg>
+
+                {/* Floating Instructions */}
+                <div style={{ 
+                    position: "absolute", bottom: 40, width: "100%", textAlign: "center",
+                    fontFamily: "'Inter', sans-serif", fontSize: 11, color: T.m, letterSpacing: "2px",
+                    textTransform: "uppercase", opacity: 0.6
+                }}>
+                    Click cards to dive into academic chapters
+                </div>
+                </>
+            )}
+
             <div style={{ 
-                display: "flex", 
-                flexDirection: isMobile ? "column" : "row",
-                width: "100%", 
-                maxWidth: "1400px", 
-                margin: "0 auto", 
-                height: isMobile ? "900px" : "750px",
-                borderRadius: "32px",
-                overflow: "hidden",
-                border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                boxShadow: dark ? "0 40px 100px rgba(0,0,0,0.5)" : "0 40px 100px rgba(0,0,0,0.08)",
-                background: dark ? "rgba(10,10,16,0.5)" : "rgba(255,255,255,0.5)",
-                backdropFilter: "blur(20px)"
+                position: isMobile ? "relative" : "absolute", 
+                inset: 0,
+                display: isMobile ? "flex" : "block",
+                flexDirection: "column",
+                gap: 24,
+                width: isMobile ? "90%" : "100%",
+                margin: isMobile ? "0 auto" : 0
             }}>
-                {EDU_CHAPTERS.map((ch, i) => {
-                    const isActive = hoverIndex === i;
-                    const ac = T[ch.accent];
-                    
-                    return (
-                        <div 
-                            key={i}
-                            onMouseEnter={() => !isMobile && setHoverIndex(i)}
-                            onClick={() => isMobile && setHoverIndex(i)}
-                            style={{
-                                flex: isActive ? "1 1 80%" : "1 1 20%",
-                                position: "relative",
-                                transition: "flex 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.8s",
-                                background: isActive 
-                                    ? (dark ? `linear-gradient(135deg, rgba(20,20,30,0.9), ${ac}15)` : `linear-gradient(135deg, rgba(255,255,255,0.95), ${ac}15)`)
-                                    : (dark ? "rgba(0,0,0,0.2)" : "rgba(240,240,240,0.5)"),
-                                borderRight: i === 0 && !isMobile ? `1px solid ${dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` : "none",
-                                borderBottom: i === 0 && isMobile ? `1px solid ${dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` : "none",
-                                overflow: "hidden",
-                                cursor: isActive ? "default" : "pointer",
-                            }}
-                        >
-                            {/* Giant Watermark Chapter Number */}
-                            <div style={{
-                                position: "absolute",
-                                right: isActive ? "-2%" : "50%",
-                                top: isActive ? "10%" : "50%",
-                                transform: isActive ? "none" : "translate(50%, -50%)",
-                                ...sf,
-                                fontSize: isActive ? "clamp(200px, 20vw, 360px)" : "120px",
-                                fontWeight: 900,
-                                color: ac,
-                                opacity: isActive ? 0.04 : 0.08,
-                                transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
-                                pointerEvents: "none",
-                                zIndex: 0
-                            }}>
-                                {ch.num}
-                            </div>
-                            
-                            {/* Inactive State: Rotated spine view */}
-                            <div style={{
-                                position: "absolute",
-                                opacity: isActive ? 0 : 1,
-                                transform: isActive 
-                                    ? (isMobile ? "translate(-50%, -100px)" : "translate(-100px, -50%) rotate(-90deg)") 
-                                    : (isMobile ? "translate(-50%, -50%)" : "translate(-50%, -50%) rotate(-90deg)"),
-                                left: "50%",
-                                top: "50%",
-                                transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-                                whiteSpace: "nowrap",
-                                pointerEvents: "none",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "24px",
-                                zIndex: 2
-                            }}>
-                                <span style={{ ...sf, fontSize: isMobile ? 24 : 32, fontWeight: 800, color: T.t, letterSpacing: "2px" }}>{ch.location.split(',')[0]}</span>
-                                <span style={{ width: "40px", height: "1px", background: ac, opacity: 0.5 }} />
-                                <span style={{ ...fm, fontSize: 14, color: ac, letterSpacing: ".2em" }}>{ch.year}</span>
-                            </div>
-
-                            {/* Active State: Full expanded view */}
-                            <div style={{
-                                position: "absolute",
-                                inset: 0,
-                                padding: "clamp(32px, 5vw, 64px)",
-                                opacity: isActive ? 1 : 0,
-                                transform: isActive ? "translateY(0)" : "translateY(40px)",
-                                transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
-                                pointerEvents: isActive ? "auto" : "none",
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "space-between",
-                                zIndex: 1
-                            }}>
-                                
-                                {/* Top Header */}
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
-                                    <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-                                        <div style={{ 
-                                            width: 64, height: 64, borderRadius: "50%", 
-                                            background: `${ac}10`, border: `1px solid ${ac}30`,
-                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                            fontSize: 28, boxShadow: `0 0 40px ${ac}20`,
-                                            backdropFilter: "blur(10px)"
-                                        }}>
-                                            {ch.icon}
-                                        </div>
-                                        <div>
-                                            <div style={{ ...fm, fontSize: 12, color: ac, letterSpacing: ".2em", textTransform: "uppercase" }}>{ch.tag}</div>
-                                            <div style={{ ...fm, fontSize: 14, color: T.m, marginTop: "6px" }}>{ch.year}</div>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                                        <div style={{ ...fm, fontSize: 12, color: T.t, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", padding: "8px 16px", borderRadius: "20px" }}>
-                                            📍 {ch.location}
-                                        </div>
-                                        {ch.live && (
-                                            <span style={{ ...fm, fontSize: 11, color: T.a3, border: `1px solid ${T.a3}40`, padding: "8px 16px", borderRadius: "20px", background: `${T.a3}15`, display: "flex", alignItems: "center", gap: 8 }}>
-                                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.a3, animation: "blink 1.5s infinite" }} />LIVE
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Body Content */}
-                                <div style={{ margin: "auto 0" }}>
-                                    <div style={{ display: "inline-block", ...sf, fontSize: "22px", fontStyle: "italic", color: T.t, marginBottom: "20px", borderLeft: `3px solid ${ac}`, paddingLeft: "20px", background: `${ac}0a`, padding: "10px 20px 10px 20px", borderRadius: "0 12px 12px 0" }}>
-                                        "{ch.quote}"
-                                    </div>
-                                    
-                                    <h3 style={{ ...sf, fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, color: T.t, lineHeight: 1.1, marginBottom: "16px", letterSpacing: "-1px" }}>
-                                        {ch.degree}
-                                    </h3>
-                                    
-                                    <div style={{ ...fm, fontSize: 18, color: T.t, marginBottom: "32px", opacity: 0.9 }}>
-                                        {ch.school}
-                                    </div>
-                                    
-                                    <p style={{ fontSize: "16px", color: T.m, lineHeight: 1.8, maxWidth: "600px", marginBottom: "48px" }}>
-                                        {ch.body}
-                                    </p>
-                                    
-                                    {/* Stats Highlights */}
-                                    <div style={{ display: "flex", gap: "40px", flexWrap: "wrap", marginBottom: "40px" }}>
-                                        {ch.stats.map(([val, label], idx) => (
-                                            <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                                <div style={{ ...sf, fontSize: "42px", fontWeight: 800, color: ac }}>{val}</div>
-                                                <div style={{ ...fm, fontSize: "11px", color: T.m, letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Subject Pills */}
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                                        {ch.pills.map(p => (
-                                            <span key={p} style={{ 
-                                                ...fm, fontSize: "11px", padding: "8px 16px", borderRadius: "20px",
-                                                border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, 
-                                                color: T.m,
-                                                background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"
-                                            }}>
-                                                {p}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                {EDU_CHAPTERS.map((ch, i) => (
+                    <PerspectiveCard
+                        key={i}
+                        ch={ch}
+                        active={activeIndex === i}
+                        side={i > activeIndex ? "next" : "prev"}
+                        onClick={() => setActiveIndex(i)}
+                        T={T}
+                        dark={dark}
+                        isMobile={isMobile}
+                    />
+                ))}
             </div>
+
+            <style>{`
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.5); opacity: 0.4; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `}</style>
         </div>
     );
 }

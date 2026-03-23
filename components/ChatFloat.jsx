@@ -6,8 +6,8 @@ export default function ChatFloat({ T }) {
     const [inp, setInp] = useState(""); const [busy, setBusy] = useState(false);
     const [key, setKey] = useState(""); const [showKey, setShowKey] = useState(false);
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     useEffect(() => { btm.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
 
     const send = useCallback(async txt => {
@@ -135,7 +135,7 @@ export default function ChatFloat({ T }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={open ? T.m : "white"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                 </svg>
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: open ? T.m : "white", letterSpacing: ".1em", writingMode: "vertical-rl", textOrientation: "mixed", textTransform: "uppercase", transform: "rotate(180deg)" }}>Ask AI</span>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 8, color: open ? T.m : "white", letterSpacing: ".1em", writingMode: "vertical-rl", textOrientation: "mixed", textTransform: "uppercase", transform: "rotate(180deg)" }}>Ask AI</span>
             </button>
         </>
     );

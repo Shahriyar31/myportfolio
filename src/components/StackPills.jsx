@@ -13,13 +13,13 @@ const STACK = [
 ];
 
 export default function StackPills({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     const catColors = {
         ai: T.a,
         data: T.a2,
         cloud: T.a3,
-        lang: "#f59e0b",
+        lang: "#64748B",
     };
 
     return (

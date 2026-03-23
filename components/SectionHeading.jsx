@@ -13,7 +13,7 @@ export default function SH({ n, title, T }) {
                 <span className="sec-num" style={{ "--ca": T.a }}>{n}</span>
                 <h2 className={`sec-title${vis ? " vi" : ""}`}
                     style={{
-                        fontFamily: "'Playfair Display',serif", fontSize: "clamp(32px,5vw,56px)",
+                        fontFamily: "'Sora', sans-serif", fontSize: "clamp(32px,5vw,56px)",
                         "--ct": T.t, "--ca": T.a, "--ca2": T.a2,
                         backgroundImage: vis ? `linear-gradient(135deg,${T.t} 0%,${T.t} 50%,${T.a} 100%)` : "none",
                         color: vis ? "transparent" : T.t,

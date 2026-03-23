@@ -118,8 +118,8 @@ function LifeFlow({ steps, containerRef, cardRefs, T }) {
 // deep z-axis spatial field where your journey items float like futuristic data panels.
 
 export default function JourneyTimeline({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const isDark = T.bg === "#1a1a22";
 
     const steps = [

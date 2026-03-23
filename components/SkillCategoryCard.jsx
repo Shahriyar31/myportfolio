@@ -12,7 +12,7 @@ export default function SkillCategoryCard({ name, skills, color, icon, profMap, 
     const nodesRef = useRef([]);
     const rafRef = useRef(null);
 
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     /* ── Scroll reveal ── */
     useEffect(() => {

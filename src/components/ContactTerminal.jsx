@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 
 export default function ContactTerminal({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     
     const [msg, setMsg] = useState("");
     const [email, setEmail] = useState("");
@@ -102,20 +102,20 @@ export default function ContactTerminal({ T, dark }) {
                 {/* Dynamic Spotlight */}
                 <div style={{ 
                     position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
-                    background: `radial-gradient(circle 300px at ${mousePos.x}% ${mousePos.y}%, ${T.a}15, transparent 70%)`,
+                    background: "none",
                     opacity: isMobile ? 0 : 1
                 }} />
 
                 <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 24 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${T.border}`, paddingBottom: 16 }}>
                         <div style={{ ...fm, fontSize: 10, color: T.a, letterSpacing: ".14em", display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", animation: "blink 2s infinite" }} />
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#64748B", animation: "blink 2s infinite" }} />
                             SYSTEM.SECURE_COMM_CHANNEL
                         </div>
                         <div style={{ display: "flex", gap: 4 }}>
-                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444" }}/>
-                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b" }}/>
-                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981" }}/>
+                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#64748B" }}/>
+                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#64748B" }}/>
+                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#64748B" }}/>
                         </div>
                     </div>
 
@@ -165,7 +165,7 @@ export default function ContactTerminal({ T, dark }) {
                         style={{ 
                             ...fm, fontSize: 12, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase",
                             padding: "18px", borderRadius: 12, width: "100%",
-                            background: sent ? "#10b981" : T.t,
+                            background: sent ? "#64748B" : T.t,
                             color: T.bg, border: "none", cursor: "none",
                             opacity: (!msg || !email) ? 0.5 : 1,
                             transition: "all 0.3s ease",

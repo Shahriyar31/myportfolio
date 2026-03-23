@@ -26,17 +26,17 @@ export default function PCard({ p, T, i }) {
             <div style={{ position: "relative", zIndex: 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                     <span style={{ fontSize: 28, filter: `drop-shadow(0 0 10px ${p.color}80)`, animation: `float ${4 + i * .5}s ease-in-out infinite` }}>{p.icon}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}12` }}>{p.badge}</span>
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}12` }}>{p.badge}</span>
                 </div>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700, marginBottom: 4, color: T.t }}>{p.title}</div>
-                <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: T.m, marginBottom: 12, letterSpacing: ".04em" }}>{p.sub}</div>
+                <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 700, marginBottom: 4, color: T.t }}>{p.title}</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: T.m, marginBottom: 12, letterSpacing: ".04em" }}>{p.sub}</div>
                 <div style={{ fontSize: 13, color: T.m, lineHeight: 1.8, marginBottom: 16 }}>{p.desc}</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
-                    {p.tags.map(t => <span key={t} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: hov ? p.color : T.m, background: hov ? `${p.color}12` : dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)", border: `1px solid ${hov ? p.color + "44" : T.border}`, padding: "3px 8px", borderRadius: 6, transition: "all .2s" }}>{t}</span>)}
+                    {p.tags.map(t => <span key={t} style={{ fontFamily: "'Inter', sans-serif", fontSize: 9, color: hov ? p.color : T.m, background: hov ? `${p.color}12` : dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)", border: `1px solid ${hov ? p.color + "44" : T.border}`, padding: "3px 8px", borderRadius: 6, transition: "all .2s" }}>{t}</span>)}
                 </div>
                 {p.link
-                    ? <a href={p.link} target="_blank" rel="noreferrer" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".1em", textTransform: "uppercase", cursor: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>View on GitHub →</a>
-                    : <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: T.m }}>🔒 Private · Nordex internal</span>}
+                    ? <a href={p.link} target="_blank" rel="noreferrer" style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".1em", textTransform: "uppercase", cursor: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>View on GitHub →</a>
+                    : <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: T.m }}>🔒 Private · Nordex internal</span>}
             </div>
         </div>
     );

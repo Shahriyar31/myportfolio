@@ -15,8 +15,8 @@ export default function SH({ n, title, T }) {
     }, []);
 
     const mobile = typeof window !== "undefined" && window.innerWidth <= 768;
-    const sf = { fontFamily: "'Playfair Display',serif" };
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     return (
         <div ref={ref} style={{ marginBottom: 64, display: "flex", alignItems: "center", gap: 20, overflow: "visible" }}>

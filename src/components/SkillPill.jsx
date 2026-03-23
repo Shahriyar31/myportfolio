@@ -7,7 +7,7 @@ export default function SPill({ s, T, ac, delay = 0 }) {
         <span ref={ref} className="spill" onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
             style={{
                 color: hov ? T.t : T.m, border: `1px solid ${hov ? ac : T.border}`, background: hov ? `${ac}14` : "transparent",
-                boxShadow: hov ? `0 4px 18px ${ac}30` : "none",
+                boxShadow: "none",
                 opacity: vis ? 1 : 0, animation: vis ? `fadeUp .4s ease both` : "none",
                 "--ca": T.a, "--cbr": T.border, "--cm": T.m,
             }}>

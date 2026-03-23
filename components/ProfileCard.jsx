@@ -4,8 +4,8 @@ import { useState, useRef } from "react";
 export default function ProfileCard({ T, dark }) {
     const ref = useRef(null);
     const [hov, setHov] = useState(false);
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
 
     const onMove = e => {
         const r = ref.current?.getBoundingClientRect(); if (!r) return;

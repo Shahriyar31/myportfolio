@@ -79,7 +79,7 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 }
 
 /* ── Section heading — Firefox fix ── */
-.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--ca);display:inline-block}
+.sec-num{font-family:'Inter', sans-serif;font-size:11px;letter-spacing:.2em;color:var(--ca);display:inline-block}
 .sec-title{
   font-weight:700;letter-spacing:-.02em;line-height:1;
   background:linear-gradient(135deg,var(--ct) 0%,var(--ct) 60%,var(--ca) 100%);
@@ -94,7 +94,7 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 /* ── Nav links ── */
 .nav-link{
   position:relative;text-decoration:none;
-  font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-family:'Inter', sans-serif;font-size:10px;
   letter-spacing:.14em;text-transform:uppercase;
   cursor:none;padding:7px 16px;border-radius:20px;
   border:1px solid transparent;
@@ -116,7 +116,7 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 .pcard:hover .pcard-line{transform:scaleX(1)}
 
 /* ── Skill pill ── */
-.spill{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--cbr);color:var(--cm);transition:all .2s;cursor:none;display:inline-block}
+.spill{font-family:'Inter', sans-serif;font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--cbr);color:var(--cm);transition:all .2s;cursor:none;display:inline-block}
 .spill:hover{transform:translateY(-3px) scale(1.04)}
 
 /* ── Side/Bottom Nav ── */

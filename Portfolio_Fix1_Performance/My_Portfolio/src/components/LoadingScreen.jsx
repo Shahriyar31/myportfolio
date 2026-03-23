@@ -144,7 +144,7 @@ export default function LoadingScreen({ onDone, T }) {
             {/* FS.dev logo */}
             <div style={{
                 position: "absolute", top: 28, left: 36,
-                fontFamily: "'JetBrains Mono',monospace",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: 13, color: accent, fontWeight: 700,
                 letterSpacing: ".1em",
             }}>FS<span style={{ color: muted }}>.</span>dev</div>
@@ -153,7 +153,7 @@ export default function LoadingScreen({ onDone, T }) {
             <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
                 {/* Glitch name */}
                 <div style={{
-                    fontFamily: "'Playfair Display',serif",
+                    fontFamily: "'Sora', sans-serif",
                     fontSize: "clamp(52px,10vw,110px)",
                     fontWeight: 800,
                     color: accent,
@@ -185,7 +185,7 @@ export default function LoadingScreen({ onDone, T }) {
 
                 {/* Current step label */}
                 <div style={{
-                    fontFamily: "'JetBrains Mono',monospace",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: 11,
                     color: muted,
                     letterSpacing: ".14em",
@@ -218,7 +218,7 @@ export default function LoadingScreen({ onDone, T }) {
 
                 {/* Percentage */}
                 <div style={{
-                    fontFamily: "'JetBrains Mono',monospace",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: 10, color: muted,
                     letterSpacing: ".1em",
                 }}>{pct}%</div>
@@ -227,7 +227,7 @@ export default function LoadingScreen({ onDone, T }) {
             {/* Bottom tagline */}
             <div style={{
                 position: "absolute", bottom: 32,
-                fontFamily: "'JetBrains Mono',monospace",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: 9, color: muted,
                 letterSpacing: ".16em", textTransform: "uppercase",
                 opacity: .5,

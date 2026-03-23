@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { PROJECTS } from "../data/constants";
 
 export default function ProjectShowcase({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     
     const [activeIndex, setActiveIndex] = useState(0);
     const [hoverIndex, setHoverIndex] = useState(null);
@@ -35,21 +35,15 @@ export default function ProjectShowcase({ T, dark }) {
         return (
             <div style={{
                 width: "100%", padding: isMobile ? 24 : 40,
-                background: dark ? "rgba(20,20,30,0.7)" : "rgba(255,255,255,0.8)",
-                border: `1px solid ${p.color}40`,
-                borderRadius: 24,
-                backdropFilter: "blur(20px)",
-                boxShadow: `0 30px 60px rgba(${p.glow}, ${dark ? 0.2 : 0.1}), inset 0 0 0 1px ${p.color}20`,
+                background: T.card,
+                border: `1px solid ${T.border}`,
+                borderRadius: 16,
                 transform: `perspective(1000px) rotateY(${rotateY}deg) rotateX(5deg)`,
                 transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
                 overflow: "hidden", position: "relative",
                 margin: isMobile ? "10px 0" : 0
             }}>
-            <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 2,
-                background: p.color, boxShadow: `0 0 20px ${p.color}`,
-                animation: "cyberScan 3s ease-in-out infinite"
-            }} />
+            {/* Removed Top accent line */}
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
                 <span style={{ ...fm, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", padding: "6px 16px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}15` }}>
@@ -157,12 +151,12 @@ export default function ProjectShowcase({ T, dark }) {
             minHeight: "70vh", display: "flex", flexWrap: "wrap",
             gap: 40, alignItems: "center", justifyContent: "space-between"
         }}>
-            {/* Dynamic Ambient Background Glow based on active project */}
+            {/* Subtle background shift based on active project mapping to Monokai logic but removed neon glow */}
             {activeProject && (
                 <div style={{
                     position: "absolute", top: "50%", left: "50%", width: "100vw", height: "100%",
                     transform: "translate(-50%, -50%)",
-                    background: `radial-gradient(circle 600px at center, rgba(${activeProject.glow}, ${dark ? 0.15 : 0.08}), transparent 80%)`,
+                    background: "none",
                     transition: "background 0.8s ease",
                     pointerEvents: "none", zIndex: 0
                 }} />
@@ -218,7 +212,7 @@ export default function ProjectShowcase({ T, dark }) {
                 })}
             </div>
 
-            {/* Right Side: Holographic Glass Detail Card */}
+            {/* Right Side: Detail Card */}
             <div style={{ flex: "1 1 500px", zIndex: 1, position: "relative", perspective: "1000px" }}>
                 {activeProject && renderDetailCard(activeProject, hoverIndex !== null ? hoverIndex : activeIndex)}
             </div>

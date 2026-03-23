@@ -22,12 +22,12 @@ body{overflow-x:hidden;cursor:none;transition:background .4s,color .4s;font-fami
 ::-webkit-scrollbar-thumb{background:var(--ca);border-radius:2px}
 ::-webkit-scrollbar-track{background:var(--cbg)}
 
-#cd{position:fixed;top:0;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ca);pointer-events:none;z-index:10000;box-shadow:0 0 12px var(--ca);will-change:transform;opacity:0;transition:opacity .3s}
+#cd{position:fixed;top:0;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ca);pointer-events:none;z-index:10000;will-change:transform;opacity:0;transition:opacity .3s}
 #cr{position:fixed;top:0;left:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:1px solid var(--ca);pointer-events:none;z-index:9999;will-change:transform;opacity:0}
-.cr-inner{width:86%;height:86%;border-radius:50%;border:0.5px dashed var(--ca);opacity:0.25;position:absolute;top:7%;left:7%;animation:spin 12s linear infinite}
+.cr-inner{width:86%;height:86%;border-radius:50%;border:0.5px solid var(--ca);opacity:0.25;position:absolute;top:7%;left:7%;animation:spin 12s linear infinite}
 body.cursor-active #cd{opacity:1}
 body.cursor-active #cr{opacity:.35}
-body.ch #cd{width:16px;height:16px;margin:-8px 0 0 -8px;background:var(--ca)20;box-shadow:0 0 0 1px var(--ca);backdrop-filter:blur(2px)}
+body.ch #cd{width:16px;height:16px;margin:-8px 0 0 -8px;background:var(--ca)20;}
 body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5px solid var(--ca);background:var(--ca)08}
 @media(hover:none){#cd,#cr{display:none!important}body{cursor:auto}}
 @media(max-width:768px){body{cursor:auto}#cd,#cr{display:none}}
@@ -38,6 +38,7 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes aboutCardIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
 @keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.06)}}
 @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
@@ -77,27 +78,25 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 /* Nav links — animated capsule pills */
 .nav-link{
   position:relative;text-decoration:none;
-  font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-family:'Inter', sans-serif;font-size:10px;
   letter-spacing:.14em;text-transform:uppercase;
   cursor:none;padding:7px 16px;border-radius:20px;
   border:1px solid transparent;
-  transition:color .25s,background .25s,border-color .25s,transform .2s,box-shadow .25s;
+  transition:color .25s,background .25s,border-color .25s,transform .2s;
   overflow:hidden;
 }
 .nav-link::before{
   content:'';position:absolute;inset:0;border-radius:20px;
-  background:linear-gradient(135deg,var(--ca),var(--ca2));
-  opacity:0;transition:opacity .25s;z-index:-1;
+  background:linear-gradient(135deg, var(--ca), var(--ca2));
+  opacity:0;transition:opacity .3s;z-index:-1;
 }
 .nav-link:hover{
   color:#fff!important;border-color:transparent;
   transform:translateY(-2px);
-  box-shadow:0 6px 20px var(--ca)40;
 }
 .nav-link:hover::before{opacity:1}
 .nav-link.active-link{
   color:#fff!important;border-color:transparent;
-  box-shadow:0 4px 16px var(--ca)50;
 }
 .nav-link.active-link::before{opacity:1}
 
@@ -106,12 +105,12 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
 .pcard:hover .pcard-line{transform:scaleX(1)}
 
 /* Skill pill */
-.spill{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--cbr);color:var(--cm);transition:all .2s;cursor:none;display:inline-block}
+.spill{font-family:'Inter', sans-serif;font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--cbr);color:var(--cm);transition:all .2s;cursor:none;display:inline-block}
 .spill:hover{transform:translateY(-3px) scale(1.04)}
 
 /* Section heading animated */
-.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--ca);display:inline-block}
-.sec-title{font-weight:700;letter-spacing:-.02em;line-height:1;background:linear-gradient(135deg,var(--ct) 0%,var(--ct) 60%,var(--ca) 100%);background-clip:text;-webkit-background-clip:text;color:transparent;display:inline-block}
+.sec-num{font-family:'Inter', sans-serif;font-size:11px;letter-spacing:.2em;color:var(--ca);display:inline-block}
+.sec-title{font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--ct);display:inline-block}
 .sec-title.vi{animation:headingReveal .7s ease both}
 
 /* Side/Bottom Nav */
@@ -135,8 +134,6 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
   justify-content: center;
   border: 1px solid transparent;
   transition: all .3s cubic-bezier(.16,1,.3,1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 .snav-item:hover {
   border-radius: 16px;
@@ -190,7 +187,6 @@ body.ch #cr{width:60px;height:60px;margin:-30px 0 0 -30px;opacity:.15;border:1.5
     padding: 10px 16px;
     border-radius: 40px;
     border: 1px solid var(--cbr);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     z-index: 500;
   }
 }

@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
 const INTERESTS = [
-    { icon: "📷", label: "Photographer", value: "Landscape & Street", accent: "#e879a0" },
-    { icon: "🎵", label: "Music", value: "Lo-fi while coding", accent: "#a78bfa" },
-    { icon: "🌍", label: "Languages", value: "Bengali · English · German A1", accent: "#34d399" },
-    { icon: "☕", label: "Fuel", value: "Coffee & curiosity", accent: "#fbbf24" },
+    { icon: "📷", label: "Photographer", value: "Landscape & Street", accent: "#64748B" },
+    { icon: "🎵", label: "Music", value: "Lo-fi while coding", accent: "#64748B" },
+    { icon: "🌍", label: "Languages", value: "Bengali · English · German A1", accent: "#64748B" },
+    { icon: "☕", label: "Fuel", value: "Coffee & curiosity", accent: "#64748B" },
 ];
 
 export default function InterestCards({ T, dark }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>

@@ -14,9 +14,9 @@ export default function GlitchName({ text, T }) {
     }, [text]);
     return (
         <span style={{ position: "relative", display: "block" }}>
-            <span style={{ backgroundImage: `linear-gradient(90deg,${T.a},${T.a2},${T.a})`, backgroundSize: "200% auto", animation: "none", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", display: "block" }}>{d}</span>
-            <span style={{ position: "absolute", top: 0, left: 0, backgroundImage: `linear-gradient(90deg,${T.a2},${T.a2})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", clipPath: "polygon(0 20%,100% 20%,100% 42%,0 42%)", animation: "glitch1 4.5s infinite", pointerEvents: "none", display: "block" }}>{text}</span>
-            <span style={{ position: "absolute", top: 0, left: 0, backgroundImage: `linear-gradient(90deg,${T.a},${T.a})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", clipPath: "polygon(0 60%,100% 60%,100% 78%,0 78%)", animation: "glitch2 4.5s infinite", pointerEvents: "none", display: "block" }}>{text}</span>
+            <span style={{ color: T.t, display: "block" }}>{d}</span>
+            <span style={{ position: "absolute", top: 0, left: 0, color: T.a, opacity: 0.5, clipPath: "polygon(0 20%,100% 20%,100% 42%,0 42%)", animation: "glitch1 4.5s infinite", pointerEvents: "none", display: "block", mixBlendMode: "normal" }}>{text}</span>
+            <span style={{ position: "absolute", top: 0, left: 0, color: T.a2, opacity: 0.5, clipPath: "polygon(0 60%,100% 60%,100% 78%,0 78%)", animation: "glitch2 4.5s infinite", pointerEvents: "none", display: "block", mixBlendMode: "normal" }}>{text}</span>
         </span>
     );
 }

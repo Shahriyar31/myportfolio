@@ -6,8 +6,8 @@ export default function ChatFloat({ T }) {
     const [inp, setInp] = useState(""); const [busy, setBusy] = useState(false);
     const [key, setKey] = useState(import.meta.env.VITE_GROQ_KEY || ""); const [showKey, setShowKey] = useState(false); const [started, setStarted] = useState(false);
     const hist = useRef([]); const btm = useRef(null); const dark = T.bg === "#1a1a22";
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const scrollRef = useRef(null);
     useEffect(() => { 
         if (scrollRef.current) {
@@ -103,7 +103,7 @@ export default function ChatFloat({ T }) {
 
                     {/* API key */}
                     {showKey && !key && (
-                        <div style={{ padding: "10px 16px", borderTop: `1px solid ${T.border}`, background: dark ? "rgba(251,191,36,.05)" : "rgba(251,191,36,.08)", flexShrink: 0 }}>
+                        <div style={{ padding: "10px 16px", borderTop: `1px solid ${T.border}`, background: dark ? "rgba(100,116,139,0.1)" : "rgba(100,116,139,0.1)", flexShrink: 0 }}>
                             <div style={{ ...fm, fontSize: 9, color: "#d97706", marginBottom: 6 }}>⚡ Paste your free Groq API key (groq.com)</div>
                             <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === "Enter" && key && setShowKey(false)} placeholder="gsk_..."
                                 style={{ width: "100%", background: "transparent", border: "1px solid rgba(217,119,6,.4)", color: T.t, padding: "7px 12px", ...fm, fontSize: 11, outline: "none", borderRadius: 10 }} />
@@ -139,7 +139,7 @@ export default function ChatFloat({ T }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={open ? T.m : "white"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                 </svg>
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: open ? T.m : "white", letterSpacing: ".1em", writingMode: "vertical-rl", textOrientation: "mixed", textTransform: "uppercase", transform: "rotate(180deg)" }}>Ask AI</span>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 8, color: open ? T.m : "white", letterSpacing: ".1em", writingMode: "vertical-rl", textOrientation: "mixed", textTransform: "uppercase", transform: "rotate(180deg)" }}>Ask AI</span>
             </button>
         </>
     );

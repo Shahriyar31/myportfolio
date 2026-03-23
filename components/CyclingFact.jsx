@@ -3,7 +3,7 @@ import { FACTS } from "../data/constants";
 
 export default function CyclingFact({ T }) {
     const [idx, setIdx] = useState(0); const [text, setText] = useState(""); const [del, setDel] = useState(false);
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
     useEffect(() => {
         const full = FACTS[idx];
         const t = setTimeout(() => {

@@ -12,7 +12,7 @@ export default function SkillCategoryCard({ name, skills, color, icon, profMap, 
     const nodesRef = useRef([]);
     const rafRef = useRef(null);
 
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     /* ── Scroll reveal ── */
     useEffect(() => {
@@ -152,16 +152,7 @@ export default function SkillCategoryCard({ name, skills, color, icon, profMap, 
             <div style={{
                 position: "absolute", inset: 0, pointerEvents: "none",
                 opacity: hov ? .7 : 0, transition: "opacity .3s",
-                background: `radial-gradient(circle 250px at ${mx}% ${my}%,${color}18,transparent 70%)`,
-            }} />
-
-            {/* Animated top border */}
-            <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 2,
-                background: `linear-gradient(90deg,transparent,${color},transparent)`,
-                opacity: hov ? .8 : .4,
-                animation: `shimmer 3s ${index * .3}s ease-in-out infinite`,
-                transition: "opacity .3s",
+                background: "none",
             }} />
 
             {/* Connecting particles canvas */}

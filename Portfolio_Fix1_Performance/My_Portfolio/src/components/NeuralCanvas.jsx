@@ -64,7 +64,7 @@ export default function NeuralCanvas({ T }) {
             ofc.width = 500; ofc.height = 120;
             const octx = ofc.getContext("2d");
             octx.fillStyle = "#fff";
-            octx.font = "bold 96px 'Playfair Display',serif";
+            octx.font = "bold 96px 'Sora', sans-serif";
             octx.textAlign = "center";
             octx.fillText("FARHAN", 250, 96);
             const imgData = octx.getImageData(0, 0, 500, 120);

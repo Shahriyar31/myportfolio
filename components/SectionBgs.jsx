@@ -22,7 +22,7 @@ export function ExperienceBG({ T }) {
             {[0, 1, 2].map(col => (
                 <div key={col} style={{ position: "absolute", top: 0, left: `${15 + col * 30}%`, width: 240, animation: `dataStream ${18 + col * 4}s linear infinite`, animationDelay: `${-col * 6}s`, opacity: dark ? .12 : .25 }}>
                     {lines.map((l, i) => (
-                        <div key={i} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: dark ? "#7eb8be" : "#2d3050", padding: "3px 0", whiteSpace: "nowrap" }}>{l}</div>
+                        <div key={i} style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: dark ? "#7eb8be" : "#2d3050", padding: "3px 0", whiteSpace: "nowrap" }}>{l}</div>
                     ))}
                 </div>
             ))}
@@ -51,7 +51,7 @@ export function ProjectsBG({ T }) {
             {fragments.map((f, i) => (
                 <div key={i} style={{
                     position: "absolute", left: `${f.x}%`, top: `${f.y}%`,
-                    fontFamily: "'JetBrains Mono',monospace", fontSize: 10,
+                    fontFamily: "'Inter', sans-serif", fontSize: 10,
                     color: dark ? "rgba(126,184,190,.22)" : "rgba(45,50,80,.38)",
                     transform: `rotate(${f.rot}deg)`, whiteSpace: "nowrap",
                     animation: `floatRandom ${f.dur}s ease-in-out infinite`, animationDelay: `${f.del}s`,

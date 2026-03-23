@@ -89,8 +89,8 @@ export default function App() {
     }, [lightbox]);
 
     const scrollTo = useCallback((id, e) => { e?.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); }, []);
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const sp = { padding: "100px clamp(20px,6vw,120px)", width: "100%" };
 
     return (
@@ -100,7 +100,7 @@ export default function App() {
 
             {/* Resume Preview Modal */}
             {resumeOpen && (
-                <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "fadeUp 0.3s ease", padding: "10px", paddingBottom: "30px" }}>
+                <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "fadeUp 0.3s ease", padding: "10px", paddingBottom: "30px" }}>
                     <div style={{ width: "100%", maxWidth: 1000, display: "flex", justifyContent: "flex-end", paddingBottom: 16 }}>
                         <button onClick={() => setResumeOpen(false)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "8px 24px", borderRadius: 20, ...fm, fontSize: 12, cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = T.a} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}>✕ CLOSE</button>
                     </div>
@@ -112,7 +112,7 @@ export default function App() {
             <SideNav active={active} T={T} />
 
             {/* NAV */}
-            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? "16px 20px" : "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, backdropFilter: "blur(24px)", borderBottom: `1px solid ${T.border}` }}>
+            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? "16px 20px" : "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, borderBottom: `1px solid ${T.border}` }}>
                 <div style={{ position: "relative", zIndex: 300 }}>
                     <span onClick={e => { scrollTo("home", e); setMenuOpen(false); }} style={{ ...fm, fontSize: 14, color: T.a, fontWeight: 700, letterSpacing: ".1em", cursor: "pointer" }}>FS<span style={{ color: T.m }}>.</span>dev</span>
                 </div>
@@ -152,14 +152,14 @@ export default function App() {
                                 border: menuOpen ? "none" : `1px solid ${T.a}40`,
                                 transform: menuOpen ? "rotate(0deg)" : "rotate(45deg)",
                                 transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                                boxShadow: menuOpen ? "none" : `0 4px 15px ${T.a}20`
+                                boxShadow: "none"
                             }}
                         >
                             {/* Inner icons */}
                             {!menuOpen ? (
                                 <div style={{ transform: "rotate(-45deg)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
                                     {[0, 1, 2, 3].map(i => (
-                                        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, boxShadow: `0 0 6px ${T.a}` }} />
+                                        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, boxShadow: "none" }} />
                                     ))}
                                 </div>
                             ) : (
@@ -177,7 +177,6 @@ export default function App() {
             <div style={{
                 position: "fixed", inset: 0, zIndex: 199,
                 background: dark ? "rgba(10,10,16,0.98)" : "rgba(250,250,250,0.98)",
-                backdropFilter: "blur(20px)",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "32px",
                 transform: menuOpen ? "translateY(0)" : "translateY(-100%)",
                 opacity: menuOpen ? 1 : 0,
@@ -212,9 +211,7 @@ export default function App() {
 
             {/* ── HERO ── */}
             <section id="home" className="section hero-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "96px 24px 40px", position: "relative", overflow: "hidden" }}>
-                <NeuralCanvas T={T} />
-                <div style={{ position: "absolute", top: "10%", right: "15%", width: 600, height: 600, borderRadius: "50%", background: dark ? "rgba(0,212,255,.04)" : "rgba(91,33,182,.04)", filter: "blur(100px)", pointerEvents: "none", animation: "pulse 7s ease-in-out infinite" }} />
-                <div style={{ position: "absolute", bottom: "15%", left: "5%", width: 400, height: 400, borderRadius: "50%", background: dark ? "rgba(73,77,95,.04)" : "rgba(9,124,135,.03)", filter: "blur(80px)", pointerEvents: "none", animation: "pulse 8s 2s ease-in-out infinite" }} />
+
 
                 <div className="hero-cols" style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", gap: 48, alignItems: "flex-start", justifyContent: "center", flex: 1, paddingBottom: 32 }}>
                     {/* Profile */}
@@ -227,9 +224,9 @@ export default function App() {
                                 { label: "Email", href: "mailto:shahriyarfarhan3101@gmail.com", c: "#ea4335", svg: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></> },
                             ].map(({ label, href, c, svg }) => (
                                 <Mag key={label} as="a" href={href} target="_blank" rel="noreferrer"
-                                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 18px", border: `1px solid ${T.border}`, background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.6)", textDecoration: "none", transition: "all .22s", borderRadius: 16, cursor: "none", minWidth: 72, backdropFilter: "blur(8px)" }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = c; e.currentTarget.style.background = `${c}1a`; e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = `0 12px 32px ${c}40`; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.6)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 18px", border: `1px solid ${T.border}`, background: T.card, textDecoration: "none", transition: "all .3s ease-in-out", borderRadius: 12, cursor: "pointer", minWidth: 72 }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = T.a; e.currentTarget.style.transform = "scale(1.02)"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "scale(1)"; }}>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{svg}</svg>
                                     <span style={{ ...fm, fontSize: 9, color: T.m, letterSpacing: ".06em" }}>{label}</span>
                                 </Mag>
@@ -239,8 +236,8 @@ export default function App() {
 
                     {/* Text content */}
                     <div style={{ flex: "1 1 300px", maxWidth: 600 }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 20, ...fm, fontSize: 10, color: T.a, letterSpacing: ".14em", textTransform: "uppercase", padding: "6px 16px", border: `1px solid ${T.a}30`, background: `${T.a}08`, borderRadius: 24, animation: "fadeUp .7s .15s both" }}>
-                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.a3, boxShadow: `0 0 8px ${T.a3}`, animation: "blink 2s ease-in-out infinite" }} />
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 20, ...fm, fontSize: 10, color: T.t, letterSpacing: ".14em", textTransform: "uppercase", padding: "6px 16px", border: `1px solid ${T.border}`, background: T.card, borderRadius: 16, animation: "fadeUp .7s .15s both" }}>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: T.a2 }} />
                             Available · Hamburg, Germany
                         </div>
                         <h1 className="hero-name" style={{ ...sf, fontSize: "clamp(44px,7vw,90px)", fontWeight: 700, lineHeight: .92, letterSpacing: "-.02em", marginBottom: 20, animation: "fadeUp .8s .28s both" }}>
@@ -251,8 +248,22 @@ export default function App() {
                             <TypingRole T={T} />
                         </div>
                         <div className="hero-chips" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20, animation: "fadeUp .8s .52s both" }}>
-                            {[["AI & Data Engineer", T.a], ["MLOps Practitioner", T.a2], ["RAG Systems Builder", T.a3], ["MSc @ TUHH", "#f59e0b"]].map(([r, c]) => (
-                                <span key={r} style={{ ...fm, fontSize: 10, letterSpacing: ".08em", padding: "5px 14px", border: `1px solid ${c}50`, color: c, background: `${c}0e`, borderRadius: 20, whiteSpace: "nowrap" }}>{r}</span>
+                            {[
+                                ["AI & Data Engineer",   T.a,   true],
+                                ["MLOps Practitioner",   T.a2,  false],
+                                ["RAG Systems Builder",  T.a,   false],
+                                ["MSc @ TUHH",           T.a2,  false],
+                            ].map(([r, c, bold]) => (
+                                <span key={r} style={{
+                                    ...fm, fontSize: 10, letterSpacing: ".08em",
+                                    padding: "5px 14px",
+                                    border: `1px solid ${c}60`,
+                                    color: c,
+                                    background: bold ? `${c}18` : `${c}0a`,
+                                    borderRadius: 20,
+                                    whiteSpace: "nowrap",
+                                    fontWeight: bold ? 600 : 400,
+                                }}>{r}</span>
                             ))}
                         </div>
 
@@ -281,7 +292,6 @@ export default function App() {
 
             {/* ── ABOUT ── */}
             <section id="about" className="section" style={{ background: "transparent", overflow: "hidden", position: "relative" }}>
-                <AboutCanvas T={T} />
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1 }}>
                     <SH n="01" title="About" T={T} />
                     <AboutSection T={T} dark={dark} />
@@ -347,7 +357,7 @@ export default function App() {
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="06" title="Photography" T={T} />
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40, flexWrap: "wrap", gap: 16 }}>
-                        <p className="rv" style={{ fontSize: 15, color: T.m, maxWidth: 480, lineHeight: 1.8, fontStyle: "italic", fontFamily: "'Playfair Display',serif", margin: 0 }}>
+                        <p className="rv" style={{ fontSize: 15, color: T.m, maxWidth: 480, lineHeight: 1.8, fontStyle: "italic", fontFamily: "'Sora', sans-serif", margin: 0 }}>
                             Beyond the code — landscape and street photography from Hamburg and beyond.
                         </p>
                         <div className="rv2" style={{ display: "flex", gap: 16, ...fm, fontSize: 10, color: T.m }}>
@@ -386,23 +396,23 @@ export default function App() {
                 </div>
 
                 {lightbox && (
-                    <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "none", backdropFilter: "blur(12px)", animation: "fadeUp .2s ease" }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to bottom,rgba(0,0,0,.6),transparent)" }}>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "none", animation: "fadeUp .2s ease" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none" }}>
                             <span style={{ ...fm, fontSize: 10, color: "rgba(255,255,255,.5)", letterSpacing: ".12em" }}>{lbIdx + 1} / 20</span>
-                            <button onClick={() => setLightbox(false)} style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", color: "white", cursor: "none", padding: "8px 16px", borderRadius: 20, ...fm, fontSize: 11, letterSpacing: ".08em", backdropFilter: "blur(8px)" }}>✕ CLOSE</button>
+                            <button onClick={() => setLightbox(false)} style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", color: "white", cursor: "none", padding: "8px 16px", borderRadius: 20, ...fm, fontSize: 11, letterSpacing: ".08em" }}>✕ CLOSE</button>
                         </div>
-                        <img key={lbIdx} src={`https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/photo${lbIdx + 1}.jpg`} alt="" style={{ maxWidth: "80vw", maxHeight: "78vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 40px 100px rgba(0,0,0,.9)", animation: "lbEnter .35s cubic-bezier(.16,1,.3,1)" }} />
+                        <img key={lbIdx} src={`https://shahriyar31.github.io/Farhan-Shahriyar.github.io/images/photo${lbIdx + 1}.jpg`} alt="" style={{ maxWidth: "80vw", maxHeight: "78vh", objectFit: "contain", borderRadius: 6, boxShadow: "none", animation: "lbEnter .35s cubic-bezier(.16,1,.3,1)" }} />
                         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 24, cursor: "none" }} onClick={() => setLbIdx(i => (i - 1 + 20) % 20)}>
-                            <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
+                            <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "white"; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.color = "rgba(255,255,255,.7)"; }}>←</div>
                         </div>
                         <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "20%", display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 24, cursor: "none" }} onClick={() => setLbIdx(i => (i + 1) % 20)}>
-                            <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
+                            <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", transition: "all .2s", fontSize: 18, color: "rgba(255,255,255,.7)" }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "white"; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.08)"; e.currentTarget.style.color = "rgba(255,255,255,.7)"; }}>→</div>
                         </div>
-                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px", background: "linear-gradient(to top,rgba(0,0,0,.7),transparent)", display: "flex", gap: 8, justifyContent: "center", overflowX: "auto", scrollbarWidth: "none" }}>
+                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px", background: "none", display: "flex", gap: 8, justifyContent: "center", overflowX: "auto", scrollbarWidth: "none" }}>
                             {Array.from({ length: 20 }, (_, i) => (
                                 <div key={i} onClick={e => { e.stopPropagation(); setLbIdx(i); }}
                                     style={{ width: 56, height: 40, flexShrink: 0, borderRadius: 4, overflow: "hidden", border: lbIdx === i ? "2px solid white" : "2px solid rgba(255,255,255,.2)", opacity: lbIdx === i ? 1 : .55, transition: "all .2s", cursor: "none" }}>

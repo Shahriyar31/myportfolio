@@ -11,7 +11,7 @@ export default function HeroChat({ T }) {
     const hist = useRef([]);
     const scrollRef = useRef(null);
     const dark = T.bg === "#1a1a22";
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
 
     const scrollToBottom = () => {
         if (scrollRef.current) {
@@ -85,17 +85,17 @@ export default function HeroChat({ T }) {
             </div>
 
             {showKey && !key && (
-                <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", marginBottom: 10, padding: "12px 18px", background: dark ? "rgba(251,191,36,.06)" : "rgba(251,191,36,.1)", border: "1px solid rgba(251,191,36,.35)", borderRadius: 14 }}>
-                    <div style={{ ...fm, fontSize: 10, color: "#fbbf24", marginBottom: 6 }}>⚡ Paste your free Groq API key (groq.com) to activate</div>
-                    <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === "Enter" && key && setShowKey(false)} placeholder="gsk_..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(251,191,36,.4)", color: T.t, padding: "8px 14px", ...fm, fontSize: 11, outline: "none", borderRadius: 8 }} />
+                <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", marginBottom: 10, padding: "12px 18px", background: dark ? "rgba(100,116,139,0.1)" : "rgba(100,116,139,0.1)", border: "1px solid rgba(100,116,139,0.1)", borderRadius: 14 }}>
+                    <div style={{ ...fm, fontSize: 10, color: "#64748B", marginBottom: 6 }}>⚡ Paste your free Groq API key (groq.com) to activate</div>
+                    <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === "Enter" && key && setShowKey(false)} placeholder="gsk_..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(100,116,139,0.1)", color: T.t, padding: "8px 14px", ...fm, fontSize: 11, outline: "none", borderRadius: 8 }} />
                 </div>
             )}
 
             <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", background: dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.85)", border: `1px solid ${T.border}`, borderRadius: 32, padding: "7px 7px 7px 22px", display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(24px)", boxShadow: dark ? "0 8px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06)" : "0 8px 40px rgba(91,33,182,.1), inset 0 1px 0 rgba(255,255,255,.8)", transition: "box-shadow .3s" }}
                 onFocus={e => { if (e.target.tagName !== "INPUT") return; e.currentTarget.style.boxShadow = `0 8px 40px ${T.a}25, 0 0 0 1px ${T.a}40`; }}
                 onBlur={e => { e.currentTarget.style.boxShadow = dark ? "0 8px 40px rgba(0,0,0,.4)" : "0 8px 40px rgba(91,33,182,.1)"; }}>
-                <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${T.a},${T.a2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "'Playfair Display',serif", fontSize: 13, color: "white", fontWeight: 700 }}>F</div>
-                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(inp); } }} placeholder="Ask Farhan anything..." style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, outline: "none", minWidth: 0 }} />
+                <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${T.a},${T.a2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "'Sora', sans-serif", fontSize: 13, color: "white", fontWeight: 700 }}>F</div>
+                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(inp); } }} placeholder="Ask Farhan anything..." style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", fontFamily: "'Inter', sans-serif", fontSize: 13, outline: "none", minWidth: 0 }} />
                 <button type="button" onClick={() => send(inp)} disabled={busy || !inp.trim()}
                     style={{ width: 40, height: 40, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "none", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.45 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={(busy || !inp.trim()) ? T.m : "white"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -103,7 +103,7 @@ export default function HeroChat({ T }) {
                     </svg>
                 </button>
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: T.m, marginTop: 8, letterSpacing: ".06em", opacity: .6, textAlign: "center" }}>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 9, color: T.m, marginTop: 8, letterSpacing: ".06em", opacity: .6, textAlign: "center" }}>
                 {key ? "✓ Llama 3.3 connected via Groq" : "Powered by Llama 3.3 · Groq · Free · Paste your key above"}
             </div>
         </div>

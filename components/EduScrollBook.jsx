@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { EDU_CHAPTERS } from "../data/constants";
 
 export default function EduScrollBook({ T }) {
-    const fm = { fontFamily: "'JetBrains Mono',monospace" };
-    const sf = { fontFamily: "'Playfair Display',serif" };
+    const fm = { fontFamily: "'Inter', sans-serif" };
+    const sf = { fontFamily: "'Sora', sans-serif" };
     const dark = T.bg === "#1a1a22";
     const wrapRef = useRef(null);
     const [progress, setProgress] = useState(0);
