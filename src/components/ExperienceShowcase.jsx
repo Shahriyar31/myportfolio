@@ -78,15 +78,18 @@ function MetricRing({ val, ring, suffix, label, color, active, size = 110, strok
     const circ = 2 * Math.PI * r;
     const [count, setCount] = useState(0);
     const [progress, setProgress] = useState(0);
-    const hasRun = useRef(false);
 
     useEffect(() => {
-        if (!active || hasRun.current) return;
-        hasRun.current = true;
-
+        if (!active) {
+            setCount(0);
+            setProgress(0);
+            return;
+        }
+        let cancelled = false;
         const dur = 1400;
         const start = performance.now();
         const tick = ts => {
+            if (cancelled) return;
             const p = Math.min((ts - start) / dur, 1);
             const ease = 1 - Math.pow(1 - p, 4);
             setCount(Math.floor(ease * val));
@@ -94,7 +97,7 @@ function MetricRing({ val, ring, suffix, label, color, active, size = 110, strok
             if (p < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
-        // Intentionally no cleanup so scrolling fast doesn't abort it midway and leave it at 0
+        return () => { cancelled = true; };
     }, [active, val, ring]);
 
     const dash = circ * progress;
@@ -152,16 +155,18 @@ function HighlightText({ text, accent }) {
 
 function TypeText({ text, active, delay = 0, style }) {
     const [n, setN] = useState(0);
-    const hasRun = useRef(false);
     useEffect(() => {
-        if (!active || hasRun.current) return;
-        hasRun.current = true;
-        setTimeout(() => {
+        if (!active) { setN(0); return; }
+        let cancelled = false;
+        const timer = setTimeout(() => {
             let i = 0;
-            const go = () => { if (i <= text.length) { setN(i++); setTimeout(go, 35); } };
+            const go = () => {
+                if (cancelled) return;
+                if (i <= text.length) { setN(i++); setTimeout(go, 35); }
+            };
             go();
         }, delay);
-        // Intentionally no cleanup so it always finishes typing even if the user scrolls away quickly
+        return () => { cancelled = true; clearTimeout(timer); };
     }, [active, delay, text]);
     return <span style={style}>{text.slice(0, n)}{n < text.length && active && <span style={{ opacity: 0.3, animation: "blink .6s step-end infinite" }}>|</span>}</span>;
 }
@@ -266,6 +271,7 @@ function CardContent({ item, T, dark, active }) {
             {/* RIGHT PANEL */}
             <div
                 ref={rightRef}
+                className="exp-right-panel"
                 onMouseMove={onMove}
                 onMouseLeave={() => setMouse({ x: -999, y: -999 })}
                 style={{
@@ -357,14 +363,12 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
         const onScroll = () => {
             if (!outerRef.current) return;
             const rect = outerRef.current.getBoundingClientRect();
-            const vh = window.innerHeight;
-            
+
             // MEASURE: How many pixels have we scrolled PAST the start of the section?
             const scrolledPixels = Math.max(0, -rect.top);
-            
-            // THE TRACK: 6000px total height, which means 6000 - 100vh of actual scrollable territory
-            const scrollableRange = 6000 - vh;
-            const rotationTrack = 4000; // Finish all 3 cards in the first 4000px of scroll
+
+            // Mobile gets a shorter track so you don't have to scroll forever
+            const rotationTrack = isMobile ? 2500 : 4000;
 
             let p = Math.max(0, Math.min(1, scrolledPixels / rotationTrack));
             target.current = p * (EXP_DATA.length - 1);
@@ -463,8 +467,8 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
         return () => cancelAnimationFrame(frame);
     }, [T, isMobile]);
 
-    // Massive 6000px runway for total stability
-    const totalHeight = "6000px";
+    // Scroll runway — shorter on mobile so cards don't require excessive scrolling
+    const totalHeight = isMobile ? "3800px" : "6000px";
     const hPad = "clamp(20px,6vw,120px)";
 
     return (
@@ -539,18 +543,19 @@ function MobileCount({ to, suffix, label, color, active }) {
     const sf = { fontFamily: "'Sora', sans-serif" };
     const fm = { fontFamily: "'Inter', sans-serif" };
     const [val, setVal] = useState(0);
-    const ran = useRef(false);
     useEffect(() => {
-        if (!active || ran.current) return;
-        ran.current = true;
+        if (!active) { setVal(0); return; }
+        let cancelled = false;
         const dur = 1000;
         const start = performance.now();
         const tick = ts => {
+            if (cancelled) return;
             const p = Math.min((ts - start) / dur, 1);
             setVal(Math.floor((1 - Math.pow(1 - p, 3)) * to));
             if (p < 1) requestAnimationFrame(tick); else setVal(to);
         };
         requestAnimationFrame(tick);
+        return () => { cancelled = true; };
     }, [active, to]);
     return (
         <div style={{ textAlign: "center" }}>

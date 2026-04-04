@@ -126,7 +126,7 @@ function EduCardContent({ ch, T, dark, isMobile }) {
     );
 }
 
-export default function EduScrollBook({ T }) {
+export default function EduScrollBook({ T, SectionHeading }) {
     const dark = T.bg !== "#F5F7FA";
     const [isMobile, setIsMobile] = useState(false);
     const [activeIdx, setActiveIdx] = useState(0);
@@ -148,11 +148,11 @@ export default function EduScrollBook({ T }) {
         const onScroll = () => {
             if (!outerRef.current) return;
             const rect = outerRef.current.getBoundingClientRect();
-            const vh = window.innerHeight;
-            
+
             // MEASURE: Physical consumption of the scroll track
             const scrolledPixels = Math.max(0, -rect.top);
-            const rotationTrack = 4000;
+            // Mobile gets a shorter track — 2 chapters don't need 4000px of scroll
+            const rotationTrack = isMobile ? 1200 : 2000;
 
             let p = Math.max(0, Math.min(1, scrolledPixels / rotationTrack));
             target.current = p * (EDU_CHAPTERS.length - 1);
@@ -210,7 +210,8 @@ export default function EduScrollBook({ T }) {
         return () => cancelAnimationFrame(frame);
     }, [isMobile]);
 
-    const totalHeight = "6000px";
+    // 2 chapters need much less runway than 6000px
+    const totalHeight = isMobile ? "2200px" : "3200px";
 
     return (
         <div ref={outerRef} style={{ height: totalHeight, width: "100%", position: "relative", overflow: "visible" }}>
@@ -219,6 +220,13 @@ export default function EduScrollBook({ T }) {
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                 perspective: "2500px", padding: isMobile ? "0 10px" : "0", boxSizing: "border-box"
             }}>
+
+                {/* Section heading rendered inside sticky zone so it stays visible while scrolling */}
+                {SectionHeading && (
+                    <div style={{ position: "absolute", top: "clamp(60px, 8vh, 80px)", left: "clamp(20px,6vw,120px)", zIndex: 100 }}>
+                        {SectionHeading}
+                    </div>
+                )}
 
                 {/* Performance Bypass Indicators */}
                 <div style={{ position: "absolute", top: "12vh", display: "flex", gap: 12, alignItems: "center", zIndex: 100 }}>
