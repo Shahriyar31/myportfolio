@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function HeroProfile({ T, dark }) {
+export default function HeroProfile({ T, dark, size }) {
     const canvasRef = useRef(null);
     const [hovered, setHovered] = useState(false);
     const hovRef = useRef(false);
@@ -11,10 +11,10 @@ export default function HeroProfile({ T, dark }) {
         const ctx = canvas.getContext("2d");
         let raf;
 
-        const size = 420;
-        canvas.width = size;
-        canvas.height = size;
-        const cx = size / 2, cy = size / 2;
+        const sizeVal = 420;
+        canvas.width = sizeVal;
+        canvas.height = sizeVal;
+        const cx = sizeVal / 2, cy = sizeVal / 2;
 
         // Orbital particles
         const satellites = Array.from({ length: 6 }, (_, i) => ({
@@ -37,7 +37,7 @@ export default function HeroProfile({ T, dark }) {
         let t = 0;
 
         const draw = () => {
-            ctx.clearRect(0, 0, size, size);
+            ctx.clearRect(0, 0, sizeVal, sizeVal);
             t += 0.012;
 
             const isHov = hovRef.current;
@@ -145,8 +145,8 @@ export default function HeroProfile({ T, dark }) {
         <div
             style={{
                 position: "relative",
-                width: "clamp(260px, 32vw, 380px)",
-                height: "clamp(260px, 32vw, 380px)",
+                width: size ? size : "clamp(260px, 32vw, 380px)",
+                height: size ? size : "clamp(260px, 32vw, 380px)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -30,67 +30,71 @@ export default function ProjectShowcase({ T, dark }) {
 
     const renderDetailCard = (p, overrideIndex) => {
         const idx = overrideIndex !== undefined ? overrideIndex : activeIndex;
-        const rotateY = idx % 2 === 0 ? -5 : 5;
-        
+        const rotateY = idx % 2 === 0 ? -4 : 4;
+
         return (
-            <div style={{
+            <div key={p.id} style={{
                 width: "100%", padding: isMobile ? 24 : 40,
                 background: T.card,
-                border: `1px solid ${T.border}`,
+                border: `1px solid ${p.color}40`,
                 borderRadius: 16,
-                transform: `perspective(1000px) rotateY(${rotateY}deg) rotateX(5deg)`,
+                transform: isMobile ? "none" : `perspective(1000px) rotateY(${rotateY}deg) rotateX(4deg)`,
                 transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
                 overflow: "hidden", position: "relative",
-                margin: isMobile ? "10px 0" : 0
+                margin: isMobile ? "10px 0" : 0,
+                boxShadow: `0 20px 60px rgba(${p.glow},${dark ? 0.18 : 0.08}), inset 0 1px 0 rgba(${p.glow},0.1)`,
+                animation: "fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both",
             }}>
-            {/* Removed Top accent line */}
+                {/* Top accent line */}
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${p.color}, ${p.color}40, transparent)`, borderRadius: "16px 16px 0 0" }} />
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-                <span style={{ ...fm, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", padding: "6px 16px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}15` }}>
-                    {p.badge}
-                </span>
-                
-                {p.link ? (
-                    <a href={p.link} target="_blank" rel="noreferrer" style={{ ...fm, fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", transition: "all 0.2s", zIndex: 10 }}
-                        onMouseEnter={e => { e.currentTarget.style.background = p.color; e.currentTarget.style.color = "white"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"; e.currentTarget.style.color = p.color; }}
-                    >
-                        Source Code ↗
-                    </a>
-                ) : (
-                    <span style={{ ...fm, fontSize: 10, color: T.m, padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        🔒 Enterprise Private
+                {/* Ambient glow blob */}
+                <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${p.color}18, transparent 70%)`, pointerEvents: "none" }} />
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+                    <span style={{ ...fm, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", padding: "6px 16px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}15` }}>
+                        {p.badge}
                     </span>
-                )}
-            </div>
+                    {p.link ? (
+                        <a href={p.link} target="_blank" rel="noreferrer"
+                            style={{ ...fm, fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", transition: "all 0.2s", zIndex: 10, border: `1px solid ${p.color}30` }}
+                            onMouseEnter={e => { e.currentTarget.style.background = p.color; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = p.color; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"; e.currentTarget.style.color = p.color; e.currentTarget.style.borderColor = `${p.color}30`; }}>
+                            Source Code ↗
+                        </a>
+                    ) : (
+                        <span style={{ ...fm, fontSize: 10, color: T.m, padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            🔒 Enterprise Private
+                        </span>
+                    )}
+                </div>
 
-            <h3 style={{ ...sf, fontSize: "clamp(24px, 4vw, 42px)", fontWeight: 800, color: T.t, marginBottom: 16, lineHeight: 1.1 }}>
-                {p.title}
-            </h3>
-            
-            <p style={{ fontSize: 15, color: T.m, lineHeight: 1.8, marginBottom: 32 }}>
-                {p.desc}
-            </p>
+                <div style={{ ...fm, fontSize: 20, marginBottom: 8 }}>{p.icon}</div>
+                <h3 style={{ ...sf, fontSize: "clamp(24px, 4vw, 42px)", fontWeight: 800, color: T.t, marginBottom: 6, lineHeight: 1.1, letterSpacing: "-.02em" }}>
+                    {p.title}
+                </h3>
+                <div style={{ ...fm, fontSize: 11, color: p.color, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 20, opacity: 0.85 }}>
+                    {p.sub}
+                </div>
 
-            <div style={{ ...fm, fontSize: 9, color: p.color, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 14, height: 1, background: p.color, display: "inline-block" }} />
-                Tech Stack
+                <p style={{ fontSize: 15, color: T.m, lineHeight: 1.8, marginBottom: 28 }}>
+                    {p.desc}
+                </p>
+
+                <div style={{ ...fm, fontSize: 9, color: p.color, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 14, height: 1, background: p.color, display: "inline-block" }} />
+                    Tech Stack
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {p.tags.map(t => (
+                        <span key={t} style={{ ...fm, fontSize: 11, color: p.color, background: `${p.color}12`, border: `1px solid ${p.color}40`, padding: "6px 12px", borderRadius: 8, transition: "all .2s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = `${p.color}25`; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = `${p.color}12`; e.currentTarget.style.transform = "translateY(0)"; }}>
+                            {t}
+                        </span>
+                    ))}
+                </div>
             </div>
-            
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {p.tags.map(t => (
-                    <span key={t} style={{ 
-                        ...fm, fontSize: 11, color: p.color, 
-                        background: `${p.color}12`, 
-                        border: `1px solid ${p.color}40`, 
-                        padding: "6px 12px", borderRadius: 8, 
-                        transition: "all .2s" 
-                    }}>
-                        {t}
-                    </span>
-                ))}
-            </div>
-        </div>
         );
     };
 
@@ -167,44 +171,30 @@ export default function ProjectShowcase({ T, dark }) {
                  onMouseLeave={() => setHoverIndex(null)}>
                 {PROJECTS.map((p, i) => {
                     const isHovered = hoverIndex === i;
-                    const isPinned = activeIndex === i;
                     const isDisplaying = (hoverIndex !== null ? hoverIndex : activeIndex) === i;
                     
                     return (
-                        <div 
+                        <div
                             key={p.id}
-                            onClick={() => {
-                                setIsAutoPlaying(false);
-                                setActiveIndex(i);
-                            }}
-                            onMouseEnter={isMobile ? undefined : () => {
-                                setIsAutoPlaying(false);
-                                setHoverIndex(i);
-                            }}
+                            onClick={() => { setIsAutoPlaying(false); setActiveIndex(i); }}
+                            onMouseEnter={isMobile ? undefined : () => { setIsAutoPlaying(false); setHoverIndex(i); }}
                             style={{
                                 cursor: "pointer", padding: "16px 24px",
                                 borderRadius: 16,
-                                background: isPinned ? (dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)") : 
-                                          (isHovered ? (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)") : "transparent"),
-                                borderLeft: isPinned ? `3px solid ${p.color}` : 
-                                          (isDisplaying ? `3px solid ${p.color}80` : 
-                                          (isHovered ? `3px solid ${p.color}40` : "3px solid transparent")),
-                                transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-                                transform: isDisplaying ? "translateX(10px)" : "none",
+                                background: isDisplaying ? `${p.color}0e` : "transparent",
+                                borderLeft: `3px solid ${isDisplaying ? p.color : isHovered ? `${p.color}50` : "transparent"}`,
+                                transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+                                transform: isDisplaying ? "translateX(8px)" : "none",
+                                boxShadow: isDisplaying ? `0 4px 24px rgba(${p.glow},${dark ? 0.12 : 0.06})` : "none",
                                 position: "relative"
-                            }}
-                        >
+                            }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                                <div style={{ ...sf, fontSize: isDisplaying ? "clamp(24px, 3vw, 36px)" : "clamp(18px, 2vw, 24px)", fontWeight: isDisplaying ? 800 : 500, color: isDisplaying ? T.t : T.m, transition: "all 0.4s" }}>
+                                <div style={{ ...sf, fontSize: isDisplaying ? "clamp(22px,3vw,34px)" : "clamp(16px,2vw,22px)", fontWeight: isDisplaying ? 800 : 500, color: isDisplaying ? T.t : T.m, transition: "all 0.35s", letterSpacing: isDisplaying ? "-.02em" : 0 }}>
                                     {p.title}
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    {isPinned && <span style={{ fontSize: 16, opacity: 0.9, filter: `drop-shadow(0 0 5px ${p.color})` }}>📌</span>}
-                                    <span style={{ fontSize: isDisplaying ? 28 : 20, opacity: isDisplaying ? 1 : 0.4, transition: "all 0.4s", filter: isDisplaying ? `drop-shadow(0 0 10px ${p.color})` : "none" }}>{p.icon}</span>
-                                </div>
+                                <span style={{ fontSize: isDisplaying ? 26 : 18, opacity: isDisplaying ? 1 : 0.35, transition: "all 0.35s", filter: isDisplaying ? `drop-shadow(0 0 8px ${p.color}90)` : "none" }}>{p.icon}</span>
                             </div>
-                            
-                            <div style={{ ...fm, fontSize: 11, color: isDisplaying ? p.color : T.dim, letterSpacing: ".1em", textTransform: "uppercase", transition: "all 0.4s" }}>
+                            <div style={{ ...fm, fontSize: 10, color: isDisplaying ? p.color : T.dim, letterSpacing: ".1em", textTransform: "uppercase", transition: "all 0.35s" }}>
                                 {p.sub}
                             </div>
                         </div>

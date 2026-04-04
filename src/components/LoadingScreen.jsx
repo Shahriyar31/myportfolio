@@ -13,15 +13,6 @@ export default function LoadingScreen({ onDone }) {
         const accent = "#7eb8be";
         const accent2 = "#8890aa";
 
-        // Inject keyframes
-        const style = document.createElement("style");
-        style.textContent = `
-            @keyframes ls-shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-            @keyframes ls-pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
-            @keyframes ls-scanline { 0%{top:-10%} 100%{top:110%} }
-            @keyframes ls-fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        `;
-        document.head.appendChild(style);
 
         root.style.cssText = `
             position:fixed;inset:0;z-index:99999;
@@ -119,7 +110,6 @@ export default function LoadingScreen({ onDone }) {
             root.style.opacity = "0";
             root.style.pointerEvents = "none";
             setTimeout(() => {
-                style.remove();
                 if (onDone) onDone();
             }, 400);
         }, 1200);

@@ -6,7 +6,7 @@ export default function NeuralCanvas({ T }) {
         const c = ref.current; if (!c) return;
         const ctx = c.getContext("2d");
         let W, H, raf;
-        const dark = T.bg === "#1a1a22";
+        const dark = T.bg !== "#F5F7FA";
         const CA = dark ? "9,124,135" : "73,77,95";
         const mouse = { x: W / 2, y: H / 2, px: -1, py: -1 };
 
@@ -262,5 +262,5 @@ export default function NeuralCanvas({ T }) {
         tick();
         return () => { cancelAnimationFrame(raf); window.removeEventListener("mousemove", onMouseMove); };
     }, [T]);
-    return <canvas ref={ref} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: T.bg === "#1a1a22" ? 0.9 : 0.45 }} />;
+    return <canvas ref={ref} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: T.bg !== "#F5F7FA" ? 0.9 : 0.45 }} />;
 }

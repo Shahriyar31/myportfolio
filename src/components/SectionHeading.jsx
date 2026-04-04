@@ -8,10 +8,12 @@ export default function SH({ n, title, T }) {
         // On mobile show immediately — skip animation
         if (window.innerWidth <= 768) { setVis(true); return; }
         const obs = new IntersectionObserver(([e]) => {
-            if (e.isIntersecting) setVis(true);
-        }, { threshold: 0, rootMargin: "-5% 0px -5% 0px" });
+            if (e.isIntersecting) { setVis(true); obs.disconnect(); }
+        }, { threshold: 0, rootMargin: "0px" });
         if (ref.current) obs.observe(ref.current);
-        return () => obs.disconnect();
+        // Fallback: if inside a sticky container the observer may not fire reliably
+        const t = setTimeout(() => setVis(true), 600);
+        return () => { obs.disconnect(); clearTimeout(t); };
     }, []);
 
     const mobile = typeof window !== "undefined" && window.innerWidth <= 768;

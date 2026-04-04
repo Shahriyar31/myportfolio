@@ -1,5 +1,5 @@
 export function AboutBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const col = dark ? "rgba(126,184,190,.18)" : "rgba(45,50,80,.32)";
     const strands = Array.from({ length: 8 }, (_, i) => i);
     return (
@@ -15,7 +15,7 @@ export function AboutBG({ T }) {
 }
 
 export function ExperienceBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const lines = ["const rag = new RAGPipeline(1690);", "await llm.evaluate(29, 'gpt-4o');", "rapidfuzz.match(threshold=70)", "docker build -t nordex-ai .", "git push origin main", "kubectl apply -f deployment.yaml", "python3 eval_pipeline.py", "streamlit run app.py", "azure.ai.foundry.deploy()", "embeddings = text_embedding_3_large", "score: groundedness=4.8/5", "cost_reduction = 11.0  # times"];
     return (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
@@ -31,7 +31,7 @@ export function ExperienceBG({ T }) {
 }
 
 export function ProjectsBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const fragments = [
         { code: "accuracy = 97.51%", x: 4, y: 12, dur: 22, del: 0, rot: -6 },
         { code: "RAGPipeline(docs=1690)", x: 68, y: 7, dur: 18, del: -3, rot: 4 },
@@ -65,7 +65,7 @@ export function ProjectsBG({ T }) {
 }
 
 export function EducationBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const items = [
         { e: "📚", x: 4, y: 12, dur: 20, del: 0, rot: -8, s: 28 },
         { e: "💻", x: 88, y: 8, dur: 22, del: -4, rot: 5, s: 26 },
@@ -94,7 +94,7 @@ export function EducationBG({ T }) {
 }
 
 export function SkillsBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const pts = [{ x: 10, y: 20 }, { x: 25, y: 10 }, { x: 45, y: 30 }, { x: 65, y: 15 }, { x: 80, y: 35 }, { x: 90, y: 20 }, { x: 15, y: 60 }, { x: 35, y: 75 }, { x: 55, y: 55 }, { x: 75, y: 70 }, { x: 85, y: 60 }, { x: 20, y: 85 }, { x: 50, y: 90 }, { x: 70, y: 85 }];
     const edges = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 6], [6, 7], [7, 8], [8, 9], [9, 10], [6, 11], [11, 12], [12, 13], [2, 8], [4, 9], [3, 8], [1, 7]];
     return (
@@ -117,7 +117,7 @@ export function SkillsBG({ T }) {
 }
 
 export function ContactBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const col = dark ? "rgba(126,184,190,ALPHA)" : "rgba(45,50,80,ALPHA)";
     return (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -134,7 +134,7 @@ export function ContactBG({ T }) {
 }
 
 export function PhotographyBG({ T }) {
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const shapes = [{ type: "circle", x: 8, y: 15, s: 40, dur: 22, del: 0 }, { type: "square", x: 88, y: 10, s: 28, dur: 18, del: -3 }, { type: "triangle", x: 5, y: 70, s: 35, dur: 25, del: -7 }, { type: "circle", x: 92, y: 75, s: 25, dur: 20, del: -5 }, { type: "square", x: 50, y: 5, s: 20, dur: 16, del: -2 }];
     const col = dark ? "rgba(126,184,190,.12)" : "rgba(45,50,80,.28)";
     return (

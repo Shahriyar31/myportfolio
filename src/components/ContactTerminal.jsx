@@ -134,28 +134,28 @@ export default function ContactTerminal({ T, dark }) {
                                 border: `1px solid ${focus === 'email' ? T.a : T.border}`,
                                 color: T.t, ...fm, fontSize: 13,
                                 outline: "none", transition: "all 0.3s",
-                                cursor: "none"
-                            }} 
+                                cursor: "text"
+                            }}
                         />
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         <label style={{ ...fm, fontSize: 10, color: focus === 'msg' ? T.t : T.m, transition: "color 0.3s" }}>PAYLOAD / MESSAGE</label>
-                        <textarea 
+                        <textarea
                             value={msg}
                             onChange={e => setMsg(e.target.value)}
                             onFocus={() => setFocus('msg')}
                             onBlur={() => setFocus(null)}
                             placeholder="Initialize transmission..."
                             rows={4}
-                            style={{ 
-                                width: "100%", padding: "16px", borderRadius: 12, 
+                            style={{
+                                width: "100%", padding: "16px", borderRadius: 12,
                                 background: focus === 'msg' ? `${T.a}08` : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
                                 border: `1px solid ${focus === 'msg' ? T.a : T.border}`,
                                 color: T.t, ...fm, fontSize: 13, resize: "none",
                                 outline: "none", transition: "all 0.3s",
-                                cursor: "none"
-                            }} 
+                                cursor: "text"
+                            }}
                         />
                     </div>
 
@@ -166,7 +166,7 @@ export default function ContactTerminal({ T, dark }) {
                             ...fm, fontSize: 12, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase",
                             padding: "18px", borderRadius: 12, width: "100%",
                             background: sent ? "#64748B" : T.t,
-                            color: T.bg, border: "none", cursor: "none",
+                            color: T.bg, border: "none", cursor: "pointer",
                             opacity: (!msg || !email) ? 0.5 : 1,
                             transition: "all 0.3s ease",
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 8

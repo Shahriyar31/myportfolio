@@ -120,7 +120,7 @@ function LifeFlow({ steps, containerRef, cardRefs, T }) {
 export default function JourneyTimeline({ T, dark }) {
     const fm = { fontFamily: "'Inter', sans-serif" };
     const sf = { fontFamily: "'Sora', sans-serif" };
-    const isDark = T.bg === "#1a1a22";
+    const isDark = T.bg !== "#F5F7FA";
 
     const steps = [
         { year: "2018", loc: "West Bengal, India 🇮🇳", title: "B.Tech Computer Science", desc: "My journey begins here. I started software engineering at Coochbehar GEC, diving deep into computer science fundamentals. Over four years, I built a strong foundation, learned to write clean algorithmic code, and graduated with honors (8.73/10 CGPA). This was the spark that ignited my passion for technology.", color: "#097C87", icon: "🎓" },

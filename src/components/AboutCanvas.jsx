@@ -7,7 +7,7 @@ export default function AboutCanvas({ T }) {
         const c = ref.current; if (!c) return;
         const ctx = c.getContext("2d");
         let W, H, raf;
-        const dark = T.bg === "#1a1a22";
+        const dark = T.bg !== "#F5F7FA";
 
         const resize = () => { W = c.width = c.offsetWidth; H = c.height = c.offsetHeight; };
         resize();

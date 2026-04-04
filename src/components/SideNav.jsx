@@ -1,6 +1,8 @@
 import Mag from "./Mag";
+import { useTheme } from "../context/ThemeContext";
 
-export default function SideNav({ active, T }) {
+export default function SideNav({ active }) {
+    const { T } = useTheme();
     const items = [
         { id: "home", svg: <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /> },
         { id: "about", svg: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></> },

@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 
 export default function PCard({ p, T, i }) {
     const ref = useRef(null); const [hov, setHov] = useState(false); const [mx, setMx] = useState(50); const [my, setMy] = useState(50);
-    const dark = T.bg === "#1a1a22";
+    const dark = T.bg !== "#F5F7FA";
     const onMove = e => {
         const r = ref.current?.getBoundingClientRect(); if (!r) return;
         setMx((e.clientX - r.left) / r.width * 100); setMy((e.clientY - r.top) / r.height * 100);

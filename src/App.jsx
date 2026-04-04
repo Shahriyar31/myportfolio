@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import "./styles/global.js";
+import "./styles/global.css";
 import { PROJECTS, SKILLS, DARK, LIGHT } from "./data/constants";
+import { useTheme } from "./context/ThemeContext";
 import LoadingScreen from "./components/LoadingScreen";
 import Cursor from "./components/Cursor";
 import NeuralCanvas from "./components/NeuralCanvas";
@@ -26,6 +27,7 @@ import ChatFloat from "./components/ChatFloat";
 import EduScrollBook from "./components/EduScrollBook";
 import ExperienceShowcase from "./components/ExperienceShowcase";
 import AboutSection from "./components/AboutSection";
+import HeroBentoMaster from "./components/HeroBentoMaster";
 import { AboutBG, ExperienceBG, ProjectsBG, EducationBG, SkillsBG, ContactBG, PhotographyBG } from "./components/SectionBgs";
 
 function useReveal() {
@@ -39,7 +41,8 @@ function useReveal() {
 }
 
 export default function App() {
-    const [dark, setDark] = useState(true); const [active, setActive] = useState("home");
+    const { dark, setDark, T } = useTheme();
+    const [active, setActive] = useState("home");
     const [lightbox, setLightbox] = useState(false); const [lbIdx, setLbIdx] = useState(0);
     const [loading, setLoading] = useState(true);
     const [resumeOpen, setResumeOpen] = useState(false);
@@ -55,7 +58,6 @@ export default function App() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const T = dark ? DARK : LIGHT;
     useReveal();
 
     useEffect(() => {
@@ -210,85 +212,7 @@ export default function App() {
             </div>
 
             {/* ── HERO ── */}
-            <section id="home" className="section hero-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "96px 24px 40px", position: "relative", overflow: "hidden" }}>
-
-
-                <div className="hero-cols" style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", gap: 48, alignItems: "flex-start", justifyContent: "center", flex: 1, paddingBottom: 32 }}>
-                    {/* Profile */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, flexShrink: 0, animation: "fadeUp .8s .1s both" }}>
-                        <HeroProfile T={T} dark={dark} />
-                        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                            {[
-                                { label: "GitHub", href: "https://github.com/Shahriyar31", c: "#58a6ff", svg: <><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" /></> },
-                                { label: "LinkedIn", href: "https://www.linkedin.com/in/farhanshahriyar", c: "#0a66c2", svg: <><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></> },
-                                { label: "Email", href: "mailto:shahriyarfarhan3101@gmail.com", c: "#ea4335", svg: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></> },
-                            ].map(({ label, href, c, svg }) => (
-                                <Mag key={label} as="a" href={href} target="_blank" rel="noreferrer"
-                                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 18px", border: `1px solid ${T.border}`, background: T.card, textDecoration: "none", transition: "all .3s ease-in-out", borderRadius: 12, cursor: "pointer", minWidth: 72 }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = T.a; e.currentTarget.style.transform = "scale(1.02)"; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "scale(1)"; }}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{svg}</svg>
-                                    <span style={{ ...fm, fontSize: 9, color: T.m, letterSpacing: ".06em" }}>{label}</span>
-                                </Mag>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Text content */}
-                    <div style={{ flex: "1 1 300px", maxWidth: 600 }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 20, ...fm, fontSize: 10, color: T.t, letterSpacing: ".14em", textTransform: "uppercase", padding: "6px 16px", border: `1px solid ${T.border}`, background: T.card, borderRadius: 16, animation: "fadeUp .7s .15s both" }}>
-                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: T.a2 }} />
-                            Available · Hamburg, Germany
-                        </div>
-                        <h1 className="hero-name" style={{ ...sf, fontSize: "clamp(44px,7vw,90px)", fontWeight: 700, lineHeight: .92, letterSpacing: "-.02em", marginBottom: 20, animation: "fadeUp .8s .28s both" }}>
-                            Farhan<br />
-                            <GlitchName text="SHAHRIYAR" T={T} />
-                        </h1>
-                        <div style={{ ...fm, fontSize: "clamp(12px,1.5vw,16px)", color: T.m, marginBottom: 16, minHeight: "1.7rem", animation: "fadeUp .8s .42s both" }}>
-                            <TypingRole T={T} />
-                        </div>
-                        <div className="hero-chips" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20, animation: "fadeUp .8s .52s both" }}>
-                            {[
-                                ["AI & Data Engineer",   T.a,   true],
-                                ["MLOps Practitioner",   T.a2,  false],
-                                ["RAG Systems Builder",  T.a,   false],
-                                ["MSc @ TUHH",           T.a2,  false],
-                            ].map(([r, c, bold]) => (
-                                <span key={r} style={{
-                                    ...fm, fontSize: 10, letterSpacing: ".08em",
-                                    padding: "5px 14px",
-                                    border: `1px solid ${c}60`,
-                                    color: c,
-                                    background: bold ? `${c}18` : `${c}0a`,
-                                    borderRadius: 20,
-                                    whiteSpace: "nowrap",
-                                    fontWeight: bold ? 600 : 400,
-                                }}>{r}</span>
-                            ))}
-                        </div>
-
-                        <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap", animation: "fadeUp .8s .86s both" }}>
-                            <Mag as="a" href="#projects" onClick={e => scrollTo("projects", e)}
-                                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: T.a, color: "white", padding: "12px 28px", ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", fontWeight: 700, borderRadius: 26, transition: "opacity .2s" }}>
-                                View Projects →
-                            </Mag>
-                            <Mag as="button" onClick={() => setResumeOpen(true)}
-                                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", color: T.t, padding: "12px 28px", ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", border: `1px solid ${T.border}`, borderRadius: 26, transition: "background .2s, border-color .2s", cursor: "pointer" }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = T.a; e.currentTarget.style.background = `${T.a}10`; }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = "transparent"; }}>
-                                View Resume
-                            </Mag>
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, borderTop: `1px solid ${T.border}` }}>
-                    <h3 style={{ ...sf, fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, color: T.t, marginBottom: 4, textAlign: "center" }}>
-                        Query my portfolio <span style={{ color: T.a, animation: "blink 2s ease-in-out infinite", display: "inline-block" }}>✦</span>
-                    </h3>
-                    <p style={{ ...fm, fontSize: 10, color: T.m, marginBottom: 16, textAlign: "center", letterSpacing: ".06em" }}>Ask about my projects, skills, or experience</p>
-                    <HeroChat T={T} />
-                </div>
-            </section>
+            <HeroBentoMaster T={T} dark={dark} onOpenResume={() => setResumeOpen(true)} />
 
             {/* ── ABOUT ── */}
             <section id="about" className="section" style={{ background: "transparent", overflow: "hidden", position: "relative" }}>
@@ -305,12 +229,9 @@ export default function App() {
             </section>
 
             {/* ── EXPERIENCE ── */}
-            <section id="experience" className="section" style={{ background: "transparent", position: "relative" }}>
+            <section id="experience" className="section" style={{ background: "transparent", position: "relative", overflow: "visible" }}>
                 <ExperienceBG T={T} />
-                <div className="sec-inner" style={{ ...sp }}>
-                    <SH n="02" title="Experience" T={T} />
-                    <ExperienceShowcase T={T} dark={dark} />
-                </div>
+                <ExperienceShowcase T={T} dark={dark} SectionHeading={<SH n="02" title="Experience" T={T} />} />
             </section>
 
             {/* ── PROJECTS ── */}
@@ -345,7 +266,7 @@ export default function App() {
             {/* ── EDUCATION ── */}
             <section id="education" className="section" style={{ background: "transparent", position: "relative", overflow: "visible", padding: 0 }}>
                 <EducationBG T={T} />
-                <div style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 40 }}>
+                <div style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 0 }}>
                     <SH n="05" title="Education" T={T} />
                 </div>
                 <EduScrollBook T={T} />

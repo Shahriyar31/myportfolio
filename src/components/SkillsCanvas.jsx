@@ -6,7 +6,7 @@ export default function SkillsCanvas({ T }) {
         const c = ref.current; if (!c) return;
         const ctx = c.getContext("2d");
         let W, H, raf;
-        const dark = T.bg === "#1a1a22";
+        const dark = T.bg !== "#F5F7FA";
         const mouse = { x: -9999, y: -9999 };
         const catRGB = [[126,184,190],[136,144,170],[122,170,138],[245,158,11]];
 
@@ -164,5 +164,5 @@ export default function SkillsCanvas({ T }) {
         tick();
         return () => { cancelAnimationFrame(raf); c.removeEventListener("mousemove", onMM); window.removeEventListener("resize", resize); };
     }, [T]);
-    return <canvas ref={ref} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "auto", opacity: T.bg === "#1a1a22" ? .85 : .5 }} />;
+    return <canvas ref={ref} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "auto", opacity: T.bg !== "#F5F7FA" ? .85 : .5 }} />;
 }
