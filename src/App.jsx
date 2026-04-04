@@ -18,7 +18,7 @@ import SH from "./components/SectionHeading";
 import ProjectShowcase from "./components/ProjectShowcase";
 import SPill from "./components/SkillPill";
 import PhotoGallery from "./components/PhotoGallery";
-import SkillsUniverse from "./components/SkillsUniverse";
+import SkillsGraph from "./components/SkillsGraph";
 import ContactTerminal from "./components/ContactTerminal";
 import CyclingFact from "./components/CyclingFact";
 import JourneyTimeline from "./components/JourneyTimeline";
@@ -245,22 +245,15 @@ export default function App() {
 
             {/* ── SKILLS ── */}
             <section id="skills" className="section" style={{ background: "transparent", position: "relative", overflow: "hidden", minHeight: "100vh" }}>
-                <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 0 }}>
+                <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 24 }}>
                     <SH n="04" title="Skills" T={T} />
-
-                    <div className="rv" style={{ textAlign: "center", marginBottom: 24 }}>
-                        <p style={{ ...sf, fontSize: "clamp(18px,2.5vw,28px)", fontWeight: 600, color: T.t, marginBottom: 8, lineHeight: 1.3 }}>
-                            A constellation of <span style={{ color: T.a, fontStyle: "italic" }}>26 skills</span> across 4 domains
-                        </p>
-                        <p style={{ ...fm, fontSize: 11, color: T.m, letterSpacing: ".06em" }}>
-                            Explore the interactive universe below
+                    <div className="rv" style={{ marginBottom: 8 }}>
+                        <p style={{ ...fm, fontSize: 11, color: T.m, letterSpacing: ".08em", textTransform: "uppercase" }}>
+                            Move your cursor over the graph · 26 skills · 4 domains
                         </p>
                     </div>
                 </div>
-
-                <div className="rv2">
-                    <SkillsUniverse T={T} />
-                </div>
+                <SkillsGraph T={T} />
             </section>
 
             {/* ── EDUCATION ── */}

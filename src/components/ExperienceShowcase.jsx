@@ -352,11 +352,21 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
     const target = useRef(0);
     const current = useRef(0);
 
+    // Mouse position for card micro-tilt (stored as ref — never causes re-render)
+    const mousePos = useRef({ x: 0, y: 0 });
+
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth <= 900);
         check();
         window.addEventListener("resize", check);
         return () => window.removeEventListener("resize", check);
+    }, []);
+
+    // Track mouse for card tilt (desktop only)
+    useEffect(() => {
+        const onMove = (e) => { mousePos.current = { x: e.clientX, y: e.clientY }; };
+        window.addEventListener("mousemove", onMove, { passive: true });
+        return () => window.removeEventListener("mousemove", onMove);
     }, []);
 
     useEffect(() => {
@@ -437,7 +447,19 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
                 // Dynamic realistic box shadow based on proximity to center
                 const shadowAlpha = Math.max(0, 0.8 - (dist * 0.6));
 
-                el.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry}deg)`;
+                // Mouse-tracking micro-tilt on the active card (desktop only)
+                // Makes the card feel like a physical hologram that reacts to your gaze
+                let extraRX = 0, extraRY = 0;
+                if (!isMobile && dist < 0.35) {
+                    const activeFactor = Math.max(0, 1 - dist / 0.35);
+                    const vw = window.innerWidth, vh = window.innerHeight;
+                    const nx = (mousePos.current.x / vw) - 0.5; // -0.5 … 0.5
+                    const ny = (mousePos.current.y / vh) - 0.5;
+                    extraRY = nx * 10 * activeFactor;  // ±5 deg horizontal tilt
+                    extraRX = -ny * 7 * activeFactor;  // ±3.5 deg vertical tilt
+                }
+
+                el.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry + extraRY}deg) rotateX(${extraRX}deg)`;
                 el.style.opacity = Math.max(0, op);
                 el.style.pointerEvents = dist < 0.35 ? "auto" : "none";
                 el.style.zIndex = Math.round(100 - dist * 10); // Dynamic Z priority
