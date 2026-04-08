@@ -8,11 +8,120 @@ const sf = { fontFamily: "'Space Grotesk', 'Sora', sans-serif" };
 const fm = { fontFamily: "'Inter', sans-serif" };
 
 const SOCIAL = [
-    { label: "GitHub", href: "https://github.com/Shahriyar31" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/in/farhanshahriyar" },
-    { label: "Email", href: "mailto:shahriyarfarhan3101@gmail.com" },
+    { label: "GitHub", href: "https://github.com/Shahriyar31", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg> },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/farhanshahriyar", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
+    { label: "Email", href: "mailto:shahriyarfarhan3101@gmail.com", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg> },
 ];
 
+
+/* ── Neural Network Background (full-hero ambient theme) ──────────── */
+function NeuralNetBG({ T, dark }) {
+    const nodes = [
+        { x: 8, y: 15 }, { x: 18, y: 65 }, { x: 6, y: 85 },
+        { x: 92, y: 20 }, { x: 88, y: 72 }, { x: 94, y: 50 },
+        { x: 25, y: 40 }, { x: 75, y: 35 }, { x: 50, y: 10 },
+        { x: 15, y: 50 }, { x: 85, y: 85 }, { x: 50, y: 90 },
+        { x: 35, y: 20 }, { x: 65, y: 80 }, { x: 30, y: 75 }, { x: 70, y: 15 },
+    ];
+    const edges = [
+        [0,6],[0,9],[1,6],[1,9],[2,9],[3,7],[3,5],[4,7],[4,5],[6,8],[7,8],
+        [6,10],[7,10],[9,13],[5,11],[8,12],[13,11],[12,11],[10,11],
+        [0,12],[3,8],[6,7],[2,13],[4,14],[1,14],[14,13],[15,8],[15,7],
+    ];
+    const color = dark ? T.a : T.a;
+    const signals = [
+        { edge: [0,6], dur: "3s", delay: "0s" },
+        { edge: [3,7], dur: "2.5s", delay: "0.8s" },
+        { edge: [6,8], dur: "4s", delay: "1.5s" },
+        { edge: [7,8], dur: "3.5s", delay: "0.3s" },
+        { edge: [8,12], dur: "2.8s", delay: "1.2s" },
+        { edge: [9,13], dur: "3.2s", delay: "0.5s" },
+        { edge: [4,5], dur: "2.2s", delay: "2s" },
+        { edge: [1,6], dur: "3.8s", delay: "0.7s" },
+    ];
+    return (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", inset: 0 }}>
+                {edges.map(([a, b], i) => (
+                    <line key={i}
+                        x1={`${nodes[a].x}%`} y1={`${nodes[a].y}%`}
+                        x2={`${nodes[b].x}%`} y2={`${nodes[b].y}%`}
+                        stroke={color} strokeWidth="0.08" opacity="0.18"
+                    />
+                ))}
+                {nodes.map((n, i) => (
+                    <circle key={i} cx={`${n.x}%`} cy={`${n.y}%`} r="0.4" fill={color} opacity="0.4">
+                        <animate attributeName="opacity" values="0.2;0.7;0.2" dur={`${2 + (i * 0.3) % 2}s`} repeatCount="indefinite" begin={`${(i * 0.25) % 2}s`}/>
+                        <animate attributeName="r" values="0.35;0.55;0.35" dur={`${2.5 + (i * 0.2) % 1.5}s`} repeatCount="indefinite" begin={`${(i * 0.15) % 1.5}s`}/>
+                    </circle>
+                ))}
+                {signals.map(({ edge: [a, b], dur, delay }, i) => (
+                    <circle key={`sig-${i}`} r="0.5" fill="white" opacity="0.7">
+                        <animateMotion dur={dur} begin={delay} repeatCount="indefinite"
+                            path={`M ${nodes[a].x} ${nodes[a].y} L ${nodes[b].x} ${nodes[b].y}`}
+                        />
+                        <animate attributeName="opacity" values="0;0.8;0" dur={dur} begin={delay} repeatCount="indefinite"/>
+                    </circle>
+                ))}
+            </svg>
+        </div>
+    );
+}
+
+/* ── AI Chat Bubble Card ─────────────────────────────────────────── */
+function AIChatBubbleCard({ T, dark }) {
+    const questions = [
+        "What did you build at Nordex? 🤖",
+        "Tell me about your RAG system",
+        "MSc at TUHH — what's your thesis? 📚",
+        "Best project you're proud of?",
+        "How does your AI assistant work? ⚡",
+        "Available for freelance work?",
+    ];
+    const [visibleIdx, setVisibleIdx] = useState(0);
+    const [typedText, setTypedText] = useState("");
+    const [isTyping, setIsTyping] = useState(true);
+
+    useEffect(() => {
+        let timeout;
+        const question = questions[visibleIdx];
+        let i = 0;
+        setTypedText("");
+        setIsTyping(true);
+        const typeNext = () => {
+            if (i <= question.length) {
+                setTypedText(question.slice(0, i));
+                i++;
+                timeout = setTimeout(typeNext, 45);
+            } else {
+                setIsTyping(false);
+                timeout = setTimeout(() => {
+                    setVisibleIdx(p => (p + 1) % questions.length);
+                }, 2200);
+            }
+        };
+        typeNext();
+        return () => clearTimeout(timeout);
+    }, [visibleIdx]);
+
+    return (
+        <div style={{ padding: "14px 16px", height: "100%", display: "flex", flexDirection: "column", gap: 10, justifyContent: "flex-end" }}>
+            {/* Sample AI reply bubble */}
+            <div style={{ alignSelf: "flex-start", maxWidth: "90%", padding: "8px 12px", borderRadius: "12px 12px 12px 2px", background: dark ? "rgba(89,180,250,0.12)" : `${T.a}15`, border: `1px solid ${T.a}30`, ...fm, fontSize: 11, color: T.t, lineHeight: 1.5 }}>
+                Hi! I'm Farhan's AI. I built a RAG system at Nordex handling 1,690+ docs — 11× cheaper than GPT-5! ✨
+            </div>
+            {/* Typing question area */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `1px solid ${T.border}` }}>
+                <span style={{ ...fm, fontSize: 11, color: T.m, flex: 1, height: 16, overflow: "hidden" }}>
+                    {typedText}{isTyping ? <span style={{ animation: "blink 0.8s infinite", opacity: 1 }}>|</span> : null}
+                </span>
+                <div style={{ width: 22, height: 22, borderRadius: "50%", background: T.a, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function HeroGuideOverlay({ T, step }) {
     const text = [
@@ -126,11 +235,12 @@ function MobileHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMod
                                 padding: "8px 16px", background: T.bg,
                                 border: "none", borderRadius: 20, color: T.m, textDecoration: "none",
                                 ...fm, fontSize: 12, fontWeight: 600,
-                                boxShadow: T.neuSm, transition: "box-shadow 0.25s ease",
+                                boxShadow: T.neuSm, transition: "box-shadow 0.25s, color 0.25s",
+                                display: "flex", alignItems: "center", gap: 6,
                             }}
-                            onMouseEnter={e => e.currentTarget.style.boxShadow = T.neuHover}
-                            onMouseLeave={e => e.currentTarget.style.boxShadow = T.neuSm}>
-                                {s.label}
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = T.neuHover; e.currentTarget.style.color = T.a; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = T.neuSm; e.currentTarget.style.color = T.m; }}>
+                                {s.icon}{s.label}
                             </a>
                         ))}
                     </div>
@@ -276,6 +386,8 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
 
     return (
         <section id="home" className="section hero-section" style={{ minHeight: "100vh", position: "relative", background: T.bg }}>
+            {/* ── Neural Network Ambient Background Theme ── */}
+            <NeuralNetBG T={T} dark={dark} />
 
             {/* ── Ambient glows + rings clipped separately so they don't interfere with 3D cards ── */}
             <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", ...getDimStyle(1) }}>
@@ -303,70 +415,60 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         pointerEvents: "none", whiteSpace: "nowrap", userSelect: "none",
                     }}>ENGINEER</div>
 
-                    {/* ── Main Identity ── */}
+                    {/* ── Main Identity — LEFT column only in 3D scene ── */}
                     <div style={{
                         position: "absolute", top: "50%", left: "50%",
-                        transform: "translate(-50%, -50%) translateZ(0px)",
-                        display: "flex", flexDirection: "column", alignItems: "center",
-                        textAlign: "center", pointerEvents: "auto",
+                        transform: "translate(-100%, -54%) translateZ(0px)",
+                        display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                        pointerEvents: "auto",
                         ...getDimStyle(0)
                     }}>
-                        <div style={{ position: "absolute", top: -110, left: "50%", transform: "translateX(-50%) translateZ(40px)", width: 130, height: 130 }}>
+                        {/* Profile image */}
+                        <div style={{ width: 120, height: 120, marginBottom: 16, transform: "translateZ(40px)" }}>
                             <HeroProfile T={T} dark={dark} size="100%" />
                         </div>
                         <div style={{
-                            display: "inline-flex", alignItems: "center", gap: 10,
+                            display: "inline-flex", alignItems: "center", gap: 8,
                             background: `${T.a}18`, border: `1px solid ${T.a}50`,
-                            padding: "7px 22px", borderRadius: 30, marginBottom: 18,
-                            ...fm, fontSize: 11, fontWeight: 700, color: T.a,
+                            padding: "6px 18px", borderRadius: 30, marginBottom: 12,
+                            ...fm, fontSize: 10, fontWeight: 700, color: T.a,
                             letterSpacing: 2, textTransform: "uppercase", backdropFilter: "blur(10px)",
                         }}>
-                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: T.a, animation: "pulse 2s infinite" }} />
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.a, animation: "pulse 2s infinite" }} />
                             Available for Impact
                         </div>
                         <h1 style={{
-                            ...sf, fontSize: "clamp(52px, 8vw, 116px)", fontWeight: 900, lineHeight: 0.88,
-                            letterSpacing: "-0.04em", color: T.t, margin: "0 0 14px 0",
+                            ...sf, fontSize: "clamp(38px, 5.5vw, 82px)", fontWeight: 900, lineHeight: 0.88,
+                            letterSpacing: "-0.04em", color: T.t, margin: "0 0 12px 0",
                             textTransform: "uppercase",
                             textShadow: dark ? `0 0 80px ${T.a}20, 0 20px 40px rgba(0,0,0,0.3)` : "none",
                         }}>FARHAN<br />SHAHRIYAR</h1>
-                        <div style={{ ...fm, fontSize: "clamp(14px, 1.6vw, 20px)", color: T.m, marginBottom: 32 }}>
+                        <div style={{ ...fm, fontSize: "clamp(13px, 1.3vw, 17px)", color: T.m, marginBottom: 20 }}>
                             <TypingRole T={T} />
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 14, alignItems: "center" }}>
-                            <Mag as="button" onClick={onOpenResume} style={{
-                                background: T.a, color: "#fff", padding: "16px 44px", borderRadius: 30,
-                                border: "none", cursor: "pointer", ...sf, fontSize: 13, fontWeight: 800,
-                                textTransform: "uppercase", letterSpacing: 2, boxShadow: `0 12px 32px ${T.a}55`,
-                            }}>Access Resume</Mag>
-                            <div style={{ display: "flex", gap: 10 }}>
-                                {SOCIAL.map(s => (
-                                    <Mag key={s.label} as="a" href={s.href} target="_blank" rel="noreferrer"
-                                        className="hero-social-pill" style={{
-                                            padding: "8px 20px",
-                                            background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
-                                            border: `1px solid ${T.border}`, borderRadius: 20,
-                                            color: T.m, textDecoration: "none",
-                                            ...fm, fontSize: 12, fontWeight: 600, transition: "all 0.25s",
-                                        }}>{s.label}</Mag>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Insight strip */}
-                        <div style={{ display: "flex", gap: 22, marginTop: 24, alignItems: "center", ...fm, fontSize: 11, color: T.m }}>
-                            {[["11×","Cost Saved"],["1,690+","Docs RAG"],["29","LLM Evals"],["4.8/5","Judge Score"]].map(([v,l]) => (
-                                <div key={l} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                                    <span style={{ ...sf, fontSize: 14, fontWeight: 800, color: T.a }}>{v}</span>
-                                    <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase", opacity: 0.6 }}>{l}</span>
-                                </div>
+                        <Mag as="button" onClick={onOpenResume} style={{
+                            background: T.a, color: "#fff", padding: "13px 36px", borderRadius: 30,
+                            border: "none", cursor: "pointer", ...sf, fontSize: 12, fontWeight: 800,
+                            textTransform: "uppercase", letterSpacing: 2, boxShadow: `0 12px 32px ${T.a}55`,
+                            marginBottom: 10,
+                        }}>Access Resume</Mag>
+                        <div style={{ display: "flex", gap: 8 }}>
+                            {SOCIAL.map(s => (
+                                <Mag key={s.label} as="a" href={s.href} target="_blank" rel="noreferrer"
+                                    className="hero-social-pill" style={{
+                                        padding: "7px 14px", background: T.bg,
+                                        border: "none", borderRadius: 20, color: T.m, textDecoration: "none",
+                                        ...fm, fontSize: 11, fontWeight: 600, transition: "all 0.25s",
+                                        boxShadow: T.neuSm, display: "flex", alignItems: "center", gap: 5,
+                                    }}>{s.icon}{s.label}</Mag>
                             ))}
                         </div>
                     </div>
 
-                    {/* ── Card 1: Cost Reduction (Top-Left) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "14%", left: "9%", animation: "hf1 4.2s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
+                    {/* ── Card 1: Cost Reduction (TOP-LEFT corner) ── */}
+                    <div className="hfw" style={{ position: "absolute", top: "12%", left: "2%", animation: "hf1 4.2s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
-                            transform: "translateZ(220px) rotateY(12deg)",
+                            transform: "translateZ(180px) rotateY(8deg)",
                             background: T.bg,
                             border: "none", borderRadius: 20, padding: "20px",
                             width: 210,
@@ -394,10 +496,10 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         </div>
                     </div>
 
-                    {/* ── Card 2: CNN Accuracy (Top-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "10%", right: "12%", animation: "hf2 3.8s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
+                    {/* ── Card 2: CNN Accuracy (TOP-RIGHT corner) ── */}
+                    <div className="hfw" style={{ position: "absolute", top: "12%", right: "2%", animation: "hf2 3.8s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
-                            transform: "translateZ(260px) rotateY(-12deg)",
+                            transform: "translateZ(180px) rotateY(-8deg)",
                             background: T.bg,
                             border: "none", borderRadius: 20, padding: "20px",
                             width: 200,
@@ -417,10 +519,10 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         </div>
                     </div>
 
-                    {/* ── Card 3: Pass / Hire (Mid-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "44%", right: "6%", animation: "hf3 5s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
+                    {/* ── Card 3: Pass / Hire (BOTTOM-RIGHT corner) ── */}
+                    <div className="hfw" style={{ position: "absolute", bottom: "8%", right: "2%", animation: "hf3 5s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
-                            transform: "translateZ(200px) rotateY(-10deg)",
+                            transform: "translateZ(160px) rotateY(-8deg)",
                             background: T.bg,
                             border: "none", borderRadius: 20, padding: "18px 20px",
                             width: 220,
@@ -453,31 +555,9 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         </div>
                     </div>
 
-                    {/* ── Card 4: AI Chat Terminal (Bottom-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", bottom: "5%", right: "11%", animation: "hf4 4.6s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
-                        <div className="h-card" style={{
-                            transform: "translateZ(140px) rotateY(-8deg)",
-                            background: T.bg,
-                            border: "none", borderRadius: 20, padding: 0,
-                            overflow: "hidden", width: 320,
-                            pointerEvents: "auto",
-                            boxShadow: T.neu,
-                        }}>
-                            <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", gap: 7, background: dark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.9)", borderBottom: `1px solid ${T.border}` }}>
-                                <div style={{ display: "flex", gap: 4 }}>
-                                    {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: "50%", background: c }} />)}
-                                </div>
-                                <div style={{ ...fm, fontSize: 9, fontWeight: 700, letterSpacing: 2, color: T.m, textTransform: "uppercase", flex: 1, textAlign: "center" }}>Farhan.AI — Live</div>
-                                <div style={{ width: 7, height: 7, borderRadius: "50%", background: T.a, boxShadow: `0 0 7px ${T.a}` }} />
-                            </div>
-                            <div style={{ height: 250, position: "relative" }}>
-                                <HeroChat T={T} />
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* ── Card 5: Tech Stack (Bottom-Left) ── */}
-                    <div className="hfw" style={{ position: "absolute", bottom: "8%", left: "9%", animation: "hf5 3.6s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
+                    {/* ── Card 5: Tech Stack (BOTTOM-LEFT corner) ── */}
+                    <div className="hfw" style={{ position: "absolute", bottom: "8%", left: "2%", animation: "hf5 3.6s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(140px) rotateY(8deg)",
                             background: T.bg,
@@ -504,51 +584,11 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         </div>
                     </div>
 
-                    {/* ── Card 6: AI Governance & Deep Learning Networks (Middle-Left) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "45%", left: "6%", animation: "hf1 5.2s ease-in-out infinite reverse", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
-                        <div className="h-card" style={{
-                            transform: "translateZ(180px) rotateY(15deg)", background: T.bg, border: "none",
-                            borderRadius: 20, padding: 18, width: 220, boxShadow: T.neu,
-                        }}>
-                            <div style={{ ...fm, fontSize: 8, color: T.a2, letterSpacing: 2, textTransform: "uppercase", fontWeight: 800, marginBottom: 12, display: "flex", alignItems: "center", gap: 5 }}>
-                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.a2, animation: "pulse 2.2s infinite" }} />
-                                Deep Learning & Ethics
-                            </div>
-                            {/* Neural Network SVG Visual Effect */}
-                            <div style={{ position: "relative", width: "100%", height: 110, background: `radial-gradient(ellipse at center, ${T.a2}15 0%, transparent 70%)`, borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${T.border}` }}>
-                                <svg width="100%" height="100%" viewBox="0 0 200 100">
-                                    <g stroke={T.m} strokeWidth="1" opacity="0.3">
-                                        <line x1="30" y1="30" x2="100" y2="20" />
-                                        <line x1="30" y1="30" x2="100" y2="50" />
-                                        <line x1="30" y1="70" x2="100" y2="50" />
-                                        <line x1="30" y1="70" x2="100" y2="80" />
-                                        <line x1="100" y1="20" x2="170" y2="50" />
-                                        <line x1="100" y1="50" x2="170" y2="50" />
-                                        <line x1="100" y1="80" x2="170" y2="50" />
-                                    </g>
-                                    <g fill={T.a2}>
-                                        <circle cx="30" cy="30" r="4"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
-                                        <circle cx="30" cy="70" r="4"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></circle>
-                                        <circle cx="100" cy="20" r="5" fill="#58a6ff"><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle>
-                                        <circle cx="100" cy="50" r="6" fill="#10b981"><animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;1;0.6" dur="1s" repeatCount="indefinite"/></circle>
-                                        <circle cx="100" cy="80" r="5" fill="#58a6ff"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.5s" repeatCount="indefinite"/></circle>
-                                        <circle cx="170" cy="50" r="7"><animate attributeName="r" values="6;8;6" dur="0.8s" repeatCount="indefinite"/></circle>
-                                    </g>
-                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="2s" repeatCount="indefinite" path="M30 30 L100 20 L170 50" /></circle>
-                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="1.5s" repeatCount="indefinite" path="M30 70 L100 50 L170 50" /></circle>
-                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="2.5s" repeatCount="indefinite" path="M30 30 L100 80 L170 50" /></circle>
-                                </svg>
-                            </div>
-                            <div style={{ marginTop: 12, ...sf, fontSize: 13, color: T.t, fontWeight: 700 }}>Neural Architectures</div>
-                            <div style={{ ...fm, fontSize: 9, color: T.m, lineHeight: 1.5, margin: "4px 0" }}>
-                                Building compliant & secure intelligence systems. AI Governance & Scale.
-                            </div>
-                        </div>
-                    </div>
+
 
                     {/* ── Werkstudent badge (top-center) ── */}
                     <div style={{
-                        position: "absolute", top: "6%", left: "50%",
+                        position: "absolute", top: "11%", left: "50%",
                         transform: "translateX(-50%) translateZ(60px)",
                         background: T.bg,
                         border: "none", borderRadius: 30, padding: "7px 18px",
@@ -560,6 +600,37 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                         Werkstudent · Nordex SE · Hamburg
                     </div>
 
+                </div>
+            </div>
+
+            {/* ── Stats + Chat panel — FLAT OVERLAY (outside 3D scene so pointer events work) ── */}
+            <div style={{
+                position: "absolute", top: "50%", left: "calc(50% + clamp(16px, 2vw, 32px))",
+                transform: "translateY(-54%)",
+                display: "flex", flexDirection: "column", gap: 14,
+                width: "clamp(260px, 28vw, 380px)",
+                zIndex: 10, pointerEvents: "auto",
+                ...getDimStyle(0),
+            }}>
+                {/* Stats strip */}
+                <div style={{ display: "flex", gap: 0, ...fm, fontSize: 10, color: T.m, background: T.bg, borderRadius: 16, boxShadow: T.neuSm, overflow: "hidden" }}>
+                    {[["11×","Cost Saved"],["1,690+","Docs RAG"],["29","LLM Evals"],["4.8/5","Score"]].map(([v,l], i, arr) => (
+                        <div key={l} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "10px 4px", borderRight: i < arr.length - 1 ? `1px solid ${T.border}` : "none" }}>
+                            <span style={{ ...sf, fontSize: 15, fontWeight: 800, color: T.a }}>{v}</span>
+                            <span style={{ fontSize: 8, letterSpacing: 1, textTransform: "uppercase", opacity: 0.6 }}>{l}</span>
+                        </div>
+                    ))}
+                </div>
+                {/* AI Chat — flat, no 3D transform, so inputs/buttons work perfectly */}
+                <div style={{ background: T.bg, borderRadius: 20, overflow: "hidden", boxShadow: T.neu, border: "none" }}>
+                    <div style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: 7, background: dark ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.85)", borderBottom: `1px solid ${T.border}` }}>
+                        <div style={{ display: "flex", gap: 4 }}>
+                            {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />)}
+                        </div>
+                        <div style={{ ...fm, fontSize: 9, fontWeight: 700, letterSpacing: 2, color: T.m, textTransform: "uppercase", flex: 1, textAlign: "center" }}>Farhan.AI — Live</div>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.a, boxShadow: `0 0 6px ${T.a}` }} />
+                    </div>
+                    <HeroChat T={T} />
                 </div>
             </div>
 
@@ -600,11 +671,11 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                     box-shadow: 0 28px 70px rgba(0,0,0,0.4), 0 0 40px ${T.a}28 inset !important;
                 }
                 .hero-social-pill:hover {
-                    background: ${T.a}20 !important;
-                    border-color: ${T.a}80 !important;
+                    box-shadow: ${T.neuHover} !important;
                     color: ${T.a} !important;
                     transform: translateY(-2px);
                 }
+                @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
             `}</style>
         </section>
     );

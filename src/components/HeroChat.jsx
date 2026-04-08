@@ -52,25 +52,34 @@ export default function HeroChat({ T }) {
     useEffect(() => {
         if (hasAutoStarted.current) return;
         hasAutoStarted.current = true;
-        
+
         let act = true;
         setBusy(true);
-        setTimeout(() => {
+
+        const t1 = setTimeout(() => {
             if (!act) return;
             setMsgs([{ r: "u", t: "What core projects has he built?" }]);
-            setTimeout(() => {
+
+            const t2 = setTimeout(() => {
                 if (!act) return;
-                setBusy(false);
                 const reply = "I built an internal AI Assistant for Nordex SE that processes 1,690+ docs with RAG, reducing inference costs by 11×! I also developed Poultry Shield (a CNN for medical imaging) and a Digital Twin Dashboard. Feel free to ask me more!";
                 setMsgs([{ r: "u", t: "What core projects has he built?" }, { r: "b", t: reply }]);
                 hist.current = [
                     { role: "user", content: "What core projects has he built?" },
                     { role: "assistant", content: reply }
                 ];
+                setBusy(false);
                 setTimeout(scrollToBottom, 50);
             }, 1200);
+
+            return () => clearTimeout(t2);
         }, 800);
-        return () => { act = false; };
+
+        return () => {
+            act = false;
+            clearTimeout(t1);
+            setBusy(false); // ← critical: reset busy if effect re-runs (Strict Mode)
+        };
     }, []);
 
     const send = useCallback(async txt => {
@@ -96,7 +105,7 @@ export default function HeroChat({ T }) {
     }, [busy, started]);
 
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: started ? 380 : 140, transition: "height 0.4s cubic-bezier(0.16,1,0.3,1)", contain: "layout style" }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", minHeight: 200, padding: "10px 0 0" }}>
 
             {/* Messages / suggestions */}
             <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", flex: started ? "1 1 0" : "0 0 auto", minHeight: 0, overflowY: "auto", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none", transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
@@ -104,7 +113,7 @@ export default function HeroChat({ T }) {
                     <div style={{ display: "flex", flexWrap: "nowrap", gap: 8, justifyContent: "flex-start", marginBottom: 12, width: "100%", maxWidth: "clamp(320px,60vw,700px)", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", paddingBottom: 4 }}>
                         {SUGGS.map(s => (
                             <button type="button" key={s} onClick={() => send(s)}
-                                style={{ ...fm, fontSize: 11, color: T.m, border: "none", padding: "8px 16px", background: T.bg, cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", boxShadow: T.neuSm }}
+                                style={{ ...fm, fontSize: 11, color: T.m, border: "none", padding: "8px 16px", background: T.bg, cursor: "pointer", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", boxShadow: T.neuSm }}
                                 onMouseEnter={e => { e.currentTarget.style.color = T.a; e.currentTarget.style.boxShadow = T.neuHover; e.currentTarget.style.transform = "translateY(-2px)"; }}
                                 onMouseLeave={e => { e.currentTarget.style.color = T.m; e.currentTarget.style.boxShadow = T.neuSm; e.currentTarget.style.transform = "translateY(0)"; }}>
                                 {s}
@@ -139,7 +148,7 @@ export default function HeroChat({ T }) {
                     style={{ flex: 1, background: "transparent", border: "none", color: T.t, padding: "5px 0", ...fm, fontSize: 13, outline: "none", minWidth: 0 }}
                 />
                 <button type="button" onClick={() => send(inp)} disabled={busy || !inp.trim()}
-                    style={{ width: 40, height: 40, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "none", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.45 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>
+                    style={{ width: 40, height: 40, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: (busy || !inp.trim()) ? "default" : "pointer", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.45 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={(busy || !inp.trim()) ? T.m : "white"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
