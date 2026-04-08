@@ -13,10 +13,25 @@ const SOCIAL = [
     { label: "Email", href: "mailto:shahriyarfarhan3101@gmail.com" },
 ];
 
+
+function HeroGuideOverlay({ T, step }) {
+    const text = [
+        "I'm an AI & Data Engineer focused on driving real impact. 🚀",
+        "Here is my tech stack orbiting around my core focus. 🛰️",
+        "Ask my live AI assistant anything, or explore my work! 💬"
+    ];
+    return (
+        <div style={{ position: "absolute", bottom: "10%", left: "50%", transform: "translateX(-50%) translateZ(100px)", background: `${T.a}F0`, color: "white", padding: "16px 32px", borderRadius: 30, ...fm, fontSize: 15, fontWeight: 600, boxShadow: `0 20px 40px ${T.a}60`, backdropFilter: "blur(12px)", zIndex: 1000, pointerEvents: "none", transition: "opacity 0.3s", opacity: text[step] ? 1 : 0 }}>
+            {text[step]}
+        </div>
+    );
+}
+
 /* ── Mobile / Tablet Layout ──────────────────────────────────────── */
-function MobileHero({ T, dark, onOpenResume }) {
+function MobileHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMode }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const sceneRef = useRef(null);
+    const [preview, setPreview] = useState(null);
 
     useEffect(() => {
         const onScroll = () => {
@@ -28,6 +43,13 @@ function MobileHero({ T, dark, onOpenResume }) {
         window.addEventListener("scroll", onScroll);
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
+
+    const getDimStyle = (targetStep) => ({
+        transition: "opacity 0.6s ease, filter 0.6s ease",
+        opacity: (guidedMode === "guided" && guideStep !== targetStep) ? 0.2 : 1,
+        filter: (guidedMode === "guided" && guideStep !== targetStep) ? "grayscale(80%) blur(4px)" : "none",
+        pointerEvents: guidedMode === "guided" ? "none" : "auto",
+    });
 
     return (
         <section id="home" className="section hero-section" style={{
@@ -48,14 +70,19 @@ function MobileHero({ T, dark, onOpenResume }) {
                 {/* 3D Stacked Elements */}
                 
                 {/* 1. Profile Core */}
-                <div style={{ width: 110, height: 110, marginBottom: 20, transform: "translateZ(100px)", position: "relative" }}>
+                <div style={{ width: 110, height: 110, marginBottom: 20, transform: "translateZ(100px)", position: "relative", ...getDimStyle(0) }}>
                     <HeroProfile T={T} dark={dark} size="100%" />
-                    <Ring T={T} size={160} z={0} speed={20} />
-                    <Ring T={T} size={200} z={-40} speed={30} reverse />
+                    <Ring T={T} size={160} z={0} speed={20} nodes={[
+                        {name:"RAG", color:"#58a6ff", onClick:() => setPreview({name:"RAG", desc:"Built advanced RAG pipelines for 1,600+ enterprise docs."})},
+                        {name:"Docker", color:T.a2, onClick:() => setPreview({name:"Docker", desc:"Containerized complex ML models for AWS/Azure deployment."})}
+                    ]} />
+                    <Ring T={T} size={200} z={-40} speed={30} reverse nodes={[
+                        {name:"Azure AI", color:"#10b981", onClick:() => setPreview({name:"Azure AI", desc:"Deployed enterprise-scale LLMs and chatbots."})}
+                    ]} />
                 </div>
 
                 {/* 2. Identity Block */}
-                <div style={{ transform: "translateZ(60px)", marginBottom: 30 }}>
+                <div style={{ transform: "translateZ(60px)", marginBottom: 30, ...getDimStyle(0) }}>
                     <div style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         background: `${T.a}18`, border: `1px solid ${T.a}50`,
@@ -76,14 +103,14 @@ function MobileHero({ T, dark, onOpenResume }) {
                 </div>
 
                 {/* 2.5 Hero Chat Module (Mobile Scale) */}
-                <div style={{ transform: "translateZ(30px)", width: "100%", maxWidth: 360, marginBottom: 30 }}>
+                <div style={{ transform: "translateZ(30px)", width: "100%", maxWidth: 360, marginBottom: 30, ...getDimStyle(2) }}>
                     <HeroChat T={T} dark={dark} isMobile={true} />
                 </div>
 
                 {/* 3. Action Hub */}
                 <div style={{ 
                     display: "flex", flexDirection: "column", gap: 12, alignItems: "center", 
-                    width: "100%", maxWidth: 300, transform: "translateZ(10px)" 
+                    width: "100%", maxWidth: 300, transform: "translateZ(10px)", ...getDimStyle(2)
                 }}>
                     <button onClick={onOpenResume} style={{
                         background: T.a, color: "#fff", padding: "14px 0", borderRadius: 30,
@@ -96,10 +123,13 @@ function MobileHero({ T, dark, onOpenResume }) {
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
                         {SOCIAL.map(s => (
                             <a key={s.label} href={s.href} target="_blank" rel="noreferrer" style={{
-                                padding: "8px 16px", background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-                                border: `1px solid ${T.border}`, borderRadius: 20, color: T.m, textDecoration: "none",
+                                padding: "8px 16px", background: T.bg,
+                                border: "none", borderRadius: 20, color: T.m, textDecoration: "none",
                                 ...fm, fontSize: 12, fontWeight: 600,
-                            }}>
+                                boxShadow: T.neuSm, transition: "box-shadow 0.25s ease",
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.boxShadow = T.neuHover}
+                            onMouseLeave={e => e.currentTarget.style.boxShadow = T.neuSm}>
                                 {s.label}
                             </a>
                         ))}
@@ -110,7 +140,7 @@ function MobileHero({ T, dark, onOpenResume }) {
                 <div style={{
                     display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10,
                     width: "100%", maxWidth: 340, marginTop: 40,
-                    transform: "translateZ(10px)"
+                    transform: "translateZ(10px)", ...getDimStyle(2)
                 }}>
                     {[
                         { num: "11×", label: "Cost saved" },
@@ -119,9 +149,10 @@ function MobileHero({ T, dark, onOpenResume }) {
                         { num: "29", label: "Evals" },
                     ].map(({ num, label }) => (
                         <div key={label} style={{
-                            background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-                            border: `1px solid ${T.border}`,
+                            background: T.bg,
+                            border: "none",
                             borderRadius: 16, padding: "12px",
+                            boxShadow: T.neuSm, transition: "box-shadow 0.25s ease",
                         }}>
                             <div style={{ ...sf, fontSize: 22, fontWeight: 900, color: T.t }}>{num}</div>
                             <div style={{ ...fm, fontSize: 9, color: T.m, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
@@ -129,12 +160,29 @@ function MobileHero({ T, dark, onOpenResume }) {
                     ))}
                 </div>
             </div>
+            
+
+            {preview && (
+                <div style={{
+                    position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)",
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 20
+                }} onClick={() => setPreview(null)}>
+                    <div style={{ background: T.bg, padding: 24, borderRadius: 16, border: `2px solid ${T.a}`, boxShadow: `0 20px 60px ${T.bg}80`, maxWidth: 300, textAlign: "center", animation: "fadeUp 0.3s ease" }} onClick={e => e.stopPropagation()}>
+                        <div style={{ ...sf, fontSize: 20, fontWeight: 800, color: T.t, marginBottom: 10 }}>{preview.name}</div>
+                        <div style={{ ...fm, fontSize: 12, color: T.m, lineHeight: 1.5, marginBottom: 16 }}>{preview.desc}</div>
+                        <button onClick={() => setPreview(null)} style={{ background: T.a, color: "white", padding: "8px 20px", border: "none", borderRadius: 20, ...fm, fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform="scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform="scale(1)"}>Close</button>
+                    </div>
+                </div>
+            )}
+
+            {guidedMode === "guided" && <HeroGuideOverlay T={T} step={guideStep} />}
         </section>
     );
 }
 
 /* ── 3D Orbital Ring ─────────────────────────────────────────────── */
-function Ring({ T, size, z, speed, reverse }) {
+function Ring({ T, size, z, speed, reverse, nodes = [] }) {
+    const [hover, setHover] = useState(null);
     return (
         <div style={{
             position: "absolute", top: "50%", left: "50%",
@@ -145,22 +193,55 @@ function Ring({ T, size, z, speed, reverse }) {
             transform: `translateZ(${z}px) rotateX(70deg)`,
             "--hz": `${z}px`,
             animation: `heroSpin ${speed}s linear infinite ${reverse ? "reverse" : "normal"}`,
-            pointerEvents: "none",
+            pointerEvents: "none", transformStyle: "preserve-3d"
         }}>
-            <div style={{ width: 8, height: 8, background: T.a, borderRadius: "50%", position: "absolute", top: -4, left: "50%", boxShadow: `0 0 16px ${T.a}` }} />
-            <div style={{ width: 5, height: 5, background: T.a2, borderRadius: "50%", position: "absolute", bottom: -3, left: "25%", boxShadow: `0 0 10px ${T.a2}` }} />
+            {nodes.length > 0 ? nodes.map((n, i) => {
+                const angle = (i / nodes.length) * 360;
+                return (
+                    <div key={n.name + i} style={{
+                        position: "absolute", top: "25%", left: "50%", // roughly mapping to orbit
+                        transformOrigin: `0 ${size / 2}px`,
+                        transform: `rotate(${angle}deg) translateY(-${size / 2}px) rotateX(-70deg) rotateY(0deg) rotateZ(0deg)`,
+                        transformStyle: "preserve-3d", pointerEvents: "auto",
+                        animation: `antiSpin ${speed}s linear infinite ${reverse ? "normal" : "reverse"}`
+                    }} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={() => n.onClick && n.onClick()}>
+                        <div style={{
+                            width: 14, height: 14, borderRadius: "50%", background: n.color || T.a,
+                            boxShadow: `0 0 16px ${n.color || T.a}`, cursor: "pointer", transition: "transform 0.2s",
+                            transform: hover === i ? "scale(1.5)" : "scale(1)"
+                        }} />
+                        {hover === i && (
+                            <div style={{
+                                position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)",
+                                background: T.bg, padding: "4px 10px", borderRadius: 12, ...fm, fontSize: 10,
+                                fontWeight: 700, color: T.t, border: `1px solid ${T.border}`, boxShadow: T.neu,
+                                whiteSpace: "nowrap", pointerEvents: "none"
+                            }}>
+                                {n.name}
+                            </div>
+                        )}
+                    </div>
+                );
+            }) : (
+                <>
+                    <div style={{ width: 8, height: 8, background: T.a, borderRadius: "50%", position: "absolute", top: -4, left: "50%", boxShadow: `0 0 16px ${T.a}` }} />
+                    <div style={{ width: 5, height: 5, background: T.a2, borderRadius: "50%", position: "absolute", bottom: -3, left: "25%", boxShadow: `0 0 10px ${T.a2}` }} />
+                </>
+            )}
         </div>
     );
 }
 
 /* ── Desktop 3D Layout ───────────────────────────────────────────── */
-function DesktopHero({ T, dark, onOpenResume }) {
+function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMode }) {
     const sceneRef = useRef(null);
     const rafRef = useRef(null);
     const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
+    const [preview, setPreview] = useState(null);
 
     useEffect(() => {
         const onMove = (e) => {
+
             mouse.current.tx = (e.clientX / window.innerWidth - 0.5);
             mouse.current.ty = (e.clientY / window.innerHeight - 0.5);
         };
@@ -177,7 +258,7 @@ function DesktopHero({ T, dark, onOpenResume }) {
         };
         rafRef.current = requestAnimationFrame(tick);
         return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(rafRef.current); };
-    }, []);
+    }, [guidedMode]);
 
     /* Skill bar helper */
     const Bar = ({ pct, color }) => (
@@ -186,25 +267,32 @@ function DesktopHero({ T, dark, onOpenResume }) {
         </div>
     );
 
+    const getDimStyle = (targetStep) => ({
+        transition: "opacity 0.6s ease, filter 0.6s ease",
+        opacity: (guidedMode === "guided" && guideStep !== targetStep) ? 0.2 : 1,
+        filter: (guidedMode === "guided" && guideStep !== targetStep) ? "grayscale(80%) blur(4px)" : "none",
+        pointerEvents: guidedMode === "guided" ? "none" : "auto",
+    });
+
     return (
         <section id="home" className="section hero-section" style={{ minHeight: "100vh", position: "relative", background: T.bg }}>
 
             {/* ── Ambient glows + rings clipped separately so they don't interfere with 3D cards ── */}
-            <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+            <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", ...getDimStyle(1) }}>
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 45%, ${T.a}10 0%, transparent 65%)` }} />
                 <div style={{ position: "absolute", top: "10%", right: "5%", width: 380, height: 380, borderRadius: "50%", background: `radial-gradient(ellipse, ${T.a2}12 0%, transparent 70%)`, filter: "blur(70px)" }} />
                 <div style={{ position: "absolute", bottom: "10%", left: "5%", width: 280, height: 280, borderRadius: "50%", background: `radial-gradient(ellipse, ${T.a}10 0%, transparent 70%)`, filter: "blur(60px)" }} />
                 {/* Rings inside clip layer */}
                 <div style={{ position: "absolute", top: "50%", left: "50%", perspective: "1400px" }}>
-                    <Ring T={T} size={1200} z={-600} speed={40} />
-                    <Ring T={T} size={900}  z={-400} speed={25} reverse />
-                    <Ring T={T} size={600}  z={-200} speed={15} />
+                    <Ring T={T} size={1200} z={-600} speed={40} nodes={[{name:"RAG", color:"#58a6ff", onClick:()=>setPreview({name:"RAG",desc:"Built advanced RAG pipelines for 1,600+ enterprise docs."})}, {name:"Docker",color:T.a2, onClick:()=>setPreview({name:"Docker",desc:"Containerized complex ML models for robust deployment."})}, {name:"Azure AI",color:"#10b981", onClick:()=>setPreview({name:"Azure AI",desc:"Deployed enterprise-scale LLMs and chatbot endpoints."})}]} />
+                    <Ring T={T} size={900}  z={-400} speed={25} reverse nodes={[{name:"Python", color:T.a, onClick:()=>setPreview({name:"Python",desc:"Core language for data pipelines, training, and backend."})}, {name:"Kafka",color:"#febc2e", onClick:()=>setPreview({name:"Kafka",desc:"Event streaming and real-time data ingestion for Digital Twins."})}]} />
+                    <Ring T={T} size={600}  z={-200} speed={15} nodes={[{name:"LangChain", color:"#ff5f57", onClick:()=>setPreview({name:"LangChain",desc:"Orchestrating agentic workflows and complex LLM chains."})}]} />
                 </div>
             </div>
 
             {/* ── 3D Perspective scene — no overflow:hidden so translateZ cards aren't clipped ── */}
             <div style={{ position: "absolute", inset: 0, perspective: "1400px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div ref={sceneRef} style={{ position: "relative", width: "100%", height: "100vh", transformStyle: "preserve-3d", willChange: "transform" }}>
+                <div ref={sceneRef} style={{ position: "relative", width: "100%", maxWidth: "1440px", height: "100vh", transformStyle: "preserve-3d", willChange: "transform" }}>
 
                     {/* Deep watermark */}
                     <div style={{
@@ -221,6 +309,7 @@ function DesktopHero({ T, dark, onOpenResume }) {
                         transform: "translate(-50%, -50%) translateZ(0px)",
                         display: "flex", flexDirection: "column", alignItems: "center",
                         textAlign: "center", pointerEvents: "auto",
+                        ...getDimStyle(0)
                     }}>
                         <div style={{ position: "absolute", top: -110, left: "50%", transform: "translateX(-50%) translateZ(40px)", width: 130, height: 130 }}>
                             <HeroProfile T={T} dark={dark} size="100%" />
@@ -275,13 +364,13 @@ function DesktopHero({ T, dark, onOpenResume }) {
                     </div>
 
                     {/* ── Card 1: Cost Reduction (Top-Left) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "14%", left: "4%", animation: "hf1 4.2s ease-in-out infinite", transformStyle: "preserve-3d" }}>
+                    <div className="hfw" style={{ position: "absolute", top: "14%", left: "9%", animation: "hf1 4.2s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(220px) rotateY(12deg)",
-                            background: dark ? "rgba(10,102,194,0.13)" : "rgba(10,102,194,0.07)",
-                            border: "1px solid #0a66c270", borderRadius: 20, padding: "20px",
-                            backdropFilter: "blur(16px)", width: 210,
-                            boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 30px #0a66c218 inset",
+                            background: T.bg,
+                            border: "none", borderRadius: 20, padding: "20px",
+                            width: 210,
+                            boxShadow: T.neu,
                         }}>
                             <div style={{ ...fm, fontSize: 8, color: "#58a6ff", letterSpacing: 2, textTransform: "uppercase", fontWeight: 800, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
                                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#58a6ff", animation: "pulse 2s infinite" }} />
@@ -306,13 +395,13 @@ function DesktopHero({ T, dark, onOpenResume }) {
                     </div>
 
                     {/* ── Card 2: CNN Accuracy (Top-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "10%", right: "4%", animation: "hf2 3.8s ease-in-out infinite", transformStyle: "preserve-3d" }}>
+                    <div className="hfw" style={{ position: "absolute", top: "10%", right: "12%", animation: "hf2 3.8s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(260px) rotateY(-12deg)",
-                            background: dark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.07)",
-                            border: "1px solid #10b98170", borderRadius: 20, padding: "20px",
-                            backdropFilter: "blur(16px)", width: 200,
-                            boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 30px #10b98118 inset",
+                            background: T.bg,
+                            border: "none", borderRadius: 20, padding: "20px",
+                            width: 200,
+                            boxShadow: T.neu,
                         }}>
                             <div style={{ ...fm, fontSize: 8, color: "#10b981", letterSpacing: 2, textTransform: "uppercase", fontWeight: 800, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
                                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", animation: "pulse 2.4s infinite" }} />
@@ -329,13 +418,13 @@ function DesktopHero({ T, dark, onOpenResume }) {
                     </div>
 
                     {/* ── Card 3: Pass / Hire (Mid-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", top: "44%", right: "3%", animation: "hf3 5s ease-in-out infinite", transformStyle: "preserve-3d" }}>
+                    <div className="hfw" style={{ position: "absolute", top: "44%", right: "6%", animation: "hf3 5s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(200px) rotateY(-10deg)",
-                            background: dark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.85)",
-                            border: `1px solid ${T.a}60`, borderRadius: 20, padding: "18px 20px",
-                            backdropFilter: "blur(20px)", width: 220,
-                            boxShadow: `0 20px 50px rgba(0,0,0,0.3), 0 0 40px ${T.a}18 inset`,
+                            background: T.bg,
+                            border: "none", borderRadius: 20, padding: "18px 20px",
+                            width: 220,
+                            boxShadow: T.neu,
                         }}>
                             <div style={{ ...fm, fontSize: 8, color: T.a, letterSpacing: 2, textTransform: "uppercase", fontWeight: 800, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
                                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, animation: "pulse 1.8s infinite" }} />
@@ -365,14 +454,14 @@ function DesktopHero({ T, dark, onOpenResume }) {
                     </div>
 
                     {/* ── Card 4: AI Chat Terminal (Bottom-Right) ── */}
-                    <div className="hfw" style={{ position: "absolute", bottom: "5%", right: "4%", animation: "hf4 4.6s ease-in-out infinite", transformStyle: "preserve-3d" }}>
+                    <div className="hfw" style={{ position: "absolute", bottom: "5%", right: "11%", animation: "hf4 4.6s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(140px) rotateY(-8deg)",
-                            background: dark ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.8)",
-                            border: `1px solid ${T.border}`, borderRadius: 20, padding: 0,
-                            overflow: "hidden", backdropFilter: "blur(24px)", width: 320,
+                            background: T.bg,
+                            border: "none", borderRadius: 20, padding: 0,
+                            overflow: "hidden", width: 320,
                             pointerEvents: "auto",
-                            boxShadow: `0 20px 50px rgba(0,0,0,0.4), 0 0 30px ${T.a}15 inset`,
+                            boxShadow: T.neu,
                         }}>
                             <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", gap: 7, background: dark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.9)", borderBottom: `1px solid ${T.border}` }}>
                                 <div style={{ display: "flex", gap: 4 }}>
@@ -388,13 +477,13 @@ function DesktopHero({ T, dark, onOpenResume }) {
                     </div>
 
                     {/* ── Card 5: Tech Stack (Bottom-Left) ── */}
-                    <div className="hfw" style={{ position: "absolute", bottom: "16%", left: "4%", animation: "hf5 3.6s ease-in-out infinite", transformStyle: "preserve-3d" }}>
+                    <div className="hfw" style={{ position: "absolute", bottom: "8%", left: "9%", animation: "hf5 3.6s ease-in-out infinite", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
                         <div className="h-card" style={{
                             transform: "translateZ(140px) rotateY(8deg)",
-                            background: dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)",
-                            border: `1px solid ${T.border}`, borderRadius: 20, padding: "18px",
-                            backdropFilter: "blur(12px)", width: 220,
-                            boxShadow: "0 14px 36px rgba(0,0,0,0.2)",
+                            background: T.bg,
+                            border: "none", borderRadius: 20, padding: "18px",
+                            width: 220,
+                            boxShadow: T.neu,
                         }}>
                             <div style={{ ...fm, fontSize: 8, color: T.a, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
                                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.a }} />
@@ -415,15 +504,57 @@ function DesktopHero({ T, dark, onOpenResume }) {
                         </div>
                     </div>
 
+                    {/* ── Card 6: AI Governance & Deep Learning Networks (Middle-Left) ── */}
+                    <div className="hfw" style={{ position: "absolute", top: "45%", left: "6%", animation: "hf1 5.2s ease-in-out infinite reverse", transformStyle: "preserve-3d", ...getDimStyle(2) }}>
+                        <div className="h-card" style={{
+                            transform: "translateZ(180px) rotateY(15deg)", background: T.bg, border: "none",
+                            borderRadius: 20, padding: 18, width: 220, boxShadow: T.neu,
+                        }}>
+                            <div style={{ ...fm, fontSize: 8, color: T.a2, letterSpacing: 2, textTransform: "uppercase", fontWeight: 800, marginBottom: 12, display: "flex", alignItems: "center", gap: 5 }}>
+                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.a2, animation: "pulse 2.2s infinite" }} />
+                                Deep Learning & Ethics
+                            </div>
+                            {/* Neural Network SVG Visual Effect */}
+                            <div style={{ position: "relative", width: "100%", height: 110, background: `radial-gradient(ellipse at center, ${T.a2}15 0%, transparent 70%)`, borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${T.border}` }}>
+                                <svg width="100%" height="100%" viewBox="0 0 200 100">
+                                    <g stroke={T.m} strokeWidth="1" opacity="0.3">
+                                        <line x1="30" y1="30" x2="100" y2="20" />
+                                        <line x1="30" y1="30" x2="100" y2="50" />
+                                        <line x1="30" y1="70" x2="100" y2="50" />
+                                        <line x1="30" y1="70" x2="100" y2="80" />
+                                        <line x1="100" y1="20" x2="170" y2="50" />
+                                        <line x1="100" y1="50" x2="170" y2="50" />
+                                        <line x1="100" y1="80" x2="170" y2="50" />
+                                    </g>
+                                    <g fill={T.a2}>
+                                        <circle cx="30" cy="30" r="4"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
+                                        <circle cx="30" cy="70" r="4"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></circle>
+                                        <circle cx="100" cy="20" r="5" fill="#58a6ff"><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle>
+                                        <circle cx="100" cy="50" r="6" fill="#10b981"><animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;1;0.6" dur="1s" repeatCount="indefinite"/></circle>
+                                        <circle cx="100" cy="80" r="5" fill="#58a6ff"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.5s" repeatCount="indefinite"/></circle>
+                                        <circle cx="170" cy="50" r="7"><animate attributeName="r" values="6;8;6" dur="0.8s" repeatCount="indefinite"/></circle>
+                                    </g>
+                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="2s" repeatCount="indefinite" path="M30 30 L100 20 L170 50" /></circle>
+                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="1.5s" repeatCount="indefinite" path="M30 70 L100 50 L170 50" /></circle>
+                                    <circle r="2" fill="#fff" filter="blur(1px)"><animateMotion dur="2.5s" repeatCount="indefinite" path="M30 30 L100 80 L170 50" /></circle>
+                                </svg>
+                            </div>
+                            <div style={{ marginTop: 12, ...sf, fontSize: 13, color: T.t, fontWeight: 700 }}>Neural Architectures</div>
+                            <div style={{ ...fm, fontSize: 9, color: T.m, lineHeight: 1.5, margin: "4px 0" }}>
+                                Building compliant & secure intelligence systems. AI Governance & Scale.
+                            </div>
+                        </div>
+                    </div>
+
                     {/* ── Werkstudent badge (top-center) ── */}
                     <div style={{
                         position: "absolute", top: "6%", left: "50%",
                         transform: "translateX(-50%) translateZ(60px)",
-                        background: dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.88)",
-                        border: `1px solid ${T.border}`, borderRadius: 30, padding: "7px 18px",
-                        backdropFilter: "blur(12px)", display: "flex", alignItems: "center", gap: 7,
+                        background: T.bg,
+                        border: "none", borderRadius: 30, padding: "7px 18px",
+                        display: "flex", alignItems: "center", gap: 7,
                         ...fm, fontSize: 10, color: T.m, fontWeight: 600, pointerEvents: "none",
-                        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                        boxShadow: T.neuSm, ...getDimStyle(0)
                     }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981", animation: "pulse 2s infinite" }} />
                         Werkstudent · Nordex SE · Hamburg
@@ -431,6 +562,22 @@ function DesktopHero({ T, dark, onOpenResume }) {
 
                 </div>
             </div>
+
+
+            {preview && (
+                <div style={{
+                    position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)",
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 20
+                }} onClick={() => setPreview(null)}>
+                    <div style={{ background: T.bg, padding: 32, borderRadius: 24, border: `2px solid ${T.a}`, boxShadow: `0 20px 60px ${T.bg}80`, maxWidth: 400, textAlign: "center", animation: "fadeUp 0.3s ease" }} onClick={e => e.stopPropagation()}>
+                        <div style={{ ...sf, fontSize: 24, fontWeight: 800, color: T.t, marginBottom: 12 }}>{preview.name}</div>
+                        <div style={{ ...fm, fontSize: 13, color: T.m, lineHeight: 1.6, marginBottom: 20 }}>{preview.desc}</div>
+                        <button onClick={() => setPreview(null)} style={{ background: T.a, color: "white", padding: "10px 24px", border: "none", borderRadius: 20, ...fm, fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform="scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform="scale(1)"}>Close Preview</button>
+                    </div>
+                </div>
+            )}
+
+            {guidedMode === "guided" && <HeroGuideOverlay T={T} step={guideStep} />}
 
             <style>{`
                 @keyframes heroSpin { 
@@ -466,25 +613,52 @@ function DesktopHero({ T, dark, onOpenResume }) {
 /* ── Main Export ─────────────────────────────────────────────────── */
 export default function HeroBentoMaster({ T, dark, onOpenResume }) {
     const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 900);
+    const [guidedMode, setGuidedMode] = useState(null); // "guided", null
+    const [guideStep, setGuideStep] = useState(0);
 
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth <= 900);
         window.addEventListener("resize", check);
-        return () => window.removeEventListener("resize", check);
+
+        const startTour = () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setGuideStep(0);
+            setGuidedMode("guided");
+        };
+        window.addEventListener("start-guided-tour", startTour);
+
+        return () => {
+            window.removeEventListener("resize", check);
+            window.removeEventListener("start-guided-tour", startTour);
+        };
     }, []);
+
+    // After 8 seconds of guided mode, end it automatically
+    useEffect(() => {
+        if (guidedMode === "guided") {
+            const t1 = setTimeout(() => setGuideStep(1), 3000); // Focus Skills
+            const t2 = setTimeout(() => setGuideStep(2), 6000); // Focus Chat/Projects
+            const t3 = setTimeout(() => setGuidedMode(null), 9000); // End
+            return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+        }
+    }, [guidedMode]);
 
     return (
         <>
             {isMobile ? (
-                <MobileHero T={T} dark={dark} onOpenResume={onOpenResume} />
+                <MobileHero T={T} dark={dark} onOpenResume={onOpenResume} guidedMode={guidedMode} guideStep={guideStep} setGuidedMode={setGuidedMode} />
             ) : (
-                <DesktopHero T={T} dark={dark} onOpenResume={onOpenResume} />
+                <DesktopHero T={T} dark={dark} onOpenResume={onOpenResume} guidedMode={guidedMode} guideStep={guideStep} setGuidedMode={setGuidedMode} />
             )}
             <style>{`
                 @keyframes pulse { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
                 @keyframes heroSpin {
                     from { transform: translateZ(var(--hz, 0px)) rotateX(70deg) rotateZ(0deg); }
                     to { transform: translateZ(var(--hz, 0px)) rotateX(70deg) rotateZ(360deg); }
+                }
+                @keyframes antiSpin {
+                    from { transform: rotateZ(360deg); }
+                    to { transform: rotateZ(0deg); }
                 }
                 @keyframes orbit-float {
                     0% { transform: translateY(0) rotate(0); }

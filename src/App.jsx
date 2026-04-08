@@ -23,12 +23,13 @@ import ContactTerminal from "./components/ContactTerminal";
 import CyclingFact from "./components/CyclingFact";
 import JourneyTimeline from "./components/JourneyTimeline";
 import HeroChat from "./components/HeroChat";
+import HeroBentoMaster from "./components/HeroBentoMaster";
 import ChatFloat from "./components/ChatFloat";
 import EduScrollBook from "./components/EduScrollBook";
 import ExperienceShowcase from "./components/ExperienceShowcase";
 import AboutSection from "./components/AboutSection";
-import HeroBentoMaster from "./components/HeroBentoMaster";
 import { AboutBG, ExperienceBG, ProjectsBG, EducationBG, SkillsBG, ContactBG, PhotographyBG } from "./components/SectionBgs";
+import ThemeSwitch from "./components/ThemeSwitch";
 
 function useReveal() {
     useEffect(() => {
@@ -41,7 +42,7 @@ function useReveal() {
 }
 
 export default function App() {
-    const { dark, setDark, T } = useTheme();
+    const { dark, setDark } = useTheme();
     const [active, setActive] = useState("home");
     const [lightbox, setLightbox] = useState(false); const [lbIdx, setLbIdx] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -58,6 +59,7 @@ export default function App() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    const T = dark ? DARK : LIGHT;
     useReveal();
 
     useEffect(() => {
@@ -65,6 +67,8 @@ export default function App() {
         r.style.setProperty("--ca", T.a); r.style.setProperty("--ca2", T.a2); r.style.setProperty("--ct", T.t);
         r.style.setProperty("--cm", T.m); r.style.setProperty("--cbg", T.bg); r.style.setProperty("--cbr", T.border);
         document.body.style.background = T.bg; document.body.style.color = T.t;
+        // Toggle neumorphism dark-mode class on <html>
+        if (dark) r.classList.add("dark-mode"); else r.classList.remove("dark-mode");
 
         // Prevent body scroll when mobile menu is open
         if (menuOpen) document.body.style.overflow = "hidden";
@@ -114,7 +118,7 @@ export default function App() {
             <SideNav active={active} T={T} />
 
             {/* NAV */}
-            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? "16px 20px" : "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.nav, borderBottom: `1px solid ${T.border}` }}>
+            <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? "16px 20px" : "16px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: T.bg, boxShadow: dark ? "0 4px 24px rgba(0,0,0,0.5)" : "0 4px 24px rgba(163,171,196,0.35), 0 1px 0 rgba(255,255,255,0.8)", border: "none" }}>
                 <div style={{ position: "relative", zIndex: 300 }}>
                     <span onClick={e => { scrollTo("home", e); setMenuOpen(false); }} style={{ ...fm, fontSize: 14, color: T.a, fontWeight: 700, letterSpacing: ".1em", cursor: "pointer" }}>FS<span style={{ color: T.m }}>.</span>dev</span>
                 </div>
@@ -124,52 +128,60 @@ export default function App() {
                         {[["about", "About"], ["experience", "Exp"], ["projects", "Projects"], ["skills", "Skills"], ["contact", "Contact"]].map(([id, label]) => (
                             <a key={id} href={`#${id}`} onClick={e => scrollTo(id, e)}
                                 className={`nav-link${active === id ? " active-link" : ""}`}
-                                style={{ color: active === id ? "#fff" : T.m, "--ca": T.a, "--ca2": T.a2 }}>
+                                style={{ color: active === id ? T.a : T.m, "--ca": T.a, "--ca2": T.a2 }}>
                                 {label}
                             </a>
                         ))}
                         <Mag as="button" onClick={() => setResumeOpen(true)}
-                            style={{ ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", color: T.bg, background: T.a, padding: "9px 22px", borderRadius: 24, fontWeight: 700, transition: "opacity .2s", border: "none", cursor: "pointer" }}>
+                            style={{ ...fm, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", textDecoration: "none", color: T.a, background: T.bg, padding: "9px 22px", borderRadius: 24, fontWeight: 700, transition: "box-shadow .2s, transform .2s", border: "none", cursor: "pointer", boxShadow: T.neuSm }}>
                             View CV
                         </Mag>
-                        <Mag as="button" onClick={() => setDark(d => !d)}
-                            style={{ width: 38, height: 38, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, transition: "all .2s" }}>
-                            {dark ? "☀" : "🌙"}
-                        </Mag>
+                        <ThemeSwitch dark={dark} setDark={setDark} />
                     </div>
                 ) : (
                     <div style={{ display: "flex", alignItems: "center", gap: 16, zIndex: 300 }}>
-                        <button onClick={() => setDark(d => !d)}
-                            style={{ width: 36, height: 36, borderRadius: "50%", background: dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)", border: `1px solid ${T.border}`, color: T.t, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, transition: "all .2s" }}>
-                            {dark ? "☀" : "🌙"}
-                        </button>
+                        <ThemeSwitch dark={dark} setDark={setDark} />
 
                         <div
                             onClick={() => setMenuOpen(!menuOpen)}
-                            style={{
-                                width: 42, height: 42, position: "relative", cursor: "pointer", zIndex: 301,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                borderRadius: menuOpen ? "50%" : "30% 70% 70% 30% / 30% 30% 70% 70%",
-                                background: menuOpen ? "transparent" : T.a + "15",
-                                border: menuOpen ? "none" : `1px solid ${T.a}40`,
-                                transform: menuOpen ? "rotate(0deg)" : "rotate(45deg)",
-                                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                                boxShadow: "none"
-                            }}
+                            style={{ cursor: "pointer", zIndex: 301, display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40 }}
                         >
-                            {/* Inner icons */}
-                            {!menuOpen ? (
-                                <div style={{ transform: "rotate(-45deg)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-                                    {[0, 1, 2, 3].map(i => (
-                                        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a, boxShadow: "none" }} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div style={{ position: "relative", width: 24, height: 24 }}>
-                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(45deg)" }} />
-                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(-45deg)" }} />
-                                </div>
-                            )}
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                style={{
+                                    width: 28, height: 28,
+                                    transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                    transform: menuOpen ? "rotate(45deg)" : "rotate(0deg)",
+                                    overflow: "visible",
+                                }}
+                            >
+                                <line x1="3" y1="6" x2="21" y2="6"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 6px",
+                                        transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                        transform: menuOpen ? "translateY(6px)" : "translateY(0)",
+                                    }}
+                                />
+                                <line x1="3" y1="12" x2="21" y2="12"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 12px",
+                                        transition: "transform 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease",
+                                        transform: menuOpen ? "scaleX(0)" : "scaleX(1)",
+                                        opacity: menuOpen ? 0 : 1,
+                                    }}
+                                />
+                                <line x1="3" y1="18" x2="21" y2="18"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 18px",
+                                        transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                        transform: menuOpen ? "translateY(-6px) rotate(90deg)" : "translateY(0) rotate(0deg)",
+                                    }}
+                                />
+                            </svg>
                         </div>
                     </div>
                 )}
@@ -229,9 +241,12 @@ export default function App() {
             </section>
 
             {/* ── EXPERIENCE ── */}
-            <section id="experience" className="section" style={{ background: "transparent", position: "relative", overflow: "visible" }}>
+            <section id="experience" style={{ background: "transparent", position: "relative" }}>
                 <ExperienceBG T={T} />
-                <ExperienceShowcase T={T} dark={dark} SectionHeading={<SH n="02" title="Experience" T={T} />} />
+                <div className="sec-inner" style={{ ...sp }}>
+                    <SH n="02" title="Experience" T={T} />
+                    <ExperienceShowcase T={T} dark={dark} />
+                </div>
             </section>
 
             {/* ── PROJECTS ── */}
@@ -264,9 +279,9 @@ export default function App() {
             </section>
 
             {/* ── EDUCATION ── */}
-            <section id="education" className="section" style={{ background: "transparent", position: "relative", overflow: "visible", padding: 0 }}>
+            <section id="education" style={{ background: "transparent", position: "relative", overflow: "visible", padding: 0 }}>
                 <EducationBG T={T} />
-                <div style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 0 }}>
+                <div style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 40 }}>
                     <SH n="05" title="Education" T={T} />
                 </div>
                 <EduScrollBook T={T} />

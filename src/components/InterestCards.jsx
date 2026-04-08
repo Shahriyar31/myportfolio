@@ -46,29 +46,27 @@ function InterestItem({ item, i, T, dark, fm }) {
             style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "10px 14px", borderRadius: 14,
-                border: `1px solid ${hov ? item.accent + "60" : T.border}`,
-                background: hov
-                    ? (dark ? `${item.accent}0a` : `${item.accent}08`)
-                    : T.card,
+                border: "none",
+                background: T.bg,
                 fontSize: 12, cursor: "none",
                 transition: "all .35s cubic-bezier(.16,1,.3,1)",
                 transform: vis
                     ? (hov ? "translateX(8px) scale(1.02)" : "translateX(0) scale(1)")
                     : "translateX(-20px) scale(.95)",
                 opacity: vis ? 1 : 0,
-                boxShadow: hov ? `0 8px 24px ${item.accent}18` : "none",
+                boxShadow: hov ? T.neuHover : T.neuSm,
                 position: "relative", zIndex: 1,
-                backdropFilter: "blur(8px)",
             }}>
             {/* Icon with bounce */}
             <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: hov ? `${item.accent}18` : (dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.03)"),
+                background: T.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 17, flexShrink: 0,
                 transition: "all .3s",
                 transform: hov ? "scale(1.15) rotate(-5deg)" : "scale(1) rotate(0)",
-                border: `1px solid ${hov ? item.accent + "30" : "transparent"}`,
+                boxShadow: T.neuSm,
+                border: "none",
             }}>
                 {item.icon}
             </div>

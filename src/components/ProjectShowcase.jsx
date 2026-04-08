@@ -35,14 +35,14 @@ export default function ProjectShowcase({ T, dark }) {
         return (
             <div key={p.id} style={{
                 width: "100%", padding: isMobile ? 24 : 40,
-                background: T.card,
-                border: `1px solid ${p.color}40`,
+                background: T.bg,
+                border: "none",
                 borderRadius: 16,
                 transform: isMobile ? "none" : `perspective(1000px) rotateY(${rotateY}deg) rotateX(4deg)`,
                 transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
                 overflow: "hidden", position: "relative",
                 margin: isMobile ? "10px 0" : 0,
-                boxShadow: `0 20px 60px rgba(${p.glow},${dark ? 0.18 : 0.08}), inset 0 1px 0 rgba(${p.glow},0.1)`,
+                boxShadow: T.neu,
                 animation: "fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both",
             }}>
                 {/* Top accent line */}
@@ -113,10 +113,10 @@ export default function ProjectShowcase({ T, dark }) {
                                 style={{
                                     cursor: "pointer", padding: "16px 20px",
                                     borderRadius: 16,
-                                    background: isActive ? (dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)") : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
+                                    background: T.bg,
                                     borderLeft: `4px solid ${isActive ? p.color : "transparent"}`,
                                     transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-                                    boxShadow: isActive ? `0 10px 30px rgba(${p.glow}, ${dark ? 0.2 : 0.05})` : "none"
+                                    boxShadow: isActive ? T.neu : T.neuSm
                                 }}
                             >
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -181,11 +181,11 @@ export default function ProjectShowcase({ T, dark }) {
                             style={{
                                 cursor: "pointer", padding: "16px 24px",
                                 borderRadius: 16,
-                                background: isDisplaying ? `${p.color}0e` : "transparent",
+                                background: T.bg,
                                 borderLeft: `3px solid ${isDisplaying ? p.color : isHovered ? `${p.color}50` : "transparent"}`,
                                 transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
                                 transform: isDisplaying ? "translateX(8px)" : "none",
-                                boxShadow: isDisplaying ? `0 4px 24px rgba(${p.glow},${dark ? 0.12 : 0.06})` : "none",
+                                boxShadow: isDisplaying ? T.neu : T.neuSm,
                                 position: "relative"
                             }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>

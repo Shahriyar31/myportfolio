@@ -174,15 +174,15 @@ function TechPill({ label, T, dark, accent, visible, delay = 0 }) {
             padding: "6px 14px",
             borderRadius: 8,
             overflow: "hidden",
-            background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
-            border: `1px solid ${T.border}`,
+            background: T.bg,
+            border: "none",
+            boxShadow: T.neuSm,
             opacity: visible ? 1 : 0,
             transform: visible ? "scale(1) translateY(0)" : "scale(0.9) translateY(10px)",
             transition: `all 0.6s ${delay}ms cubic-bezier(0.16,1,0.3,1)`,
             display: "flex",
             alignItems: "center",
             gap: 6,
-            backdropFilter: "blur(4px)",
         }}>
             <span style={{
                 ...fm, fontSize: 11, fontWeight: 600, color: T.m,
@@ -206,18 +206,17 @@ function CardContent({ item, T, dark, active }) {
     };
 
     return (
-        <div style={{ display: "flex", height: "100%", borderRadius: 28, overflow: "hidden", boxShadow: dark ? "0 40px 80px rgba(0,0,0,0.5)" : "0 20px 60px rgba(0,0,0,0.18)" }}>
+        <div style={{ display: "flex", height: "100%", borderRadius: 28, overflow: "hidden", boxShadow: T.neu, border: "none" }}>
 
             {/* LEFT PANEL */}
             <div style={{
-                background: dark ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(40px)",
+                background: dark ? "#181825" : "#e6e9ef",
                 display: "flex", flexDirection: "column",
                 justifyContent: "space-between",
                 padding: "40px 32px",
                 position: "relative",
                 overflow: "hidden",
-                borderRight: `1px solid rgba(150,150,150,0.15)`,
+                borderRight: `1px solid rgba(150,150,150,0.08)`,
             }}>
                 <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07, pointerEvents: "none" }}>
                     <defs>
@@ -241,7 +240,7 @@ function CardContent({ item, T, dark, active }) {
                     <span style={{
                         ...fm, fontSize: 10, fontWeight: 700, letterSpacing: ".2em",
                         color: accent, background: `${accent}20`,
-                        border: `1px solid ${accent}35`, padding: "5px 12px", borderRadius: 20,
+                        border: "none", boxShadow: T.neuSm, padding: "5px 12px", borderRadius: 20,
                         display: "inline-flex", alignItems: "center", gap: 6
                     }}>
                         <span style={{ width: 5, height: 5, borderRadius: "50%", background: accent, display: "inline-block", animation: item.type === "CURRENT" ? "pulse 1.8s ease-in-out infinite" : "none" }} />
@@ -270,8 +269,7 @@ function CardContent({ item, T, dark, active }) {
                 onMouseLeave={() => setMouse({ x: -999, y: -999 })}
                 style={{
                     flex: 1,
-                    background: dark ? "rgba(10,10,15,0.3)" : "rgba(240,240,250,0.5)",
-                    backdropFilter: "blur(40px)",
+                    background: T.bg,
                     display: "flex", flexDirection: "column",
                     padding: "44px 52px",
                     overflowY: "auto",
@@ -357,12 +355,12 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
         const onScroll = () => {
             if (!outerRef.current) return;
             const rect = outerRef.current.getBoundingClientRect();
+            
+            // MEASURE: Absolute pixel tracking to eliminate vh-resize jitter on mobile
+            const scrolledPixels = Math.max(0, -rect.top);
             const vh = window.innerHeight;
             
-            // MEASURE: How many pixels have we scrolled PAST the start of the section?
-            const scrolledPixels = Math.max(0, -rect.top);
-            
-            // THE TRACK: 6000px total height, which means 6000 - 100vh of actual scrollable territory
+            // THE TRACK: Fixed tracking lengths independent of vh
             const scrollableRange = 6000 - vh;
             const rotationTrack = 4000; // Finish all 3 cards in the first 4000px of scroll
 
@@ -407,8 +405,8 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
 
                 // X offsets based on Sine of the arc, Z depths based on Cosine of the arc
                 const tx = Math.sin(angleRad) * R;
-                // Side cards go BACK (away from viewer). At angle=0: tz=0. At angle=35°: tz=R*(1-cos35°)=+118px behind.
-                const tz = R - (Math.cos(angleRad) * R);
+                // Side cards go BACK (away from viewer) so we subtract from 0 (making tz negative).
+                const tz = Math.cos(angleRad) * R - R;
 
                 // The card physically rotating its face to remain perfectly tangent to the circumference
                 const ry = angleDeg;
@@ -441,7 +439,7 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
                 const inner = el.firstChild;
                 if (inner) {
                     inner.style.filter = `brightness(${bright}) blur(${blur}px)`;
-                    inner.style.boxShadow = `0 40px 100px rgba(0,0,0,${shadowAlpha})`;
+                    inner.style.boxShadow = `${T.neu}, 0 40px 100px rgba(0,0,0,${shadowAlpha})`;
                 }
             });
 
@@ -463,7 +461,7 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
         return () => cancelAnimationFrame(frame);
     }, [T, isMobile]);
 
-    // Massive 6000px runway for total stability
+    // 6000px total height gives 6000 - ~900vh ≈ 5100px of scroll room; animation uses 4000px of that
     const totalHeight = "6000px";
     const hPad = "clamp(20px,6vw,120px)";
 
@@ -569,9 +567,9 @@ function MobileCardContent({ item, T, dark, active }) {
         <div style={{
             width: "100%", height: "100%",
             borderRadius: 24,
-            background: dark ? "rgba(18,20,30,0.6)" : "rgba(250,250,255,0.7)",
-            backdropFilter: "blur(40px)",
-            border: `1px solid ${T.border}`,
+            background: T.bg,
+            border: "none",
+            boxShadow: T.neu,
             overflow: "hidden",
             display: "flex", flexDirection: "column",
         }}>
@@ -581,7 +579,7 @@ function MobileCardContent({ item, T, dark, active }) {
                 transform: active ? "scaleX(1)" : "scaleX(0)",
                 transition: `transform 0.8s 0.2s cubic-bezier(0.16,1,0.3,1)`,
             }} />
-            <div style={{ padding: "32px 24px", flex: 1 }}>
+            <div style={{ padding: "32px 24px", flex: 1, overflowY: "auto", position: "relative" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
                     <span style={{
                         ...fm, fontSize: 9, fontWeight: 700, letterSpacing: ".18em",
@@ -601,7 +599,7 @@ function MobileCardContent({ item, T, dark, active }) {
                     <span style={{ width: 28, height: 2, background: accent, display: "inline-block" }} />
                     <strong style={{ whiteSpace: "nowrap" }}>{item.role}</strong> <span style={{ opacity: 0.5 }}>· {item.company}</span>
                 </div>
-                <div style={{ display: "flex", gap: 0, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: "20px 0", marginBottom: 26, color: T.m }}>
+                <div style={{ display: "flex", gap: 0, borderTop: "none", borderBottom: "none", padding: "20px 0", marginBottom: 26, color: T.m, boxShadow: `0 -1px 0 0 ${T.border}, 0 1px 0 0 ${T.border}` }}>
                     {item.stats.map((s, i) => (
                         <div key={i} style={{ flex: 1, borderRight: i < item.stats.length - 1 ? `1px solid ${T.border}` : "none" }}>
                             <MobileCount to={s.val} suffix={s.suffix} label={s.label} color={accent} active={active} />

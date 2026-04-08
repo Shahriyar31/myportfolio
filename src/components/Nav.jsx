@@ -73,27 +73,50 @@ export default function Nav({ active, scrollTo, onOpenResume }) {
                         </button>
                         <div
                             onClick={() => setMenuOpen(o => !o)}
-                            style={{
-                                width: 42, height: 42, position: "relative", cursor: "pointer", zIndex: 301,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                borderRadius: menuOpen ? "50%" : "30% 70% 70% 30% / 30% 30% 70% 70%",
-                                background: menuOpen ? "transparent" : T.a + "15",
-                                border: menuOpen ? "none" : `1px solid ${T.a}40`,
-                                transform: menuOpen ? "rotate(0deg)" : "rotate(45deg)",
-                                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                            }}>
-                            {!menuOpen ? (
-                                <div style={{ transform: "rotate(-45deg)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-                                    {[0, 1, 2, 3].map(i => (
-                                        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: T.a }} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div style={{ position: "relative", width: 24, height: 24 }}>
-                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(45deg)" }} />
-                                    <span style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: T.t, borderRadius: 2, transform: "rotate(-45deg)" }} />
-                                </div>
-                            )}
+                            style={{ cursor: "pointer", zIndex: 301, display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40 }}
+                        >
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                style={{
+                                    width: 28, height: 28,
+                                    transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                    transform: menuOpen ? "rotate(45deg)" : "rotate(0deg)",
+                                    overflow: "visible",
+                                }}
+                            >
+                                {/* Top line */}
+                                <line
+                                    x1="3" y1="6" x2="21" y2="6"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 6px",
+                                        transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                        transform: menuOpen ? "translateY(6px)" : "translateY(0)",
+                                    }}
+                                />
+                                {/* Middle line */}
+                                <line
+                                    x1="3" y1="12" x2="21" y2="12"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 12px",
+                                        transition: "transform 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease",
+                                        transform: menuOpen ? "scaleX(0)" : "scaleX(1)",
+                                        opacity: menuOpen ? 0 : 1,
+                                    }}
+                                />
+                                {/* Bottom line */}
+                                <line
+                                    x1="3" y1="18" x2="21" y2="18"
+                                    stroke="white" strokeWidth="2" strokeLinecap="round"
+                                    style={{
+                                        transformOrigin: "12px 18px",
+                                        transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                                        transform: menuOpen ? "translateY(-6px) rotate(90deg)" : "translateY(0) rotate(0deg)",
+                                    }}
+                                />
+                            </svg>
                         </div>
                     </div>
                 )}

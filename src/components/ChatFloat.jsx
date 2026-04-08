@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const fm = { fontFamily: "'Inter', sans-serif" };
@@ -34,11 +34,35 @@ const QUICK = ["Nordex AI project", "Best skills", "Open to work?", "TUHH resear
 export default function ChatFloat() {
     const { T, dark } = useTheme();
     const [open, setOpen] = useState(false);
-    const [msgs, setMsgs] = useState([{ r: "b", t: "Hey! I'm Farhan's AI — ask me anything about projects, skills, or experience 👋" }]);
+    const [msgs, setMsgs] = useState([]);
     const [inp, setInp] = useState("");
     const [busy, setBusy] = useState(false);
     const hist = useRef([]);
     const scrollRef = useRef(null);
+    const [showTourOptions, setShowTourOptions] = useState(true);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setOpen(true);
+            setMsgs([
+                { r: "b", t: "Hi, I'm Farhan's AI assistant." },
+                { r: "b", t: "Let me show you what he does. Would you like a 20-second guided tour?" }
+            ]);
+        }, 2500);
+        return () => clearTimeout(timeout);
+    }, []);
+
+    const startTour = () => {
+        setOpen(false);
+        setShowTourOptions(false);
+        window.dispatchEvent(new Event("start-guided-tour"));
+    };
+
+    const skipTour = () => {
+        setShowTourOptions(false);
+        setMsgs(p => [...p, { r: "u", t: "I'll explore myself" }, { r: "b", t: "Sounds good! I'm here if you have any questions. 👋" }]);
+        setTimeout(scrollToBottom, 50);
+    };
 
     const scrollToBottom = useCallback(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -69,7 +93,7 @@ export default function ChatFloat() {
         <>
             {/* Slide-in panel */}
             <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 599, width: open ? 340 : 0, transition: "width .35s cubic-bezier(.16,1,.3,1)", overflow: "hidden", pointerEvents: open ? "auto" : "none" }}>
-                <div style={{ width: 340, height: "100%", display: "flex", flexDirection: "column", background: dark ? "rgba(10,10,20,0.98)" : "rgba(253,246,237,0.98)", backdropFilter: "blur(28px)", borderLeft: `1px solid ${T.border}`, boxShadow: dark ? "0 0 60px rgba(0,0,0,.8)" : "0 0 60px rgba(139,69,19,.12)" }}>
+                <div style={{ width: 340, height: "100%", display: "flex", flexDirection: "column", background: T.bg, boxShadow: T.neu, borderLeft: "none" }}>
 
                     {/* Header */}
                     <div style={{ padding: "18px 20px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg,${T.a}12,${T.a2}08)`, flexShrink: 0 }}>
@@ -81,23 +105,36 @@ export default function ChatFloat() {
                         <button onClick={() => setOpen(false)} style={{ background: "none", border: "none", color: T.m, cursor: "none", fontSize: 18, padding: 4, lineHeight: 1, flexShrink: 0 }}>✕</button>
                     </div>
 
-                    {/* Quick suggestions */}
+                    {/* Tour Options or Quick Suggestions */}
                     <div style={{ padding: "10px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", flexWrap: "wrap", gap: 6, flexShrink: 0 }}>
-                        {QUICK.map(s => (
-                            <button key={s} onClick={() => send(s)}
-                                style={{ ...fm, fontSize: 9, color: T.m, border: `1px solid ${T.border}`, padding: "4px 10px", background: "none", cursor: "none", transition: "all .2s", borderRadius: 12 }}
-                                onMouseEnter={e => { e.target.style.color = T.a; e.target.style.borderColor = T.a; e.target.style.background = `${T.a}10`; }}
-                                onMouseLeave={e => { e.target.style.color = T.m; e.target.style.borderColor = T.border; e.target.style.background = "none"; }}>
-                                {s}
-                            </button>
-                        ))}
+                        {showTourOptions ? (
+                            <>
+                                <button onClick={startTour}
+                                    style={{ ...fm, fontSize: 10, color: "white", border: "none", padding: "6px 12px", background: T.a, cursor: "none", transition: "all .2s", borderRadius: 12, boxShadow: T.neuSm, fontWeight: 600 }}>
+                                    Show me in 20 seconds ⏱️
+                                </button>
+                                <button onClick={skipTour}
+                                    style={{ ...fm, fontSize: 10, color: T.m, border: `1px solid ${T.border}`, padding: "6px 12px", background: T.bg, cursor: "none", transition: "all .2s", borderRadius: 12, boxShadow: T.neuSm, fontWeight: 600 }}>
+                                    I'll explore myself
+                                </button>
+                            </>
+                        ) : (
+                            QUICK.map(s => (
+                                <button key={s} onClick={() => send(s)}
+                                    style={{ ...fm, fontSize: 9, color: T.m, border: "none", padding: "4px 10px", background: T.bg, cursor: "none", transition: "all .2s", borderRadius: 12, boxShadow: T.neuSm }}
+                                    onMouseEnter={e => { e.target.style.color = T.a; e.target.style.boxShadow = T.neuHover; }}
+                                    onMouseLeave={e => { e.target.style.color = T.m; e.target.style.boxShadow = T.neuSm; }}>
+                                    {s}
+                                </button>
+                            ))
+                        )}
                     </div>
 
                     {/* Messages */}
                     <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none" }}>
                         {msgs.map((m, i) => (
                             <div key={i} style={{ display: "flex", justifyContent: m.r === "u" ? "flex-end" : "flex-start" }}>
-                                <div style={{ maxWidth: "87%", fontSize: 12, lineHeight: 1.7, ...fm, background: m.r === "u" ? T.a : dark ? "rgba(255,255,255,.06)" : "rgba(255,248,235,.9)", color: m.r === "u" ? "white" : T.t, padding: "10px 14px", borderRadius: m.r === "u" ? "16px 16px 4px 16px" : "4px 16px 16px 16px", border: m.r === "b" ? `1px solid ${T.border}` : "none", boxShadow: m.r === "b" ? "0 2px 8px rgba(0,0,0,.08)" : "none" }}>{m.t}</div>
+                                <div style={{ maxWidth: "87%", fontSize: 12, lineHeight: 1.7, ...fm, background: m.r === "u" ? T.a : T.bg, color: m.r === "u" ? "white" : T.t, padding: "10px 14px", borderRadius: m.r === "u" ? "16px 16px 4px 16px" : "4px 16px 16px 16px", border: "none", boxShadow: T.neuSm }}>{m.t}</div>
                             </div>
                         ))}
                         {busy && (
@@ -116,9 +153,9 @@ export default function ChatFloat() {
                             onChange={e => setInp(e.target.value)}
                             onKeyDown={e => e.key === "Enter" && send(inp)}
                             placeholder="Ask me anything..."
-                            style={{ flex: 1, background: dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)", border: `1px solid ${T.border}`, color: T.t, padding: "10px 14px", ...fm, fontSize: 12, outline: "none", borderRadius: 14, transition: "border-color .2s" }}
-                            onFocus={e => e.target.style.borderColor = T.a}
-                            onBlur={e => e.target.style.borderColor = T.border}
+                            style={{ flex: 1, background: T.bg, border: "none", color: T.t, padding: "10px 14px", ...fm, fontSize: 12, outline: "none", borderRadius: 14, transition: "box-shadow .2s", boxShadow: T.neuInset }}
+                            onFocus={e => e.target.style.boxShadow = T.neu}
+                            onBlur={e => e.target.style.boxShadow = T.neuInset}
                         />
                         <button onClick={() => send(inp)} disabled={busy || !inp.trim()}
                             style={{ width: 42, height: 42, borderRadius: "50%", background: (busy || !inp.trim()) ? (dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)") : T.a, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "none", transition: "all .2s", flexShrink: 0, opacity: (busy || !inp.trim()) ? 0.4 : 1, boxShadow: (busy || !inp.trim()) ? "none" : `0 0 16px ${T.a}50` }}>

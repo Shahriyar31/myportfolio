@@ -44,6 +44,11 @@ export const DARK = {
     card:   "#181825",   // Mantle
     border: "#313244",   // Surface0
     nav:    "#11111b",   // Crust
+    // Neumorphism
+    neu:      "6px 6px 14px rgba(10,10,18,0.8), -6px -6px 14px rgba(49,50,68,0.6)",
+    neuSm:    "3px 3px 8px rgba(10,10,18,0.8), -3px -3px 8px rgba(49,50,68,0.6)",
+    neuHover: "8px 8px 20px rgba(10,10,18,0.85), -8px -8px 20px rgba(49,50,68,0.65)",
+    neuInset: "inset 3px 3px 8px rgba(10,10,18,0.8), inset -3px -3px 8px rgba(49,50,68,0.6)",
 };
 // Catppuccin Latte
 export const LIGHT = {
@@ -54,9 +59,14 @@ export const LIGHT = {
     a:      "#1e66f5",   // Blue
     a2:     "#8839ef",   // Mauve
     a3:     "#1e66f5",   // Blue
-    card:   "#ffffff",   // elevated surface
+    card:   "#eff1f5",   // Same as bg for neumorphism
     border: "#ccd0da",   // Surface0
     nav:    "#e6e9ef",   // Mantle
+    // Neumorphism
+    neu:      "6px 6px 14px rgba(163,171,196,0.55), -6px -6px 14px rgba(255,255,255,0.85)",
+    neuSm:    "3px 3px 8px rgba(163,171,196,0.55), -3px -3px 8px rgba(255,255,255,0.85)",
+    neuHover: "8px 8px 20px rgba(163,171,196,0.65), -8px -8px 20px rgba(255,255,255,0.9)",
+    neuInset: "inset 3px 3px 8px rgba(163,171,196,0.55), inset -3px -3px 8px rgba(255,255,255,0.85)",
 };
 
 // ── EDUCATION SCROLL BOOK DATA ────────────────────────────────────────

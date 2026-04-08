@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { SUGGS } from "../data/constants";
 
@@ -37,13 +37,41 @@ export default function HeroChat({ T }) {
     const [msgs, setMsgs] = useState([]);
     const [inp, setInp] = useState("");
     const [busy, setBusy] = useState(false);
-    const [started, setStarted] = useState(false);
+    const [started, setStarted] = useState(true); // Start true to show chat window
     const hist = useRef([]);
     const scrollRef = useRef(null);
 
     const scrollToBottom = () => {
-        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+        if (scrollRef.current) {
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+        }
     };
+
+    // Auto-start sample Q&A
+    const hasAutoStarted = useRef(false);
+    useEffect(() => {
+        if (hasAutoStarted.current) return;
+        hasAutoStarted.current = true;
+        
+        let act = true;
+        setBusy(true);
+        setTimeout(() => {
+            if (!act) return;
+            setMsgs([{ r: "u", t: "What core projects has he built?" }]);
+            setTimeout(() => {
+                if (!act) return;
+                setBusy(false);
+                const reply = "I built an internal AI Assistant for Nordex SE that processes 1,690+ docs with RAG, reducing inference costs by 11×! I also developed Poultry Shield (a CNN for medical imaging) and a Digital Twin Dashboard. Feel free to ask me more!";
+                setMsgs([{ r: "u", t: "What core projects has he built?" }, { r: "b", t: reply }]);
+                hist.current = [
+                    { role: "user", content: "What core projects has he built?" },
+                    { role: "assistant", content: reply }
+                ];
+                setTimeout(scrollToBottom, 50);
+            }, 1200);
+        }, 800);
+        return () => { act = false; };
+    }, []);
 
     const send = useCallback(async txt => {
         if (!txt.trim() || busy) return;
@@ -72,13 +100,13 @@ export default function HeroChat({ T }) {
 
             {/* Messages / suggestions */}
             <div ref={scrollRef} style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", flex: started ? "1 1 0" : "0 0 auto", minHeight: 0, overflowY: "auto", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8, padding: "0 4px", scrollbarWidth: "thin", scrollbarColor: `${T.a}40 transparent`, overflowAnchor: "none", overscrollBehavior: "none", transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
-                {!started && (
+                {msgs.length === 0 && !busy && (
                     <div style={{ display: "flex", flexWrap: "nowrap", gap: 8, justifyContent: "flex-start", marginBottom: 12, width: "100%", maxWidth: "clamp(320px,60vw,700px)", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", paddingBottom: 4 }}>
                         {SUGGS.map(s => (
                             <button type="button" key={s} onClick={() => send(s)}
-                                style={{ ...fm, fontSize: 11, color: T.m, border: `1px solid ${T.border}`, padding: "8px 16px", background: dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)", cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", backdropFilter: "blur(8px)" }}
-                                onMouseEnter={e => { e.currentTarget.style.color = T.a; e.currentTarget.style.borderColor = T.a; e.currentTarget.style.background = `${T.a}12`; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = T.m; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = dark ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.5)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                                style={{ ...fm, fontSize: 11, color: T.m, border: "none", padding: "8px 16px", background: T.bg, cursor: "none", transition: "all .22s", borderRadius: 22, whiteSpace: "nowrap", boxShadow: T.neuSm }}
+                                onMouseEnter={e => { e.currentTarget.style.color = T.a; e.currentTarget.style.boxShadow = T.neuHover; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = T.m; e.currentTarget.style.boxShadow = T.neuSm; e.currentTarget.style.transform = "translateY(0)"; }}>
                                 {s}
                             </button>
                         ))}
@@ -86,7 +114,7 @@ export default function HeroChat({ T }) {
                 )}
                 {msgs.map((m, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: m.r === "u" ? "flex-end" : "flex-start" }}>
-                        <div style={{ maxWidth: "82%", fontSize: 13, lineHeight: 1.65, ...fm, background: m.r === "u" ? T.a : dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.7)", color: m.r === "u" ? "white" : T.t, padding: "10px 16px", borderRadius: m.r === "u" ? "18px 18px 4px 18px" : "4px 18px 18px 18px", boxShadow: m.r === "b" ? `0 2px 12px ${T.a}20` : "none", border: m.r === "b" ? `1px solid ${T.border}` : "none" }}>{m.t}</div>
+                        <div style={{ maxWidth: "82%", fontSize: 13, lineHeight: 1.65, ...fm, background: m.r === "u" ? T.a : T.bg, color: m.r === "u" ? "white" : T.t, padding: "10px 16px", borderRadius: m.r === "u" ? "18px 18px 4px 18px" : "4px 18px 18px 18px", boxShadow: T.neuSm, border: "none" }}>{m.t}</div>
                     </div>
                 ))}
                 {busy && (
@@ -99,9 +127,9 @@ export default function HeroChat({ T }) {
             </div>
 
             {/* Input bar */}
-            <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", background: dark ? "rgba(255,255,255,.05)" : "rgba(255,255,255,.85)", border: `1px solid ${T.border}`, borderRadius: 32, padding: "7px 7px 7px 22px", display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(24px)", boxShadow: dark ? "0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)" : "0 8px 40px rgba(91,33,182,.1),inset 0 1px 0 rgba(255,255,255,.8)", transition: "box-shadow .3s" }}
-                onFocus={e => { if (e.target.tagName !== "INPUT") return; e.currentTarget.style.boxShadow = `0 8px 40px ${T.a}25, 0 0 0 1px ${T.a}40`; }}
-                onBlur={e => { e.currentTarget.style.boxShadow = dark ? "0 8px 40px rgba(0,0,0,.4)" : "0 8px 40px rgba(91,33,182,.1)"; }}>
+            <div style={{ width: "100%", maxWidth: "clamp(320px,60vw,700px)", background: T.bg, border: "none", borderRadius: 32, padding: "7px 7px 7px 22px", display: "flex", alignItems: "center", gap: 10, boxShadow: T.neu, transition: "box-shadow .3s" }}
+                onFocus={e => { if (e.target.tagName !== "INPUT") return; e.currentTarget.style.boxShadow = T.neuInset; }}
+                onBlur={e => { e.currentTarget.style.boxShadow = T.neu; }}>
                 <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${T.a},${T.a2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, ...sf, fontSize: 13, color: "white", fontWeight: 700 }}>F</div>
                 <input
                     value={inp}

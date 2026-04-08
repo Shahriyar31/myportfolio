@@ -63,13 +63,14 @@ export default function ContactTerminal({ T, dark }) {
                             style={{ 
                                 display: "flex", alignItems: "center", gap: 16, 
                                 padding: "16px", borderRadius: 16, 
-                                background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
-                                border: `1px solid ${T.border}`,
-                                textDecoration: "none", transition: "all .3s ease",
+                                background: T.bg,
+                                border: "none",
+                                boxShadow: T.neuSm,
+                                textDecoration: "none", transition: "box-shadow .3s ease, transform .3s ease",
                                 cursor: "none"
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = `${T.a}10`; e.currentTarget.style.borderColor = T.a; e.currentTarget.style.transform = "translateX(8px)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateX(0)"; }}>
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = T.neuHover; e.currentTarget.style.transform = "translateX(8px)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = T.neuSm; e.currentTarget.style.transform = "translateX(0)"; }}>
                             <div style={{ ...fm, fontSize: 18, color: T.a, width: 24, textAlign: "center" }}>{btn.icon}</div>
                             <div>
                                 <div style={{ ...fm, fontSize: 9, color: T.m, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 4 }}>{btn.label}</div>
@@ -90,11 +91,9 @@ export default function ContactTerminal({ T, dark }) {
                     position: "relative",
                     borderRadius: 24,
                     padding: "32px",
-                    background: dark ? "rgba(10,12,20,0.6)" : "rgba(255,255,255,0.8)",
-                    backdropFilter: "blur(24px)",
-                    WebkitBackdropFilter: "blur(24px)",
-                    border: `1px solid ${T.border}`,
-                    boxShadow: `0 30px 60px rgba(0,0,0,0.1), inset 0 0 0 1px ${T.a}20`,
+                    background: T.bg,
+                    border: "none",
+                    boxShadow: T.neu,
                     transition: "transform 0.2s ease-out, box-shadow 0.3s ease",
                     overflow: "hidden"
                 }}>
@@ -130,10 +129,11 @@ export default function ContactTerminal({ T, dark }) {
                             placeholder="visitor@domain.com"
                             style={{ 
                                 width: "100%", padding: "16px", borderRadius: 12, 
-                                background: focus === 'email' ? `${T.a}08` : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
-                                border: `1px solid ${focus === 'email' ? T.a : T.border}`,
+                                background: T.bg,
+                                border: "none",
+                                boxShadow: focus === 'email' ? T.neu : T.neuInset,
                                 color: T.t, ...fm, fontSize: 13,
-                                outline: "none", transition: "all 0.3s",
+                                outline: "none", transition: "box-shadow 0.3s",
                                 cursor: "text"
                             }}
                         />
@@ -150,10 +150,11 @@ export default function ContactTerminal({ T, dark }) {
                             rows={4}
                             style={{
                                 width: "100%", padding: "16px", borderRadius: 12,
-                                background: focus === 'msg' ? `${T.a}08` : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
-                                border: `1px solid ${focus === 'msg' ? T.a : T.border}`,
+                                background: T.bg,
+                                border: "none",
+                                boxShadow: focus === 'msg' ? T.neu : T.neuInset,
                                 color: T.t, ...fm, fontSize: 13, resize: "none",
-                                outline: "none", transition: "all 0.3s",
+                                outline: "none", transition: "box-shadow 0.3s",
                                 cursor: "text"
                             }}
                         />

@@ -22,9 +22,9 @@ export default function SideNav({ active }) {
                     <Mag key={id} as="button" onClick={() => scroll(id)} title={id}
                         className={`snav-item ${a ? 'active' : ''}`}
                         style={{
-                            borderColor: a ? T.a : T.border,
-                            background: a ? T.a : `${T.a}0c`,
-                            boxShadow: a ? `0 0 20px ${T.a}55,0 0 40px ${T.a}18` : "none",
+                            border: "none",
+                            background: a ? T.a : T.bg,
+                            boxShadow: a ? `${T.neuInset}, 0 0 20px ${T.a}55` : T.neuSm,
                         }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={a ? T.bg : T.m} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{svg}</svg>
                     </Mag>

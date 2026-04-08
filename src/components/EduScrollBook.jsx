@@ -10,10 +10,9 @@ function EduCardContent({ ch, T, dark, isMobile }) {
         <div style={{
             width: "100%", height: "100%",
             borderRadius: 32,
-            background: dark ? "rgba(18, 20, 28, 0.9)" : "rgba(255,255,255,0.95)",
-            backdropFilter: "blur(24px)",
-            border: `1px solid ${accent}60`,
-            boxShadow: `0 40px 80px rgba(0,0,0,0.5), 0 0 60px ${accent}25, inset 0 1px 0 ${accent}20`,
+            background: T.bg,
+            border: "none",
+            boxShadow: T.neu,
             overflow: "hidden",
             position: "relative",
             display: "flex", flexDirection: "column",
@@ -27,7 +26,7 @@ function EduCardContent({ ch, T, dark, isMobile }) {
             {/* Accent top bar */}
             <div style={{ height: 4, background: `linear-gradient(90deg, ${accent}, ${T.a2}, ${accent})` }} />
 
-            <div style={{ padding: isMobile ? "24px 20px" : "36px 40px", position: "relative", zIndex: 1, flex: 1, overflowY: "hidden" }}>
+            <div style={{ padding: isMobile ? "24px 20px" : "36px 40px", position: "relative", zIndex: 1, flex: 1, overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
                     <div style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
@@ -39,9 +38,10 @@ function EduCardContent({ ch, T, dark, isMobile }) {
                     </div>
                     <div style={{
                         ...fm, fontSize: 11, color: T.m, fontWeight: 600,
-                        background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                        background: T.bg,
                         padding: "6px 12px", borderRadius: 12,
-                        border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
+                        boxShadow: T.neuInset,
+                        border: "none"
                     }}>
                         {ch.year}
                     </div>
@@ -51,11 +51,11 @@ function EduCardContent({ ch, T, dark, isMobile }) {
                     <div style={{
                         width: isMobile ? 52 : 64, height: isMobile ? 52 : 64,
                         borderRadius: 20, flexShrink: 0,
-                        background: `${accent}18`,
-                        border: `1px solid ${accent}40`,
+                        background: T.bg,
+                        border: "none",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: isMobile ? 26 : 32,
-                        boxShadow: `0 0 24px ${accent}30`
+                        boxShadow: T.neuSm
                     }}>
                         {ch.icon}
                     </div>
@@ -148,7 +148,6 @@ export default function EduScrollBook({ T }) {
         const onScroll = () => {
             if (!outerRef.current) return;
             const rect = outerRef.current.getBoundingClientRect();
-            const vh = window.innerHeight;
             
             // MEASURE: Physical consumption of the scroll track
             const scrolledPixels = Math.max(0, -rect.top);
