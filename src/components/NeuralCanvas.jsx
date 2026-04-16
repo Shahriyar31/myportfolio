@@ -25,7 +25,7 @@ export default function NeuralCanvas({ T }) {
         /* ── LAYER 2: Neural nodes ── */
         let nodes = [];
         const initNodes = () => {
-            nodes = Array.from({ length: isLowPower ? 15 : 55 }, () => ({
+            nodes = Array.from({ length: isLowPower ? 8 : 55 }, () => ({
                 x: Math.random() * W, y: Math.random() * H,
                 vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
                 r: Math.random() * 1.3 + .4,
@@ -36,7 +36,7 @@ export default function NeuralCanvas({ T }) {
         /* ── LAYER 3: Globe ── */
         const globe = {
             cx: 0, cy: 0, r: 0, rot: 0,
-            points: Array.from({ length: isLowPower ? 60 : 180 }, () => {
+            points: Array.from({ length: isLowPower ? 30 : 180 }, () => {
                 const lat = (Math.random() - 0.5) * Math.PI;
                 const lon = Math.random() * Math.PI * 2;
                 return { lat, lon, city: Math.random() < 0.08 };
@@ -46,7 +46,7 @@ export default function NeuralCanvas({ T }) {
         const cities = globe.points.filter(p => p.city);
         for (let i = 0; i < cities.length; i++) {
             for (let j = i + 1; j < cities.length; j++) {
-                if (Math.random() < 0.4) {
+                if (Math.random() < (isLowPower ? 0.1 : 0.4)) {
                     globe.arcs.push({ a: cities[i], b: cities[j], prog: Math.random(), speed: .003 + Math.random() * .004 });
                 }
             }
@@ -68,7 +68,7 @@ export default function NeuralCanvas({ T }) {
             }
         }
 
-        const NPARTICLES = Math.min(textPts.length, isLowPower ? 80 : 300);
+        const NPARTICLES = Math.min(textPts.length, isLowPower ? 30 : 300);
         const sampled = textPts.sort(() => Math.random() - .5).slice(0, NPARTICLES);
 
         const particles = sampled.map(({ tx, ty }) => {

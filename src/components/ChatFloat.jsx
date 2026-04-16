@@ -43,7 +43,6 @@ export default function ChatFloat() {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            setOpen(true);
             setMsgs([
                 { r: "b", t: "Hi, I'm Farhan's AI assistant." },
                 { r: "b", t: "Let me show you what he does. Would you like a 20-second guided tour?" }

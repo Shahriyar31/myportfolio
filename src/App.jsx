@@ -23,7 +23,7 @@ import ContactTerminal from "./components/ContactTerminal";
 import CyclingFact from "./components/CyclingFact";
 import JourneyTimeline from "./components/JourneyTimeline";
 import HeroChat from "./components/HeroChat";
-import HeroBentoMaster from "./components/HeroBentoMaster";
+import HeroMindblowing from "./components/HeroMindblowing";
 import ChatFloat from "./components/ChatFloat";
 import EduScrollBook from "./components/EduScrollBook";
 import ExperienceShowcase from "./components/ExperienceShowcase";
@@ -71,8 +71,8 @@ export default function App() {
         if (dark) r.classList.add("dark-mode"); else r.classList.remove("dark-mode");
 
         // Prevent body scroll when mobile menu is open
-        if (menuOpen) document.body.style.overflow = "hidden";
-        else document.body.style.overflow = "auto";
+        if (menuOpen) document.body.style.overflowY = "hidden";
+        else document.body.style.overflowY = "";
     }, [T, menuOpen]);
 
     useEffect(() => {
@@ -223,11 +223,11 @@ export default function App() {
                 </button>
             </div>
 
-            {/* ── HERO ── */}
-            <HeroBentoMaster T={T} dark={dark} onOpenResume={() => setResumeOpen(true)} />
+            {/* 1. HERO - Completely overhaul to mindblowing quantum experience */}
+            <HeroMindblowing T={T} dark={dark} onOpenResume={() => setResumeOpen(true)} />
 
             {/* ── ABOUT ── */}
-            <section id="about" className="section" style={{ background: "transparent", overflow: "hidden", position: "relative" }}>
+            <section id="about" className="section" style={{ background: T.bg, overflow: "hidden", position: "relative", zIndex: 9 }}>
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1 }}>
                     <SH n="01" title="About" T={T} />
                     <AboutSection T={T} dark={dark} />
@@ -241,16 +241,16 @@ export default function App() {
             </section>
 
             {/* ── EXPERIENCE ── */}
-            <section id="experience" style={{ background: "transparent", position: "relative" }}>
+            <section id="experience" style={{ background: T.bg, position: "relative", zIndex: 10, overflow: "visible" }}>
                 <ExperienceBG T={T} />
-                <div className="sec-inner" style={{ ...sp }}>
+                <div className="sec-inner" style={{ ...sp, paddingBottom: 0 }}>
                     <SH n="02" title="Experience" T={T} />
-                    <ExperienceShowcase T={T} dark={dark} />
                 </div>
+                <ExperienceShowcase T={T} dark={dark} />
             </section>
 
             {/* ── PROJECTS ── */}
-            <section id="projects" className="section" style={{ background: "transparent", position: "relative" }}>
+            <section id="projects" className="section" style={{ background: T.bg, position: "relative", zIndex: 11 }}>
                 <ProjectsBG T={T} />
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="03" title="Projects" T={T} />
@@ -259,7 +259,7 @@ export default function App() {
             </section>
 
             {/* ── SKILLS ── */}
-            <section id="skills" className="section" style={{ background: "transparent", position: "relative", overflow: "hidden", minHeight: "100vh" }}>
+            <section id="skills" className="section" style={{ background: T.bg, position: "relative", overflow: "hidden", minHeight: "100vh", zIndex: 12 }}>
                 <div className="sec-inner" style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 0 }}>
                     <SH n="04" title="Skills" T={T} />
 
@@ -279,7 +279,7 @@ export default function App() {
             </section>
 
             {/* ── EDUCATION ── */}
-            <section id="education" style={{ background: "transparent", position: "relative", overflow: "visible", padding: 0 }}>
+            <section id="education" style={{ background: T.bg, position: "relative", overflow: "visible", padding: 0, zIndex: 13 }}>
                 <EducationBG T={T} />
                 <div style={{ ...sp, position: "relative", zIndex: 1, paddingBottom: 40 }}>
                     <SH n="05" title="Education" T={T} />
@@ -288,7 +288,7 @@ export default function App() {
             </section>
 
             {/* ── PHOTOGRAPHY ── */}
-            <section id="photography" className="section" style={{ background: "transparent", overflow: "hidden", position: "relative" }}>
+            <section id="photography" className="section" style={{ background: T.bg, overflow: "hidden", position: "relative", zIndex: 14 }}>
                 <PhotographyBG T={T} />
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="06" title="Photography" T={T} />
@@ -361,7 +361,7 @@ export default function App() {
             </section>
 
             {/* ── CONTACT ── */}
-            <section id="contact" className="section" style={{ background: "transparent", position: "relative" }}>
+            <section id="contact" className="section" style={{ background: T.bg, position: "relative", zIndex: 15 }}>
                 <ContactBG T={T} />
                 <div className="sec-inner" style={{ ...sp }}>
                     <SH n="07" title="Contact" T={T} />

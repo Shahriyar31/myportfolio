@@ -1,23 +1,26 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { PROJECTS } from "../data/constants";
 
 export default function ProjectShowcase({ T, dark }) {
     const fm = { fontFamily: "'Inter', sans-serif" };
     const sf = { fontFamily: "'Sora', sans-serif" };
     
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [hoverIndex, setHoverIndex] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
-    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const [activeIdxState, setActiveIdxState] = useState(0);
+    
     const containerRef = useRef(null);
+    const sceneRef = useRef(null);
+    const cardsRef = useRef([]);
 
-    useEffect(() => {
-        if (!isAutoPlaying) return;
-        const timer = setInterval(() => {
-            setActiveIndex(prev => prev === null ? 0 : (prev + 1) % PROJECTS.length);
-        }, 3000);
-        return () => clearInterval(timer);
-    }, [isAutoPlaying]);
+    // Physics state
+    const targetIdx = useRef(0);
+    const currIdx = useRef(0);
+    const mouseX = useRef(0);
+    const mouseY = useRef(0);
+    const currMouseX = useRef(0);
+    const currMouseY = useRef(0);
+
+    const isAutoPlaying = useRef(true);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 1000);
@@ -26,185 +29,291 @@ export default function ProjectShowcase({ T, dark }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const activeProject = PROJECTS[hoverIndex !== null ? hoverIndex : (activeIndex !== null ? activeIndex : 0)];
+    // Scroll Tracking Physics
+    const outerRef = useRef(null);
+    useEffect(() => {
+        const onScroll = () => {
+            if (!outerRef.current) return;
+            const rect = outerRef.current.getBoundingClientRect();
+            // Pixel-perfect track measurement mapping screen progress to cards
+            const scrolledPixels = Math.max(0, -rect.top);
+            // 6 cards = we map over 3000px of scroll space
+            const rotationTrack = 3000;
+            const p = Math.max(0, Math.min(1, scrolledPixels / rotationTrack));
+            targetIdx.current = p * (PROJECTS.length - 1);
+            setActiveIdxState(Math.round(targetIdx.current));
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        
+        // Trigger once immediately
+        onScroll();
+        
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
-    const renderDetailCard = (p, overrideIndex) => {
-        const idx = overrideIndex !== undefined ? overrideIndex : activeIndex;
-        const rotateY = idx % 2 === 0 ? -4 : 4;
+    // 3D Physics Engine Loop
+    useEffect(() => {
+        let frame;
+        const render = () => {
+            // Adaptive lerp for fast anchor scroll jumps vs normal mousewheel
+            const deltaIdx = targetIdx.current - currIdx.current;
+            const lerpSpeed = Math.abs(deltaIdx) > 0.5 ? 0.35 : (isMobile ? 0.15 : 0.08);
+            currIdx.current += deltaIdx * lerpSpeed;
+            
+            // Lerp mouse
+            currMouseX.current += (mouseX.current - currMouseX.current) * 0.05;
+            currMouseY.current += (mouseY.current - currMouseY.current) * 0.05;
+            
+            // Subtle scene parallax based on mouse
+            if (sceneRef.current) {
+                const tiltX = -currMouseY.current * (isMobile ? 5 : 12);
+                const tiltY = currMouseX.current * (isMobile ? 5 : 15);
+                sceneRef.current.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            }
 
-        return (
-            <div key={p.id} style={{
-                width: "100%", padding: isMobile ? 24 : 40,
-                background: T.bg,
-                border: "none",
-                borderRadius: 16,
-                transform: isMobile ? "none" : `perspective(1000px) rotateY(${rotateY}deg) rotateX(4deg)`,
-                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                overflow: "hidden", position: "relative",
-                margin: isMobile ? "10px 0" : 0,
-                boxShadow: T.neu,
-                animation: "fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both",
-            }}>
-                {/* Top accent line */}
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${p.color}, ${p.color}40, transparent)`, borderRadius: "16px 16px 0 0" }} />
+            // Coverflow Math
+            cardsRef.current.forEach((card, i) => {
+                if (!card) return;
+                const MathD = i - currIdx.current;
+                const absDelta = Math.abs(MathD);
+                const sign = Math.sign(MathD); // 1 if right, -1 if left
 
-                {/* Ambient glow blob */}
-                <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${p.color}18, transparent 70%)`, pointerEvents: "none" }} />
+                // Dimensions
+                const baseSpread = isMobile ? 220 : 380;
+                const spreadGap = isMobile ? 80 : 160;
+                const maxAngle = isMobile ? 35 : 55;
+                const depthDrop = isMobile ? 200 : 300;
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-                    <span style={{ ...fm, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", padding: "6px 16px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}15` }}>
-                        {p.badge}
+                // Continuous piecewise math
+                const curve = Math.min(absDelta, 1);
+                const remainder = Math.max(0, absDelta - 1);
+
+                const tx = sign * curve * baseSpread + sign * remainder * spreadGap;
+                const tz = -curve * depthDrop - remainder * (depthDrop * 0.3);
+                const ry = -sign * curve * maxAngle;
+                // Add a very subtle slide down for background elements
+                const ty = curve * 20;
+
+                const scale = 1 - curve * 0.1 - remainder * 0.05;
+
+                // Visual depth cue
+                const opacity = Math.max(0, 1 - absDelta * 0.3);
+                const bright = Math.max(0.4, 1 - absDelta * 0.5);
+                const blur = absDelta > 1 ? (absDelta - 1) * 3 : 0;
+                
+                card.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry}deg) scale(${scale})`;
+                card.style.opacity = opacity;
+                card.style.pointerEvents = absDelta < 0.2 ? "auto" : "none";
+                card.style.zIndex = Math.round(100 - absDelta * 10);
+                
+                const inner = card.firstChild;
+                if (inner && !isMobile) {
+                    inner.style.filter = `brightness(${bright}) blur(${blur}px)`;
+                } else if (inner) {
+                    inner.style.filter = `brightness(${bright})`;
+                }
+            });
+
+            // Update color glow background
+            if (containerRef.current) {
+                const activeProject = PROJECTS[Math.round(currIdx.current) % PROJECTS.length];
+                if (activeProject) {
+                    containerRef.current.style.background = `radial-gradient(ellipse at 50% 120%, ${activeProject.color}15 0%, transparent 60%)`;
+                }
+            }
+
+            frame = requestAnimationFrame(render);
+        };
+        frame = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(frame);
+    }, [isMobile]);
+
+    // Tracking mouse over entire container
+    const handleMouseMove = useCallback((e) => {
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        // Normalized -1 to 1 coordinates
+        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+        mouseX.current = x;
+        mouseY.current = y;
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        mouseX.current = 0;
+        mouseY.current = 0;
+    }, []);
+
+    // Scroll helper for nav dots
+    const scrollToIndex = (idx) => {
+        if (!outerRef.current) return;
+        const rect = outerRef.current.getBoundingClientRect();
+        const absoluteTop = rect.top + window.scrollY;
+        
+        const trackLen = 3000;
+        const p = idx / (PROJECTS.length - 1);
+        window.scrollTo({ top: absoluteTop + Math.floor(p * trackLen), behavior: "smooth" });
+    };
+
+    const renderCardContent = (p) => (
+        <div style={{
+            width: isMobile ? "90vw" : 540,
+            maxWidth: isMobile ? 360 : "none",
+            height: isMobile ? 520 : 600,
+            background: T.bg, border: "none",
+            borderRadius: 24, padding: isMobile ? "24px 20px" : "40px",
+            display: "flex", flexDirection: "column",
+            boxShadow: T.neu, position: "relative",
+            overflow: "hidden"
+        }}>
+            {/* Top accent line */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: `linear-gradient(90deg, ${p.color}, ${p.color}40, transparent)` }} />
+            
+            {/* Ambient glow blob */}
+            <div style={{ position: "absolute", top: -80, right: -80, width: 250, height: 250, borderRadius: "50%", background: `radial-gradient(circle, ${p.color}25, transparent 70%)`, pointerEvents: "none" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 12 }}>
+                <span style={{ ...fm, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", padding: "6px 16px", borderRadius: 20, border: `1px solid ${p.color}60`, color: p.color, background: `${p.color}15` }}>
+                    {p.badge}
+                </span>
+                {p.link ? (
+                    <a href={p.link} target="_blank" rel="noreferrer"
+                        style={{ ...fm, fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".08em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", transition: "all 0.2s", zIndex: 10, border: `1px solid ${p.color}30` }}
+                        onMouseEnter={e => { e.currentTarget.style.background = p.color; e.currentTarget.style.color = "white"; }}>
+                        Source Code ↗
+                    </a>
+                ) : (
+                    <span style={{ ...fm, fontSize: 10, color: T.m, padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        🔒 Private
                     </span>
-                    {p.link ? (
-                        <a href={p.link} target="_blank" rel="noreferrer"
-                            style={{ ...fm, fontSize: 10, color: p.color, textDecoration: "none", letterSpacing: ".1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", transition: "all 0.2s", zIndex: 10, border: `1px solid ${p.color}30` }}
-                            onMouseEnter={e => { e.currentTarget.style.background = p.color; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = p.color; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"; e.currentTarget.style.color = p.color; e.currentTarget.style.borderColor = `${p.color}30`; }}>
-                            Source Code ↗
-                        </a>
-                    ) : (
-                        <span style={{ ...fm, fontSize: 10, color: T.m, padding: "6px 16px", borderRadius: 20, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            🔒 Enterprise Private
-                        </span>
-                    )}
-                </div>
+                )}
+            </div>
 
-                <div style={{ ...fm, fontSize: 20, marginBottom: 8 }}>{p.icon}</div>
-                <h3 style={{ ...sf, fontSize: "clamp(24px, 4vw, 42px)", fontWeight: 800, color: T.t, marginBottom: 6, lineHeight: 1.1, letterSpacing: "-.02em" }}>
-                    {p.title}
-                </h3>
-                <div style={{ ...fm, fontSize: 11, color: p.color, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 20, opacity: 0.85 }}>
-                    {p.sub}
-                </div>
+            <div style={{ ...fm, fontSize: 24, marginBottom: 12 }}>{p.icon}</div>
+            
+            <h3 style={{ ...sf, fontSize: isMobile ? 26 : 38, fontWeight: 800, color: T.t, marginBottom: 8, lineHeight: 1.1, letterSpacing: "-.02em" }}>
+                {p.title}
+            </h3>
+            
+            <div style={{ ...fm, fontSize: 12, color: p.color, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 24, opacity: 0.85, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 20, height: 1.5, background: p.color, display: "inline-block" }} />
+                {p.sub}
+            </div>
 
-                <p style={{ fontSize: 15, color: T.m, lineHeight: 1.8, marginBottom: 28 }}>
-                    {p.desc}
-                </p>
+            <p style={{ ...fm, fontSize: isMobile ? 14 : 16, color: T.m, lineHeight: 1.7, marginBottom: "auto" }}>
+                {p.desc}
+            </p>
 
-                <div style={{ ...fm, fontSize: 9, color: p.color, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 14, height: 1, background: p.color, display: "inline-block" }} />
-                    Tech Stack
+            <div style={{ marginTop: 24 }}>
+                <div style={{ ...fm, fontSize: 9, color: p.color, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 12 }}>
+                    Tech Stack Architecture
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {p.tags.map(t => (
-                        <span key={t} style={{ ...fm, fontSize: 11, color: p.color, background: `${p.color}12`, border: `1px solid ${p.color}40`, padding: "6px 12px", borderRadius: 8, transition: "all .2s" }}
-                            onMouseEnter={e => { e.currentTarget.style.background = `${p.color}25`; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = `${p.color}12`; e.currentTarget.style.transform = "translateY(0)"; }}>
+                        <span key={t} style={{ ...fm, fontSize: 11, color: p.color, background: `${p.color}15`, border: `1px solid ${p.color}40`, padding: "6px 12px", borderRadius: 8, transition: "background 0.2s" }}
+                            onMouseEnter={e => e.currentTarget.style.background = `${p.color}25`}
+                            onMouseLeave={e => e.currentTarget.style.background = `${p.color}15`}>
                             {t}
                         </span>
                     ))}
                 </div>
             </div>
-        );
-    };
-
-    if (isMobile) {
-        return (
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
-                {PROJECTS.map((p, i) => {
-                    const isActive = activeIndex === i;
-                    return (
-                        <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <div 
-                                onClick={() => {
-                                    setIsAutoPlaying(false);
-                                    setActiveIndex(isActive ? null : i);
-                                }}
-                                style={{
-                                    cursor: "pointer", padding: "16px 20px",
-                                    borderRadius: 16,
-                                    background: T.bg,
-                                    borderLeft: `4px solid ${isActive ? p.color : "transparent"}`,
-                                    transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-                                    boxShadow: isActive ? T.neu : T.neuSm
-                                }}
-                            >
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                                    <div style={{ ...sf, fontSize: 18, fontWeight: isActive ? 800 : 600, color: isActive ? T.t : T.m }}>
-                                        {p.title}
-                                    </div>
-                                    <span style={{ fontSize: 20, filter: isActive ? `drop-shadow(0 0 10px ${p.color})` : "none", transform: isActive ? "scale(1.1)" : "scale(1)", transition: "all 0.3s" }}>
-                                        {p.icon}
-                                    </span>
-                                </div>
-                                <div style={{ ...fm, fontSize: 10, color: isActive ? p.color : T.dim, letterSpacing: ".1em", textTransform: "uppercase" }}>
-                                    {p.sub}
-                                </div>
-                            </div>
-                            
-                            {/* Accordion Detail Card */}
-                            <div style={{ 
-                                overflow: "hidden",
-                                maxHeight: isActive ? "1000px" : "0px",
-                                opacity: isActive ? 1 : 0,
-                                transform: isActive ? "translateY(0)" : "translateY(-10px)",
-                                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)"
-                            }}>
-                                {renderDetailCard(p, i)}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    }
+        </div>
+    );
 
     return (
-        <div ref={containerRef} style={{
-            position: "relative", width: "100%", 
-            minHeight: "70vh", display: "flex", flexWrap: "wrap",
-            gap: 40, alignItems: "center", justifyContent: "space-between"
-        }}>
-            {/* Subtle background shift based on active project mapping to Monokai logic but removed neon glow */}
-            {activeProject && (
-                <div style={{
-                    position: "absolute", top: "50%", left: "50%", width: "100vw", height: "100%",
-                    transform: "translate(-50%, -50%)",
-                    background: "none",
-                    transition: "background 0.8s ease",
-                    pointerEvents: "none", zIndex: 0
-                }} />
-            )}
-
-            {/* Left Side: Kinetic Typography List */}
-            <div style={{ flex: "1 1 400px", zIndex: 1, display: "flex", flexDirection: "column", gap: 16 }}
-                 onMouseLeave={() => setHoverIndex(null)}>
-                {PROJECTS.map((p, i) => {
-                    const isHovered = hoverIndex === i;
-                    const isDisplaying = (hoverIndex !== null ? hoverIndex : activeIndex) === i;
-                    
-                    return (
-                        <div
-                            key={p.id}
-                            onClick={() => { setIsAutoPlaying(false); setActiveIndex(i); }}
-                            onMouseEnter={isMobile ? undefined : () => { setIsAutoPlaying(false); setHoverIndex(i); }}
-                            style={{
-                                cursor: "pointer", padding: "16px 24px",
-                                borderRadius: 16,
-                                background: T.bg,
-                                borderLeft: `3px solid ${isDisplaying ? p.color : isHovered ? `${p.color}50` : "transparent"}`,
-                                transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-                                transform: isDisplaying ? "translateX(8px)" : "none",
-                                boxShadow: isDisplaying ? T.neu : T.neuSm,
-                                position: "relative"
-                            }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                                <div style={{ ...sf, fontSize: isDisplaying ? "clamp(22px,3vw,34px)" : "clamp(16px,2vw,22px)", fontWeight: isDisplaying ? 800 : 500, color: isDisplaying ? T.t : T.m, transition: "all 0.35s", letterSpacing: isDisplaying ? "-.02em" : 0 }}>
-                                    {p.title}
+        <div ref={outerRef} style={{ height: "calc(3000px + 100vh)", width: "100%", position: "relative" }}>
+            <div 
+                ref={containerRef}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{
+                    position: "sticky", top: 0, width: "100%", 
+                    height: "100vh", 
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center",
+                    transition: "background 1s ease",
+                    paddingTop: 40,
+                }}
+            >
+                {/* The 3D Perspective Stage */}
+                <div style={{ 
+                    perspective: isMobile ? "1000px" : "2500px", 
+                    width: "100%", height: isMobile ? 550 : 700,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    position: "relative",
+                    zIndex: 10
+                }}>
+                    <div ref={sceneRef} style={{ 
+                        position: "relative", width: 0, height: 0, 
+                        transformStyle: "preserve-3d", 
+                        display: "flex", alignItems: "center", justifyContent: "center" 
+                    }}>
+                        {PROJECTS.map((p, i) => (
+                            <div key={p.id} ref={el => cardsRef.current[i] = el}
+                                onClick={() => scrollToIndex(i)}
+                                style={{
+                                    position: "absolute",
+                                    // Center the origin precisely based on the card dimensions
+                                    left: isMobile ? -180 : -270,
+                                    top: isMobile ? -260 : -300,
+                                    width: isMobile ? 360 : 540,
+                                    height: isMobile ? 520 : 600,
+                                    transformOrigin: "50% 50%",
+                                    transformStyle: "preserve-3d",
+                                    willChange: "transform, opacity, filter",
+                                    cursor: activeIdxState === i ? "default" : "pointer",
+                                    opacity: 0 // Physics engine handles real opacity
+                                }}
+                            >
+                                <div style={{ willChange: "filter", position: "relative", zIndex: 2 }}>
+                                    {renderCardContent(p)}
                                 </div>
-                                <span style={{ fontSize: isDisplaying ? 26 : 18, opacity: isDisplaying ? 1 : 0.35, transition: "all 0.35s", filter: isDisplaying ? `drop-shadow(0 0 8px ${p.color}90)` : "none" }}>{p.icon}</span>
+                                
+                                {/* Glass Reflection Floor */}
+                                {!isMobile && (
+                                    <div style={{
+                                        content: '""', position: "absolute", 
+                                        top: "105%", left: 0, right: 0, height: "100%",
+                                        transform: "scaleY(-1)",
+                                        opacity: 0.15, pointerEvents: "none", zIndex: 1,
+                                        maskImage: "linear-gradient(to bottom, transparent 30%, black 100%)",
+                                        WebkitMaskImage: "linear-gradient(to bottom, transparent 30%, black 100%)",
+                                        filter: "blur(4px)"
+                                    }}>
+                                        {renderCardContent(p)}
+                                    </div>
+                                )}
                             </div>
-                            <div style={{ ...fm, fontSize: 10, color: isDisplaying ? p.color : T.dim, letterSpacing: ".1em", textTransform: "uppercase", transition: "all 0.35s" }}>
-                                {p.sub}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        ))}
+                    </div>
+                </div>
 
-            {/* Right Side: Detail Card */}
-            <div style={{ flex: "1 1 500px", zIndex: 1, position: "relative", perspective: "1000px" }}>
-                {activeProject && renderDetailCard(activeProject, hoverIndex !== null ? hoverIndex : activeIndex)}
+                {/* Nav Control Panel */}
+                <div style={{ 
+                    display: "flex", gap: isMobile ? 8 : 12, marginTop: isMobile ? 40 : 160, zIndex: 20,
+                    padding: "12px 24px", background: dark ? "rgba(10,12,18,0.5)" : "rgba(255,255,255,0.5)",
+                    borderRadius: 40, backdropFilter: "blur(12px)", border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
+                }}>
+                    {PROJECTS.map((p, i) => (
+                        <div key={i} onClick={() => scrollToIndex(i)}
+                            style={{
+                                width: activeIdxState === i ? (isMobile ? 32 : 48) : isMobile ? 8 : 12,
+                                height: isMobile ? 8 : 12,
+                                borderRadius: 12,
+                                background: activeIdxState === i ? p.color : (dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"),
+                                cursor: "pointer",
+                                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
+                                boxShadow: activeIdxState === i ? `0 0 10px ${p.color}80` : "none"
+                            }}
+                        />
+                    ))}
+                </div>
+                
+                {/* Nav Hint */}
+                <div style={{ ...fm, fontSize: 10, color: T.dim, marginTop: 16, letterSpacing: ".1em", textTransform: "uppercase" }}>
+                    Select a project or scroll to revolve
+                </div>
             </div>
         </div>
     );

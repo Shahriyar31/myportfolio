@@ -608,7 +608,7 @@ function DesktopHero({ T, dark, onOpenResume, guidedMode, guideStep, setGuidedMo
                 position: "absolute", top: "50%", left: "calc(50% + clamp(16px, 2vw, 32px))",
                 transform: "translateY(-54%)",
                 display: "flex", flexDirection: "column", gap: 14,
-                width: "clamp(260px, 28vw, 380px)",
+                width: "clamp(320px, 34vw, 460px)",
                 zIndex: 10, pointerEvents: "auto",
                 ...getDimStyle(0),
             }}>

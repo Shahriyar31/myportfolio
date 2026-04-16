@@ -136,6 +136,7 @@ export default function EduScrollBook({ T }) {
     const cardsRef = useRef([]);
     const target = useRef(0);
     const current = useRef(0);
+    const scrolledPixelsCache = useRef(0);
 
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth < 900);
@@ -151,7 +152,8 @@ export default function EduScrollBook({ T }) {
             
             // MEASURE: Physical consumption of the scroll track
             const scrolledPixels = Math.max(0, -rect.top);
-            const rotationTrack = 4000;
+            scrolledPixelsCache.current = scrolledPixels;
+            const rotationTrack = 1500;
 
             let p = Math.max(0, Math.min(1, scrolledPixels / rotationTrack));
             target.current = p * (EDU_CHAPTERS.length - 1);
@@ -163,9 +165,9 @@ export default function EduScrollBook({ T }) {
     useEffect(() => {
         let frame;
         const render = () => {
-             // Velocity-boost for mobile
-             const speed = isMobile ? 0.15 : 0.08;
-             current.current += (target.current - current.current) * speed;
+             const delta = target.current - current.current;
+             const speed = Math.abs(delta) > 0.5 ? 0.35 : (isMobile ? 0.15 : 0.08);
+             current.current += delta * speed;
 
             const currIdx = Math.round(current.current);
             setActiveIdx(prev => prev !== currIdx ? currIdx : prev);
@@ -209,7 +211,8 @@ export default function EduScrollBook({ T }) {
         return () => cancelAnimationFrame(frame);
     }, [isMobile]);
 
-    const totalHeight = "6000px";
+    // The rotation track is 1500px. We add 500px of "dwell time" so the final card stays fully visible while scrolling before it eventually slides out.
+    const totalHeight = "calc(2000px + 100vh)";
 
     return (
         <div ref={outerRef} style={{ height: totalHeight, width: "100%", position: "relative", overflow: "visible" }}>

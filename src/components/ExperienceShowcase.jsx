@@ -343,6 +343,7 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
 
     const target = useRef(0);
     const current = useRef(0);
+    const scrolledPixelsCache = useRef(0);
 
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth <= 900);
@@ -358,11 +359,11 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
             
             // MEASURE: Absolute pixel tracking to eliminate vh-resize jitter on mobile
             const scrolledPixels = Math.max(0, -rect.top);
+            scrolledPixelsCache.current = scrolledPixels;
             const vh = window.innerHeight;
             
-            // THE TRACK: Fixed tracking lengths independent of vh
-            const scrollableRange = 6000 - vh;
-            const rotationTrack = 4000; // Finish all 3 cards in the first 4000px of scroll
+            // THE TRACK: Dynamic pixel track
+            const rotationTrack = 1500;
 
             let p = Math.max(0, Math.min(1, scrolledPixels / rotationTrack));
             target.current = p * (EXP_DATA.length - 1);
@@ -375,9 +376,11 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
     useEffect(() => {
         let frame;
         const render = () => {
-            // Snappier follow-speed on mobile
-            const lerp = isMobile ? 0.15 : 0.08;
-            current.current += (target.current - current.current) * lerp;
+             const delta = target.current - current.current;
+             // Elastic velocity: if distance is huge (e.g. anchor jump), snap incredibly fast.
+             // Otherwise, float smoothly.
+             const lerp = Math.abs(delta) > 0.5 ? 0.35 : (isMobile ? 0.15 : 0.08);
+             current.current += delta * lerp;
 
             const currIdx = Math.round(current.current);
             setActiveIdx(prev => prev !== currIdx ? currIdx : prev);
@@ -417,19 +420,13 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
                 // Viscosity fading: cards far away on the drum disappear seamlessly
                 let op = 1;
                 let bright = 1;
-                let blur = 0;
 
                 if (dist > 1.5) {
                    op = Math.max(0, 1 - (dist - 1.5) * 3);
-                   bright = 0.5;
-                   blur = Math.min(12, (dist - 1.5) * 10);
+                   bright = isMobile ? 0.6 : 0.5;
                 } else if (dist > 0.2) {
-                   bright = Math.max(0.55, 1 - (dist * 0.35));
-                   blur = dist * 2;
+                   bright = Math.max(isMobile ? 0.65 : 0.55, 1 - (dist * 0.35));
                 }
-
-                // Dynamic realistic box shadow based on proximity to center
-                const shadowAlpha = Math.max(0, 0.8 - (dist * 0.6));
 
                 el.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry}deg)`;
                 el.style.opacity = Math.max(0, op);
@@ -438,8 +435,16 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
 
                 const inner = el.firstChild;
                 if (inner) {
-                    inner.style.filter = `brightness(${bright}) blur(${blur}px)`;
-                    inner.style.boxShadow = `${T.neu}, 0 40px 100px rgba(0,0,0,${shadowAlpha})`;
+                    if (!isMobile) {
+                        const blur = dist > 1.5 ? Math.min(12, (dist - 1.5) * 10) : (dist > 0.2 ? dist * 2 : 0);
+                        const shadowAlpha = Math.max(0, 0.8 - (dist * 0.6));
+                        inner.style.filter = `brightness(${bright}) blur(${blur}px)`;
+                        inner.style.boxShadow = `${T.neu}, 0 40px 100px rgba(0,0,0,${shadowAlpha})`;
+                    } else {
+                        // High-performance mobile path: use opacity/brightness, avoid blur and dynamic shadow
+                        inner.style.filter = `brightness(${bright})`;
+                        // Use a static shadow on mobile instead of calculating it every frame
+                    }
                 }
             });
 
@@ -461,8 +466,7 @@ export default function ExperienceShowcase({ T, dark, SectionHeading }) {
         return () => cancelAnimationFrame(frame);
     }, [T, isMobile]);
 
-    // 6000px total height gives 6000 - ~900vh ≈ 5100px of scroll room; animation uses 4000px of that
-    const totalHeight = "6000px";
+    const totalHeight = "calc(2000px + 100vh)";
     const hPad = "clamp(20px,6vw,120px)";
 
     return (
@@ -570,60 +574,99 @@ function MobileCardContent({ item, T, dark, active }) {
             background: T.bg,
             border: "none",
             boxShadow: T.neu,
-            overflow: "hidden",
+            overflowX: "hidden",
+            overflowY: "auto",
             display: "flex", flexDirection: "column",
         }}>
+            {/* TOP PANEL - MATCHES DESKTOP LEFT PANEL */}
             <div style={{
-                height: 3, background: `linear-gradient(90deg, ${accent}, ${T.a2})`,
-                transformOrigin: "left",
-                transform: active ? "scaleX(1)" : "scaleX(0)",
-                transition: `transform 0.8s 0.2s cubic-bezier(0.16,1,0.3,1)`,
-            }} />
-            <div style={{ padding: "32px 24px", flex: 1, overflowY: "auto", position: "relative" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+                background: dark ? "#181825" : "#e6e9ef",
+                display: "flex", flexDirection: "column",
+                padding: "28px 24px 20px",
+                position: "relative",
+                overflow: "hidden",
+                borderBottom: `1px solid rgba(150,150,150,0.08)`,
+            }}>
+                <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07, pointerEvents: "none" }}>
+                    <defs>
+                        <pattern id={`grid-mob-${item.id}`} width="28" height="28" patternUnits="userSpaceOnUse">
+                            <circle cx="1" cy="1" r="1" fill={accent} />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill={`url(#grid-mob-${item.id})`} />
+                </svg>
+                <div style={{
+                    position: "absolute", top: 10, right: -10,
+                    fontFamily: "'Sora',sans-serif",
+                    fontSize: "clamp(40px,15vw,70px)", fontWeight: 900,
+                    color: "rgba(255,255,255,0.05)", lineHeight: 1,
+                    userSelect: "none", pointerEvents: "none",
+                    letterSpacing: "-.06em", textAlign: "right"
+                }}>
+                    {item.shortCompany}
+                </div>
+                <div style={{ zIndex: 1 }}>
                     <span style={{
-                        ...fm, fontSize: 9, fontWeight: 700, letterSpacing: ".18em",
-                        color: accent, background: `${accent}14`,
-                        border: `1px solid ${accent}30`, padding: "4px 10px", borderRadius: 20,
+                        ...fm, fontSize: 10, fontWeight: 700, letterSpacing: ".2em",
+                        color: accent, background: `${accent}20`,
+                        border: "none", boxShadow: T.neuSm, padding: "5px 12px", borderRadius: 20,
                         display: "inline-flex", alignItems: "center", gap: 6
                     }}>
                         <span style={{ width: 5, height: 5, borderRadius: "50%", background: accent, display: "inline-block", animation: item.type === "CURRENT" ? "pulse 1.8s ease-in-out infinite" : "none" }} />
                         {item.type}
                     </span>
-                    <span style={{ ...fm, fontSize: 11, color: T.m }}>{item.date}</span>
+                    <div style={{ ...fm, fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 14, letterSpacing: ".05em", lineHeight: 1.5 }}>{item.date}</div>
+                    <div style={{ ...fm, fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 5, display: "flex", alignItems: "center", gap: 5 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                        {item.location}
+                    </div>
                 </div>
-                <h3 style={{ ...sf, fontSize: "clamp(24px,7vw,36px)", fontWeight: 900, color: T.t, margin: "0 0 10px", letterSpacing: "-.04em", lineHeight: 0.95 }}>
-                    <TypeText text={item.subRole} active={active} delay={200} />
-                </h3>
-                <div style={{ ...fm, fontSize: 12, color: T.a, marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 28, height: 2, background: accent, display: "inline-block" }} />
-                    <strong style={{ whiteSpace: "nowrap" }}>{item.role}</strong> <span style={{ opacity: 0.5 }}>· {item.company}</span>
-                </div>
-                <div style={{ display: "flex", gap: 0, borderTop: "none", borderBottom: "none", padding: "20px 0", marginBottom: 26, color: T.m, boxShadow: `0 -1px 0 0 ${T.border}, 0 1px 0 0 ${T.border}` }}>
+                <div style={{ display: "flex", gap: 16, alignItems: "flex-start", justifyContent: "space-around", padding: "28px 0 8px", zIndex: 1 }}>
                     {item.stats.map((s, i) => (
-                        <div key={i} style={{ flex: 1, borderRight: i < item.stats.length - 1 ? `1px solid ${T.border}` : "none" }}>
-                            <MobileCount to={s.val} suffix={s.suffix} label={s.label} color={accent} active={active} />
-                        </div>
+                        <MetricRing key={i} {...s} color={accent} active={active} size={86} />
                     ))}
                 </div>
+            </div>
+
+            {/* BOTTOM PANEL - MATCHES DESKTOP RIGHT PANEL */}
+            <div style={{ padding: "24px", flex: 1, position: "relative" }}>
+                <div style={{ marginBottom: 10 }}>
+                    <div style={{ ...fm, fontSize: 11, color: T.m, letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ width: 20, height: 1.5, background: accent, display: "inline-block" }} />
+                        {item.role}
+                    </div>
+                    <h3 style={{ ...sf, fontSize: "clamp(22px,6vw,30px)", fontWeight: 900, color: T.t, margin: 0, letterSpacing: "-.04em", lineHeight: 1.0 }}>
+                        <TypeText text={item.subRole} active={active} delay={200} />
+                    </h3>
+                </div>
+                <div style={{
+                    height: 1.5, background: `linear-gradient(90deg, ${accent}, transparent)`,
+                    margin: "20px 0",
+                    opacity: active ? 1 : 0,
+                    transform: active ? "scaleX(1)" : "scaleX(0)",
+                    transformOrigin: "left",
+                    transition: "transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.6s"
+                }} />
+                
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
                     {item.bullets.map((b, i) => (
                         <li key={i} style={{
                             display: "flex", gap: 12, alignItems: "flex-start",
                             opacity: active ? 1 : 0,
-                            transform: active ? "scale(1) translateY(0)" : "scale(0.95) translateY(12px)",
-                            transition: `opacity 0.6s ${100 + i * 100}ms cubic-bezier(0.16,1,0.3,1), transform 0.6s ${100 + i * 100}ms cubic-bezier(0.16,1,0.3,1)`,
+                            transform: active ? "scale(1) translateX(0)" : "scale(0.98) translateX(10px)",
+                            transition: `all 0.5s ${200 + i * 100}ms cubic-bezier(0.16,1,0.3,1)`,
                         }}>
                             <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: "50%", background: accent, marginTop: 8, boxShadow: `0 0 10px ${accent}40` }} />
-                            <span style={{ ...fm, fontSize: 13, lineHeight: 1.8, color: dark ? "rgba(225,232,255,0.9)" : "rgba(45,55,75,0.95)", fontWeight: 450 }}>
+                            <span style={{ ...fm, fontSize: 12, lineHeight: 1.6, color: dark ? "rgba(225,232,255,0.85)" : "rgba(45,55,75,0.9)", fontWeight: 400 }}>
                                 <HighlightText text={b} accent={accent} />
                             </span>
                         </li>
                     ))}
                 </ul>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {item.tech.map((t, i) => (
-                        <TechPill key={t} label={t} T={T} dark={dark} accent={accent} visible={active} delay={400 + i * 40} />
+                        <TechPill key={t} label={t} T={T} dark={dark} accent={accent} visible={active} delay={300 + i * 40} />
                     ))}
                 </div>
             </div>
