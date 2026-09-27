@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
+import { setMode } from "../site/theme";
 
 const ThemeContext = createContext(null);
 
@@ -7,10 +8,10 @@ const initialDark = () => document.documentElement.dataset.theme !== "light";
 
 export function ThemeProvider({ children }) {
     const [dark, setDark] = useState(initialDark);
-    useEffect(() => {
+    useLayoutEffect(() => {
         const theme = dark ? "dark" : "light";
         document.documentElement.dataset.theme = theme;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0b0c0e" : "#ecebe6");
+        setMode(theme);
         try { localStorage.setItem("fs-theme", theme); } catch { /* storage blocked */ }
     }, [dark]);
     return <ThemeContext.Provider value={{ dark, setDark }}>{children}</ThemeContext.Provider>;
