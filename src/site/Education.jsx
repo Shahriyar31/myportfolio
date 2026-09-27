@@ -2,7 +2,6 @@ import SectionHead from "./SectionHead";
 import { useState } from "react";
 import { Lines, Fade } from "./Motion";
 import Logo from "./Logo";
-import { unlock } from "./game";
 
 const DEGREES = [
     {
@@ -53,7 +52,7 @@ function Degree({ d, i }) {
                         {d.stats.map(([v, k]) => <div key={k} className="neu-in-sm"><dt className="mono">{k}</dt><dd>{v}</dd></div>)}
                     </dl>
                     <ul className="deg-hl">{d.highlights.map(h => <li key={h}>{h}</li>)}</ul>
-                    <button className="key key-sm deg-flip" onClick={() => { setFlipped(true); unlock("flip"); }} tabIndex={flipped ? -1 : 0}>See modules ↻</button>
+                    <button className="key key-sm deg-flip" onClick={() => setFlipped(true)} tabIndex={flipped ? -1 : 0}>See modules ↻</button>
                 </article>
                 <article className="deg-face deg-back neu-lg" aria-hidden={!flipped}>
                     <div className="deg-back-head">
@@ -76,7 +75,7 @@ function Degree({ d, i }) {
 
 export default function Education() {
     return (
-        <section id="education" className="act wrap">
+        <section id="education" className="act wrap" data-shape="ambient" data-side="center" data-dim="0.8">
             <SectionHead n="07" kicker="Education" title="Two degrees, two countries" sub="Computer science in India, data science in Germany. Flip a card to see the modules." />
 
             <Fade className="edu-rule neu-in" aria-hidden="true">

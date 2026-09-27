@@ -4,11 +4,10 @@ import "./styles/global.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
 import Hero from "./site/Hero";
+import Particles from "./site/Particles";
+import AttackGame from "./site/AttackGame";
+import Story from "./site/Story";
 import Bring from "./site/Bring";
-import GovLab from "./site/GovLab";
-import WorldMap from "./site/WorldMap";
-import Quest from "./site/Quest";
-import Hud from "./site/Hud";
 import Work from "./site/Work";
 import Skills from "./site/Skills";
 import Education from "./site/Education";
@@ -42,20 +41,19 @@ export default function App() {
     return (
         <>
             <a href="#bring" className="sr-only">Skip to content</a>
+            <Particles />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
-            {ready && <Hud />}
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} />
             <main>
                 <Hero ready={ready} onOpenCv={openCv} />
-                <WorldMap />
                 <Bring />
-                <GovLab />
+                <AttackGame />
                 <Work />
                 <Skills />
                 <Built />
-                <Quest />
+                <Story />
                 <Education />
                 <AgentSection />
                 <Lens />

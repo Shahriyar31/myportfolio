@@ -87,7 +87,7 @@ export function AgentSection() {
         return () => window.removeEventListener("focus-chat", focus);
     }, []);
     return (
-        <section id="agent" className="act wrap" ref={ref}>
+        <section id="agent" className="act wrap" ref={ref} data-shape="network" data-side="center" data-dim="0.78">
             <SectionHead n="08" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
             <div className="agent-grid">
                 <div className="device neu-lg">
@@ -113,9 +113,9 @@ export function AgentSection() {
 /* Floating button + panel for the rest of the page */
 /* A question that fits whatever section the visitor is looking at */
 const CONTEXT = {
-    home: "What does Farhan do?", bring: "What value can he bring to my team?", how: "How does he make AI safe?",
+    home: "What does Farhan do?", bring: "What value can he bring to my team?", 
     work: "What did he do at Nordex?", skills: "What's his strongest skill?", built: "What is Argus AI?",
-    quest: "Why did he move to Germany?", map: "What does Farhan do?", education: "What did he study?", agent: "How does this AI work?",
+    story: "Why did he move to Germany?", game: "How does he make AI safe?", education: "What did he study?", agent: "How does this AI work?",
     lens: "What does he photograph?", hello: "Is he open to work?",
 };
 

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lines } from "./Motion";
 import { reducedMotion, useMedia } from "./hooks";
 import PHOTOS from "../data/photos.json";
-import { unlock } from "./game";
 
 const CATS = ["All", "Street", "Mountains", "Wildlife", "Light", "Close-up"];
 const src = (n, big) => `/photos/${n}${big ? "" : "-sm"}.webp`;
@@ -86,7 +85,7 @@ export default function Lens() {
     const W = mobile ? 150 : 200, GAP = mobile ? 14 : 22;
 
     return (
-        <section id="lens" className="act">
+        <section id="lens" className="act" data-shape="ambient" data-side="center" data-dim="0.85">
             <div className="wrap"><SectionHead n="09" kicker="Photography" title="Through my lens" sub="Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them." /></div>
 
             <div className="lens-filters wrap" role="tablist" aria-label="Photo categories">
@@ -108,7 +107,7 @@ export default function Lens() {
                                         key={p.n}
                                         className="ph"
                                         style={{ transform: `rotateY(${i * step}deg) translateZ(${R}px)`, animationDelay: `${(i % 12) * 40}ms` }}
-                                        onClick={() => { if (state.current.moved < 6) { setOpen(list.indexOf(p)); unlock("photo"); } }}
+                                        onClick={() => { if (state.current.moved < 6) { setOpen(list.indexOf(p)); } }}
                                         aria-label={`Open ${p.t || p.c + " photograph"}`}
                                     >
                                         <img src={src(p.n)} alt="" loading="lazy" decoding="async" draggable="false" />

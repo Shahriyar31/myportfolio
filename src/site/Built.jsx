@@ -87,7 +87,7 @@ function TiltCard({ p }) {
 export default function Built() {
     const others = PROJECTS.filter(p => p.title !== "Argus AI");
     return (
-        <section id="built" className="act wrap">
+        <section id="built" className="act wrap" data-shape="shield" data-side="right" data-dim="0.55">
             <SectionHead n="05" kicker="Projects" title="Things I've built" sub="A live AI compliance platform and hands-on data and ML projects. Try the classifier below." />
 
             <article className="argus neu-lg">

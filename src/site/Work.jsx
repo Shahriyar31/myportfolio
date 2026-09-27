@@ -145,7 +145,7 @@ export default function Work() {
     }, []);
 
     return (
-        <section id="work" className="act wrap">
+        <section id="work" className="act wrap" data-shape="ambient" data-side="center" data-dim="0.82">
             <SectionHead n="03" kicker="Experience" title="Where I've made an impact" sub="Three roles at Nordex Group — engineering, governance and project leadership — plus research at TUHH." />
             <ol className="stack" ref={listRef}>
                 {CARDS.map((c, i) => (

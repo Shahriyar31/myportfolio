@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { unlock } from "./game";
 
 /*
  * "Ask my agent" — a small, governed agent that runs in the browser.
@@ -93,7 +92,6 @@ async function typeOut(text) {
 export async function ask(text, { demo = false } = {}) {
     text = text.trim();
     if (!text || state.busy) return;
-    if (!demo) unlock("chat");
     set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace() });
     history = [...history, { role: "user", content: text }].slice(-12);
 

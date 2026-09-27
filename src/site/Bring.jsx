@@ -1,70 +1,61 @@
-import SectionHead from "./SectionHead";
 import { Fade } from "./Motion";
+import { WaveTitle } from "./SectionHead";
 import Logo from "./Logo";
 import { Icon } from "./Chrome";
 import { scrollToId } from "./hooks";
 
-/* What I bring, written for a hiring manager first and an engineer second */
-const CARDS = [
+/* What I bring — one capability per screen; the particles form its symbol */
+const SCENES = [
     {
-        icon: "agent", title: "AI engineering & agents",
-        promise: "I build AI assistants and agents that do real work — answering from your documents, using tools, and handing over to a person when it matters.",
-        gets: ["From idea to a working, deployed product", "Measured with evaluations, not guesswork"],
-        tools: [["python", "Python"], ["langchain", "LangGraph"], ["rag", "RAG"], ["fastapi", "FastAPI"], ["vector", "pgvector"], ["azure", "Azure"]],
+        shape: "network", n: "01", kicker: "AI engineering & agents", title: "AI that does real work",
+        promise: "I build AI assistants and agents that answer from your documents, use tools, and hand over to a person when it matters.",
+        gets: ["From idea to a deployed product", "Measured with evaluations, not guesswork"],
+        tools: [["python", "Python"], ["langchain", "LangGraph"], ["rag", "RAG"], ["fastapi", "FastAPI"], ["azure", "Azure"]],
         proof: [["Nordex AI assistant", "work"], ["Argus AI", "built"]],
     },
     {
-        icon: "eu", title: "AI governance & compliance",
-        promise: "I make AI ready for regulation — sorting use cases by EU AI Act risk, mapping GDPR duties, and designing the governance process around them.",
-        gets: ["Compliance built in, not bolted on", "Clear documentation auditors can follow"],
-        tools: [["eu", "EU AI Act"], ["gdpr", "GDPR"], ["shield", "NIST AI RMF"], ["risk", "Risk classes"], ["lineage", "Traceability"]],
+        shape: "eu", n: "02", kicker: "AI governance & compliance", title: "Ready for regulation",
+        promise: "I sort AI use cases by EU AI Act risk, map their GDPR duties, and design the governance process around them.",
+        gets: ["Compliance built in, not bolted on", "Documentation an auditor can follow"],
+        tools: [["eu", "EU AI Act"], ["gdpr", "GDPR"], ["shield", "NIST AI RMF"], ["risk", "Risk classes"]],
         proof: [["Governance lifecycle", "work"], ["Argus AI", "built"]],
     },
     {
-        icon: "shield", title: "AI security",
-        promise: "I test and harden AI systems against the known attacks — prompt injection, data leaks, unsafe tool use — and keep a tamper-proof log of what the AI did.",
+        shape: "lock", n: "03", kicker: "AI security", title: "Hard to trick",
+        promise: "I test and harden AI against the known attacks — prompt injection, data leaks, unsafe tool use — and log everything it does.",
         gets: ["Fewer surprises in production", "An audit trail for every decision"],
-        tools: [["owasp", "OWASP LLM Top 10"], ["human", "Human-in-the-loop"], ["ledger", "Audit trails"], ["tool", "Guardrails"]],
-        proof: [["Argus AI checks", "built"], ["This site's AI", "agent"]],
+        tools: [["owasp", "OWASP LLM Top 10"], ["human", "Human-in-the-loop"], ["ledger", "Audit trails"]],
+        proof: [["Play the game ↓", "game"], ["Argus AI", "built"]],
     },
     {
-        icon: "databricks", title: "Data engineering & governance",
-        promise: "I turn messy data into data you can trust — pipelines on Databricks and Spark, live streams with Kafka, and clear ownership and lineage.",
-        gets: ["Reliable, analysis-ready data", "Know where every number came from"],
-        tools: [["databricks", "Databricks"], ["spark", "Spark"], ["sql", "SQL"], ["kafka", "Kafka"], ["postgres", "PostgreSQL"], ["catalog", "Data catalogue"]],
+        shape: "data", n: "04", kicker: "Data engineering & governance", title: "Data you can trust",
+        promise: "I turn messy data into reliable, well-owned data — pipelines on Databricks and Spark, streams with Kafka, clear lineage.",
+        gets: ["Analysis-ready data", "Know where every number came from"],
+        tools: [["databricks", "Databricks"], ["spark", "Spark"], ["sql", "SQL"], ["kafka", "Kafka"]],
         proof: [["Nordex data platform", "work"], ["Streaming projects", "built"]],
     },
 ];
 
-const DELIVERY = [["docker", "Docker"], ["kubernetes", "Kubernetes"], ["terraform", "Terraform"], ["ghactions", "GitHub Actions"], ["azuredevops", "Azure DevOps"], ["aws", "AWS"], ["gcp", "Google Cloud"]];
-
 export default function Bring() {
     return (
-        <section id="bring" className="act wrap">
-            <SectionHead n="01" kicker="What I bring" title="Four ways I can help your team" sub="From building AI agents to making sure they are compliant, secure and running on data you can trust." />
-            <div className="bring">
-                {CARDS.map((c, i) => (
-                    <Fade key={c.title} delay={i * 90} className="bring-card neu-lg">
-                        <div className="bring-top">
-                            <span className="bring-ico neu-in"><Logo n={c.icon} size={26} /></span>
-                            <h3>{c.title}</h3>
-                        </div>
-                        <p className="bring-promise">{c.promise}</p>
-                        <ul className="bring-gets">{c.gets.map(g => <li key={g}><Icon n="arrow" size={13} />{g}</li>)}</ul>
-                        <ul className="bring-tools" aria-label="Tools">
-                            {c.tools.map(([logo, name]) => <li key={name} className="tool neu-sm"><Logo n={logo} size={16} /><span>{name}</span></li>)}
-                        </ul>
-                        <div className="bring-proof">
-                            <span className="mono">Proven in</span>
-                            {c.proof.map(([label, id]) => <button key={label} className="proof" onClick={() => scrollToId(id)}>{label} ↗</button>)}
-                        </div>
-                    </Fade>
-                ))}
-            </div>
-            <Fade className="delivery neu">
-                <span className="mono">And I ship it with</span>
-                <ul>{DELIVERY.map(([logo, name]) => <li key={name} className="tool neu-sm"><Logo n={logo} size={16} /><span>{name}</span></li>)}</ul>
-            </Fade>
+        <section id="bring" className="bring2" aria-label="What I bring">
+            <header className="bring2-intro wrap" data-shape="ambient" data-side="center" data-dim="0.55">
+                <span className="head-kicker"><span className="head-n neu-sm mono">01</span><span className="mono">What I bring</span><span className="head-rule" /></span>
+                <WaveTitle text="Four ways I can help your team" />
+                <p className="head-sub">Scroll — each one takes shape.</p>
+            </header>
+            {SCENES.map(s => (
+                <article key={s.n} className="scene wrap" data-shape={s.shape} data-side="right">
+                    <div className="scene-copy">
+                        <Fade className="scene-kicker"><span className="scene-n">{s.n}</span><span className="mono">{s.kicker}</span></Fade>
+                        <Fade delay={80}><h3 className="scene-title">{s.title}</h3></Fade>
+                        <Fade delay={160}><p className="scene-promise">{s.promise}</p></Fade>
+                        <Fade delay={240} as="ul" className="scene-gets">{s.gets.map(g => <li key={g}><Icon n="arrow" size={14} />{g}</li>)}</Fade>
+                        <Fade delay={320} as="ul" className="scene-tools">{s.tools.map(([l, n]) => <li key={n} className="tool neu-sm"><Logo n={l} size={16} /><span>{n}</span></li>)}</Fade>
+                        <Fade delay={400} className="scene-proof"><span className="mono">Proven in</span>{s.proof.map(([t, id]) => <button key={t} className="proof" onClick={() => scrollToId(id)}>{t}</button>)}</Fade>
+                    </div>
+                </article>
+            ))}
         </section>
     );
 }
