@@ -29,6 +29,7 @@ export const SECTIONS = [
     ["bring", "What I bring", "bring"],
     ["how", "How I build", "layers"],
     ["work", "Experience", "work"],
+    ["skills", "Skills", "keys"],
     ["built", "Projects", "built"],
     ["route", "My story", "route"],
     ["education", "Education", "grad"],

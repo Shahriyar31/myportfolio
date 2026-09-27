@@ -88,7 +88,7 @@ export function AgentSection() {
     }, []);
     return (
         <section id="agent" className="act wrap" ref={ref}>
-            <SectionHead n="07" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
+            <SectionHead n="08" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
             <div className="agent-grid">
                 <div className="device neu-lg">
                     <div className="device-head">
@@ -111,40 +111,57 @@ export function AgentSection() {
 }
 
 /* Floating button + panel for the rest of the page */
+/* A question that fits whatever section the visitor is looking at */
+const CONTEXT = {
+    home: "What does Farhan do?", bring: "What value can he bring to my team?", how: "How does he make AI safe?",
+    work: "What did he do at Nordex?", skills: "What's his strongest skill?", built: "What is Argus AI?",
+    route: "Why did he move to Germany?", education: "What did he study?", agent: "How does this AI work?",
+    lens: "What does he photograph?", hello: "Is he open to work?",
+};
+
+/* Floating assistant, on every screen */
 export function ChatDock() {
     const { open } = useChat();
     const inputRef = useRef(null);
-    const [shown, setShown] = useState(false);
+    const [section, setSection] = useState("home");
+    const [hint, setHint] = useState(true);
     useEffect(() => {
-        // Hidden while the hero and the agent section are on screen
-        const on = () => {
-            const a = document.getElementById("agent");
-            const past = a ? a.getBoundingClientRect().bottom < innerHeight * 0.3 : scrollY > innerHeight;
-            const nearEnd = scrollY + innerHeight > document.documentElement.scrollHeight - innerHeight * 0.8;
-            setShown(past && !nearEnd);
-        };
-        on();
-        window.addEventListener("scroll", on, { passive: true });
-        return () => window.removeEventListener("scroll", on);
+        const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && setSection(e.target.id)), { rootMargin: "-45% 0px -50% 0px" });
+        Object.keys(CONTEXT).forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+        return () => io.disconnect();
     }, []);
+    // Suggest a question when entering a section, then tuck it away
+    useEffect(() => { setHint(true); const t = setTimeout(() => setHint(false), 7000); return () => clearTimeout(t); }, [section]);
     useEffect(() => {
         if (open) setTimeout(() => inputRef.current?.focus(), 300);
         const esc = e => e.key === "Escape" && openChat(false);
         window.addEventListener("keydown", esc);
         return () => window.removeEventListener("keydown", esc);
     }, [open]);
+    const q = CONTEXT[section] || CONTEXT.home;
     return (
         <>
-            <button className={`dock-btn key ${open || !shown ? "is-hidden" : ""}`} tabIndex={shown ? 0 : -1} onClick={() => { cancelDemo(); openChat(true); }} aria-label="Chat with Farhan's agent">
-                <span className="device-led" aria-hidden="true" /><span className="dock-label">Ask my agent</span>
-            </button>
-            <div className={`dock neu-lg ${open ? "is-open" : ""}`} role="dialog" aria-label="Chat with Farhan's agent" inert={!open}>
+            <div className={`dock-wrap ${open ? "is-hidden" : ""}`}>
+                {hint && (
+                    <div className="dock-hint neu" key={section}>
+                        <button className="dock-hint-q" onClick={() => { cancelDemo(); openChat(true); ask(q); }}>
+                            <span className="mono">Ask about this</span>{q}
+                        </button>
+                        <button className="dock-hint-x" onClick={() => setHint(false)} aria-label="Hide suggestion">×</button>
+                    </div>
+                )}
+                <button className="dock-btn key" onClick={() => { cancelDemo(); openChat(true); }} aria-label="Chat with Farhan's AI">
+                    <img className="dock-av" src="/images/profile-cartoon.jpg" alt="" /><span className="dock-label">Ask my AI</span><span className="device-led" aria-hidden="true" />
+                </button>
+            </div>
+            <div className={`dock neu-lg ${open ? "is-open" : ""}`} role="dialog" aria-label="Chat with Farhan's AI" inert={!open}>
                 <div className="device-head">
                     <span className="device-led" aria-hidden="true" />
-                    <span className="mono">Ask Farhan · agent</span>
+                    <span className="mono">Ask Farhan's AI</span>
                     <button className="key key-sm" onClick={() => openChat(false)}>Close</button>
                 </div>
                 <Screen />
+                <div className="quick"><button className="key key-sm" onClick={() => ask(q)}>{q}</button></div>
                 <Composer inputRef={inputRef} />
             </div>
         </>

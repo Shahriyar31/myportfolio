@@ -1,3 +1,4 @@
+import { WaveTitle } from "./SectionHead";
 import { useEffect, useRef, useState } from "react";
 import { PLACES } from "./places";
 import { setWarmth } from "./theme";
@@ -151,8 +152,8 @@ export default function Journey() {
 
                 <div className="journey-inner wrap">
                     <header className="journey-head">
-                        <span className="head-kicker"><span className="head-n neu-sm mono">05</span><span className="mono">My story</span></span>
-                        <h2 className="head-title">From West Bengal to Hamburg</h2>
+                        <span className="head-kicker"><span className="head-n neu-sm mono">06</span><span className="mono">My story</span><span className="head-rule" /></span>
+                        <WaveTitle text="From West Bengal to Hamburg" className="sm" />
                         <p className="head-sub">7,004 km and one suitcase — keep scrolling to follow the journey.</p>
                     </header>
 

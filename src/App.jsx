@@ -8,6 +8,7 @@ import Hero from "./site/Hero";
 import Bring from "./site/Bring";
 import HowIBuild from "./site/HowIBuild";
 import Work from "./site/Work";
+import Skills from "./site/Skills";
 import Education from "./site/Education";
 import Built from "./site/Built";
 import Lens from "./site/Lens";
@@ -48,6 +49,7 @@ export default function App() {
                 <Bring />
                 <HowIBuild />
                 <Work />
+                <Skills />
                 <Built />
                 <Journey />
                 <Education />

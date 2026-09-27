@@ -76,7 +76,7 @@ function Degree({ d, i }) {
 export default function Education() {
     return (
         <section id="education" className="act wrap">
-            <SectionHead n="06" kicker="Education" title="Two degrees, two countries" sub="Computer science in India, data science in Germany. Flip a card to see the modules." />
+            <SectionHead n="07" kicker="Education" title="Two degrees, two countries" sub="Computer science in India, data science in Germany. Flip a card to see the modules." />
 
             <Fade className="edu-rule neu-in" aria-hidden="true">
                 <span className="edu-fill" />

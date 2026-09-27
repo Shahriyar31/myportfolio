@@ -8,15 +8,15 @@
 
 const PALETTES = {
     dark: {
-        cool: { bg: "#222a34", fg: "#e9eef3", mute: "#9ba7b4", dim: "#5f6b78", accent: "#73d4ff", sky: "#0e1622", horizon: "#2e4257" },
-        warm: { bg: "#2c241f", fg: "#f4eadf", mute: "#bda996", dim: "#7c6b5c", accent: "#ffb547", sky: "#1c120e", horizon: "#5b3a26" },
+        cool: { bg: "#222a34", fg: "#e9eef3", mute: "#9ba7b4", dim: "#5f6b78", accent: "#73d4ff", a2: "#b69cff", sky: "#0e1622", horizon: "#2e4257" },
+        warm: { bg: "#2c241f", fg: "#f4eadf", mute: "#bda996", dim: "#7c6b5c", accent: "#ffb547", a2: "#ff8a65", sky: "#1c120e", horizon: "#5b3a26" },
         // halfway through the flight: dusk, so warm → cool passes through a sunset instead of mud
-        mid: { bg: "#2a2230", fg: "#f1e8f0", mute: "#b3a3b6", dim: "#6f6275", accent: "#ff86b6", sky: "#170f1c", horizon: "#4c2c47" },
+        mid: { bg: "#2a2230", fg: "#f1e8f0", mute: "#b3a3b6", dim: "#6f6275", accent: "#ff86b6", a2: "#c9a7ff", sky: "#170f1c", horizon: "#4c2c47" },
     },
     light: {
-        cool: { bg: "#e2e7ed", fg: "#18212c", mute: "#566474", dim: "#98a4b1", accent: "#0a7fb4", sky: "#9fc3e3", horizon: "#e9eff5" },
-        warm: { bg: "#ecdfd3", fg: "#2b1e15", mute: "#7b6453", dim: "#b39c88", accent: "#b85f0c", sky: "#e2b48c", horizon: "#f6e6d4" },
-        mid: { bg: "#ebdfe6", fg: "#2a1c28", mute: "#7a6275", dim: "#b09aab", accent: "#c0427a", sky: "#d9a9c4", horizon: "#f5e5ef" },
+        cool: { bg: "#e2e7ed", fg: "#18212c", mute: "#566474", dim: "#98a4b1", accent: "#0a7fb4", a2: "#6b4fd8", sky: "#9fc3e3", horizon: "#e9eff5" },
+        warm: { bg: "#ecdfd3", fg: "#2b1e15", mute: "#7b6453", dim: "#b39c88", accent: "#b85f0c", a2: "#c2410c", sky: "#e2b48c", horizon: "#f6e6d4" },
+        mid: { bg: "#ebdfe6", fg: "#2a1c28", mute: "#7a6275", dim: "#b09aab", accent: "#c0427a", a2: "#7c3aed", sky: "#d9a9c4", horizon: "#f5e5ef" },
     },
 };
 
@@ -40,6 +40,7 @@ function apply() {
     s.setProperty("--mute", current.mute);
     s.setProperty("--dim", current.dim);
     s.setProperty("--accent", current.accent);
+    s.setProperty("--accent2", current.a2);
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", current.bg);
     listeners.forEach(fn => fn(current, mode));
 }

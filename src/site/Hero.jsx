@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Lines, Fade } from "./Motion";
 import { Icon } from "./Chrome";
 import Logo from "./Logo";
+import DataWind from "./DataWind";
 import { useChat, ask, setDraft, cancelDemo, runDemo } from "./chat";
 import { scrollToId, finePointer, reducedMotion } from "./hooks";
 
@@ -100,6 +101,8 @@ export default function Hero({ ready, onOpenCv }) {
 
     return (
         <section id="home" className="hero">
+            <DataWind className="hero-wind" />
+            <span className="wind-legend mono" aria-hidden="true"><i className="raw" />raw data<i className="arrow">→</i><i className="clean" />trusted, governed data</span>
             <div className="hero-inner wrap">
                 <div className="hero-copy">
                     <Fade play={ready} delay={80}>
