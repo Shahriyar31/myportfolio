@@ -1,3 +1,4 @@
+import SectionHead from "./SectionHead";
 import { useState } from "react";
 import { Lines, Fade } from "./Motion";
 import Logo from "./Logo";
@@ -75,12 +76,7 @@ function Degree({ d, i }) {
 export default function Education() {
     return (
         <section id="education" className="act wrap">
-            <header className="act-head">
-                <span className="act-no neu mono">04</span>
-                <div className="act-kicker"><span className="mono">Academic</span></div>
-                <h2 className="act-title"><Lines lines={["Education —", <span className="accent" key="a">two degrees, two countries.</span>]} /></h2>
-                <p className="act-lede">Computer science in India, data science in Germany. Flip a card to see the modules behind each degree.</p>
-            </header>
+            <SectionHead n="06" kicker="Education" title="Two degrees, two countries" sub="Computer science in India, data science in Germany. Flip a card to see the modules." />
 
             <Fade className="edu-rule neu-in" aria-hidden="true">
                 <span className="edu-fill" />

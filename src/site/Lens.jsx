@@ -1,3 +1,4 @@
+import SectionHead from "./SectionHead";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lines } from "./Motion";
 import { reducedMotion, useMedia } from "./hooks";
@@ -85,12 +86,7 @@ export default function Lens() {
 
     return (
         <section id="lens" className="act">
-            <header className="act-head wrap">
-                <span className="act-no neu mono">07</span>
-                <div className="act-kicker"><span className="mono">Through the lens</span></div>
-                <h2 className="act-title"><Lines lines={["Off-screen,", <span className="accent" key="a">I collect light.</span>]} /></h2>
-                <p className="act-lede">Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them; click any photo.</p>
-            </header>
+            <div className="wrap"><SectionHead n="08" kicker="Photography" title="Through my lens" sub="Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them." /></div>
 
             <div className="lens-filters wrap" role="tablist" aria-label="Photo categories">
                 {CATS.map(c => {

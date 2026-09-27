@@ -23,7 +23,10 @@ const STEP_NODES = { intent: ["agent"], retrieve: ["lakehouse", "catalog"], gene
 const V = a => new THREE.Vector3(...a);
 
 export default class AgentScene {
-    constructor(canvas, { labels = {}, onHover } = {}) {
+    constructor(canvas, { labels = {}, onHover, story = false } = {}) {
+        this.story = story;   // scroll-told mode: steps build in one by one
+        this.revealed = story ? 0 : NODES.length;
+        this.focus = new THREE.Vector3();
         this.canvas = canvas;
         this.labels = labels;
         this.onHover = onHover;
@@ -164,6 +167,7 @@ export default class AgentScene {
         this.packetMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16), this.m.spark);
         this.packetMesh.visible = false;
         this.root.add(this.packetMesh);
+        this.edgeObjs = [];
         EDGES.forEach(([a, b, bend, dashed]) => {
             const A = V(NODES.find(n => n.id === a).pos), B = V(NODES.find(n => n.id === b).pos);
             const mid = A.clone().lerp(B, 0.5).add(V(bend));
@@ -172,9 +176,12 @@ export default class AgentScene {
                 const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(60)), this.m.dash);
                 line.computeLineDistances();
                 this.root.add(line);
+                this.edgeObjs.push({ obj: line, a, b });
                 return;
             }
-            this.root.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 0.022, 6, false), this.m.edge));
+            const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 0.022, 6, false), this.m.edge);
+            this.root.add(tube);
+            this.edgeObjs.push({ obj: tube, a, b });
             const sparks = Array.from({ length: 5 }, (_, i) => {
                 const s = new THREE.Mesh(sparkGeo, this.m.spark);
                 this.root.add(s);
@@ -202,6 +209,10 @@ export default class AgentScene {
 
     setPointer(x, y) { this.pointer.set(x, y); }
 
+    /** Story mode: how many steps are built so far (1..7). */
+    setRevealed(k) { this.revealed = k; }
+    isShown(id) { return NODES.findIndex(n => n.id === id) < this.revealed; }
+
     /** Highlight one step and fly a packet to it from the previous step. */
     setActive(id) {
         if (id === this.active) return;
@@ -223,8 +234,13 @@ export default class AgentScene {
         this.camera.fov = this.narrow ? 42 : 30;
         this.camera.updateProjectionMatrix();
         const a = w / h;
-        this.root.position.set(this.narrow ? 0.1 : 5.3 + (a - 1.6) * 3.2, this.narrow ? 4.6 : -0.4, 0);
-        this.root.scale.setScalar(this.narrow ? 0.54 : Math.min(1, 0.78 + (a - 1.3) * 0.3));
+        if (this.story) {
+            this.root.position.set(this.narrow ? 0 : 1.6 + (a - 1.6) * 2, this.narrow ? 0 : 0.2, 0);
+            this.root.scale.setScalar(this.narrow ? 0.62 : 1);
+        } else {
+            this.root.position.set(this.narrow ? 0.1 : 5.3 + (a - 1.6) * 3.2, this.narrow ? 4.6 : -0.4, 0);
+            this.root.scale.setScalar(this.narrow ? 0.54 : Math.min(1, 0.78 + (a - 1.3) * 0.3));
+        }
     }
 
     projectLabel(id, el) {
@@ -235,6 +251,7 @@ export default class AgentScene {
         const p = new THREE.Vector3(ox, oy, 0).applyMatrix4(g.matrixWorld).project(this.camera);
         el.style.transform = `translate3d(${(p.x * 0.5 + 0.5) * this.canvas.clientWidth}px, ${(-p.y * 0.5 + 0.5) * this.canvas.clientHeight}px, 0)`;
         el.classList.toggle("is-hot", this.active === id || this.hovered === id);
+        el.classList.toggle("is-hidden", !this.isShown(id));
     }
 
     tick() {
@@ -243,8 +260,23 @@ export default class AgentScene {
         // Gentle camera parallax from the pointer (only while it's over the page)
         const px = Math.abs(this.pointer.x) > 2 ? 0 : this.pointer.x, py = Math.abs(this.pointer.y) > 2 ? 0 : this.pointer.y;
         this.smooth.lerp(new THREE.Vector2(px, py), 0.05);
-        this.camera.position.set(this.smooth.x * 1.6, 1.4 + this.smooth.y * 1.1, this.narrow ? 24 : 21);
-        if (this.narrow) this.camera.lookAt(0, 0, 0); else this.camera.lookAt(this.root.position.x * 0.35, this.root.position.y * 0.6, 0);
+        if (this.story) {
+            // glide toward the step being told
+            const a = this.nodes[this.active];
+            const target = a ? a.getWorldPosition(new THREE.Vector3()) : this.root.position.clone();
+            this.focus.lerp(target, 0.045);
+            const done = this.revealed >= NODES.length && this.overview;
+            const fx = done ? this.root.position.x : this.focus.x, fy = done ? this.root.position.y : this.focus.y;
+            // keep the told step clear of the caption card: right of it on desktop, above it on phones
+            const ox = this.narrow ? 0 : (done ? -1.2 : -2.2), oy = this.narrow ? (done ? -3 : -3.2) : 0;
+            this.camera.position.set(fx * 0.55 + ox + this.smooth.x * 1.2, fy * 0.5 + oy + 1.2 + this.smooth.y, done ? (this.narrow ? 28 : 22) : (this.narrow ? 21 : 17.5));
+            this.camera.lookAt(fx * 0.85 + ox, fy * 0.85 + oy, 0);
+        } else {
+            this.camera.position.set(this.smooth.x * 1.6, 1.4 + this.smooth.y * 1.1, this.narrow ? 24 : 21);
+            if (this.narrow) this.camera.lookAt(0, 0, 0); else this.camera.lookAt(this.root.position.x * 0.35, this.root.position.y * 0.6, 0);
+        }
+        this.edgeObjs.forEach(e => { e.obj.visible = this.isShown(e.a) && this.isShown(e.b); });
+        this.flows.forEach(f => f.sparks.forEach(sp => { sp.mesh.visible = this.isShown(f.from) && this.isShown(f.to); }));
 
         // Hover picking
         if (Math.abs(this.pointer.x) <= 1 && Math.abs(this.pointer.y) <= 1) {
@@ -259,8 +291,8 @@ export default class AgentScene {
             this.heat[n.id] = Math.max(this.active === n.id ? 0.75 : 0, this.heat[n.id] - dt * 0.7);
             const h = Math.max(this.heat[n.id], this.hovered === n.id ? 0.6 : 0);
             g.position.y = u.base.y + Math.sin(t * 0.8 + u.phase) * 0.12;
-            const s = 1 + h * 0.08;
-            g.scale.lerp(new THREE.Vector3(s, s, s), 0.15);
+            const s = (1 + h * 0.08) * (this.isShown(n.id) ? 1 : 0.001);
+            g.scale.lerp(new THREE.Vector3(s, s, s), this.isShown(n.id) ? 0.12 : 0.25);
             if (u.spin) u.spin.rotation.z += dt * (0.3 + h * 2);
             if (u.core) u.core.material.emissiveIntensity = 0.25 + h * 0.9 + Math.sin(t * 2) * 0.05;
             if (u.sats) u.sats.forEach(sat => {

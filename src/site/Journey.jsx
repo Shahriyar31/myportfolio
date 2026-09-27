@@ -151,11 +151,9 @@ export default function Journey() {
 
                 <div className="journey-inner wrap">
                     <header className="journey-head">
-                        <span className="act-no neu mono">02</span>
-                        <div>
-                            <div className="act-kicker"><span className="mono">The route</span></div>
-                            <h2 className="journey-title">7,004 km<br /><span className="accent">in one story</span></h2>
-                        </div>
+                        <span className="head-kicker"><span className="head-n neu-sm mono">05</span><span className="mono">My story</span></span>
+                        <h2 className="head-title">From West Bengal to Hamburg</h2>
+                        <p className="head-sub">7,004 km and one suitcase — keep scrolling to follow the journey.</p>
                     </header>
 
                     <div className="cards">

@@ -1,87 +1,18 @@
+import SectionHead from "./SectionHead";
 import { useEffect, useRef } from "react";
 import { Lines } from "./Motion";
 
 /* ── Animated diagrams (pure SVG + CSS; colours follow the theme) ── */
 
-function Lineage() {
-    const nodes = [["orders.raw", 30, 40], ["orders.clean", 190, 40], ["kpi.gold", 350, 40], ["Report", 350, 140], ["Model", 190, 140]];
-    return (
-        <svg viewBox="0 0 460 200" className="dia">
-            {[[0, 1], [1, 2], [2, 3], [1, 4]].map(([a, b], i) => {
-                const [, x1, y1] = nodes[a], [, x2, y2] = nodes[b];
-                return <path key={i} className="dia-flow" d={`M${x1 + 70} ${y1 + 16} C ${x1 + 110} ${y1 + 16}, ${x2 - 40} ${y2 + 16}, ${x2} ${y2 + 16}`} style={{ animationDelay: `${i * 0.3}s` }} />;
-            })}
-            {nodes.map(([t, x, y], i) => (
-                <g key={t} className="dia-node" style={{ animationDelay: `${i * 0.25}s` }}>
-                    <rect x={x} y={y} width="96" height="32" rx="10" />
-                    <text x={x + 48} y={y + 20}>{t}</text>
-                </g>
-            ))}
-            {[["PII", 32, 86], ["Confidential", 192, 86], ["Owner ✓", 352, 86]].map(([t, x, y], i) => (
-                <g key={t} className="dia-tag" style={{ animationDelay: `${1 + i * 0.6}s` }}>
-                    <rect x={x} y={y} width={t.length * 7 + 18} height="20" rx="10" />
-                    <text x={x + 9} y={y + 14}>{t}</text>
-                </g>
-            ))}
-            <rect className="dia-scan" x="20" y="28" width="3" height="152" rx="2" />
-        </svg>
-    );
-}
-
-function Medallion() {
-    const lanes = [["Bronze", 150, "#b4804f"], ["Silver", 95, "#bcc5cf"], ["Gold", 40, "#e0b84e"]];
-    return (
-        <svg viewBox="0 0 460 200" className="dia">
-            {lanes.map(([t, y, c]) => (
-                <g key={t}>
-                    <rect className="dia-lane" x="84" y={y} width="340" height="30" rx="15" />
-                    <text className="dia-lbl" x="18" y={y + 20}>{t}</text>
-                    <circle cx="70" cy={y + 15} r="6" fill={c} />
-                </g>
-            ))}
-            {Array.from({ length: 9 }, (_, i) => (
-                <circle key={i} className="dia-particle" r="4" style={{ offsetPath: `path("M 90 ${165} L 200 ${165} C 240 165, 230 110, 270 110 L 320 110 C 360 110, 350 55, 390 55 L 420 55")`, animationDelay: `${i * 0.45}s` }} />
-            ))}
-            <g className="dia-badge"><rect x="300" y="4" width="126" height="24" rx="12" /><text x="363" y="20">job succeeded ✓</text></g>
-        </svg>
-    );
-}
-
-function Topology() {
-    const boxes = [["Databricks", 60, 50], ["ADLS storage", 200, 50], ["Key Vault", 60, 110], ["Data catalogue", 200, 110]];
-    return (
-        <svg viewBox="0 0 460 200" className="dia">
-            <rect className="dia-group" x="40" y="24" width="300" height="130" rx="18" />
-            <text className="dia-lbl" x="56" y="42">resource group</text>
-            {boxes.map(([t, x, y], i) => (
-                <g key={t} className="dia-node" style={{ animationDelay: `${i * 0.2}s` }}>
-                    <rect x={x} y={y} width="118" height="38" rx="10" />
-                    <text x={x + 59} y={y + 23}>{t}</text>
-                </g>
-            ))}
-            <path className="dia-flow" d="M178 69 L200 69" /><path className="dia-flow" d="M119 88 L119 110" /><path className="dia-flow" d="M259 88 L259 110" />
-            <g className="dia-cicd">
-                {["build", "test", "deploy"].map((s, i) => (
-                    <g key={s} style={{ animationDelay: `${i * 0.8}s` }}>
-                        <rect x={360} y={40 + i * 40} width="80" height="28" rx="14" />
-                        <text x={400} y={58 + i * 40}>{s}</text>
-                    </g>
-                ))}
-            </g>
-            <text className="dia-lbl" x="360" y="30">Azure DevOps</text>
-        </svg>
-    );
-}
-
 function RagLoop() {
-    const steps = [["query", 30], ["retrieve", 130], ["generate", 230], ["evaluate", 330]];
+    const steps = [["ask", 20], ["search", 125], ["answer", 230], ["check", 335]];
     return (
         <svg viewBox="0 0 460 200" className="dia">
             <path className="dia-flow" d="M70 80 L150 80 M170 80 L250 80 M270 80 L350 80" />
             <path className="dia-flow back" d="M370 100 C 370 170, 70 170, 70 100" />
             {steps.map(([t, x], i) => (
                 <g key={t} className="dia-node pulse" style={{ animationDelay: `${i * 0.6}s` }}>
-                    <circle cx={x + 40} cy="80" r="26" />
+                    <circle cx={x + 40} cy="80" r="36" />
                     <text x={x + 40} y="84">{t}</text>
                 </g>
             ))}
@@ -91,17 +22,47 @@ function RagLoop() {
     );
 }
 
-function Pillars() {
-    const p = [["Governance", 80], ["Data platform", 230], ["Applied AI", 380]];
+/* Project delivery: parallel workstreams, a blocker that gets cleared, deadline met */
+function Timeline() {
+    const lanes = [["Cloud", 20, 150], ["Network", 70, 130], ["Data", 40, 190], ["AI", 110, 170]];
     return (
         <svg viewBox="0 0 460 200" className="dia">
-            {p.map(([, x], i) => <path key={i} className="dia-flow" d={`M${x} 92 C ${x} 134, 230 114, 230 150`} style={{ animationDelay: `${i * 0.4}s` }} />)}
-            {p.map(([t, x], i) => (
-                <g key={t} className="dia-node pulse" style={{ animationDelay: `${i * 0.5}s` }}>
-                    <text x={x} y="20">{t}</text><circle cx={x} cy="62" r="26" />
+            {lanes.map(([t, x, w], i) => (
+                <g key={t}>
+                    <text className="dia-lbl" x="4" y={38 + i * 40}>{t}</text>
+                    <rect className="dia-lane" x="84" y={24 + i * 40} width="330" height="22" rx="11" />
+                    <rect className="dia-bar-h" x={84 + x} y={24 + i * 40} width={w} height="22" rx="11" style={{ animationDelay: `${i * 0.3}s` }} />
                 </g>
             ))}
-            <g className="dia-badge"><rect x="160" y="150" width="140" height="30" rx="15" /><text x="230" y="170">in production</text></g>
+            <g className="dia-block"><circle cx="220" cy="75" r="11" /><text x="220" y="79">!</text></g>
+            <path className="dia-flow" d="M424 16 L424 186" />
+            <g className="dia-badge"><rect x="330" y="0" width="94" height="22" rx="11" /><text x="377" y="15">deadline ✓</text></g>
+        </svg>
+    );
+}
+
+/* AI governance lifecycle: six stages, one pulse travelling around */
+function Lifecycle() {
+    const stages = ["Use case", "Data", "Model", "Validate", "Deploy", "Monitor"];
+    const cx = 230, cy = 100, r = 70;
+    return (
+        <svg viewBox="0 0 460 200" className="dia">
+            <circle className="dia-ring" cx={cx} cy={cy} r={r} />
+            <circle className="dia-orbit" cx={cx} cy={cy} r={r} />
+            {stages.map((t, i) => {
+                const a = (i / stages.length) * Math.PI * 2 - Math.PI / 2;
+                const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+                const lx = cx + Math.cos(a) * (r + 44), ly = cy + Math.sin(a) * (r + 22) + 4;
+                return (
+                    <g key={t} className="dia-node pulse" style={{ animationDelay: `${i * 0.5}s` }}>
+                        <circle cx={x} cy={y} r="12" />
+                        <text x={x} y={y + 4} className="dia-num">{i + 1}</text>
+                        <text x={lx} y={ly}>{t}</text>
+                    </g>
+                );
+            })}
+            <text x={cx} y={cy - 4} className="dia-center">EU AI Act</text>
+            <text x={cx} y={cy + 12} className="dia-center sm">+ GDPR</text>
         </svg>
     );
 }
@@ -120,18 +81,43 @@ function Series() {
 
 const CARDS = [
     {
-        kicker: "Aug 2025 — now · Hamburg", co: "Nordex Group", role: "Working Student — Enterprise Data Management & AI Engineering",
-        body: "Part of the enterprise data team, working where data governance, the Azure data platform and applied AI meet.",
-        tags: ["Azure Databricks", "Azure DevOps", "Spark", "Python", "SQL", "EU AI Act", "GDPR"], dia: null, intro: true,
+        type: "Current", when: "Aug 2025 — now", org: "Nordex Group · Hamburg", role: "AI & Data Engineering",
+        bullets: [
+            "Built an internal AI assistant end to end — it answers questions from company documents using retrieval-augmented generation (RAG).",
+            "Designed a tool-routing layer so the assistant reliably picks the right tool for each request.",
+            "Ran a structured evaluation of language models on quality, speed and cost, and recommended the best fit.",
+            "Shipped the chat interface, automatic document syncing and full architecture documentation.",
+        ],
+        tags: ["Azure AI", "RAG", "LLM evaluation", "Python", "Docker", "Streamlit", "Azure Databricks", "Azure DevOps"], Dia: RagLoop,
     },
-    { n: "01", title: "AI & data governance", body: "Cataloguing and classifying data, tracing lineage, and helping map AI use cases to their EU AI Act and GDPR obligations.", Dia: Lineage },
-    { n: "02", title: "Databricks pipelines", body: "Building and maintaining data pipelines and analytics workflows on Azure Databricks — from raw ingestion to business-ready tables.", Dia: Medallion },
-    { n: "03", title: "Azure platform & DevOps", body: "Working with the Azure services and DevOps practices the data and AI platform runs on — workspaces, storage, secrets and CI/CD.", Dia: Topology },
-    { n: "04", title: "Applied AI", body: "Supporting AI model development and deployment with the data engineering team, including LLM and retrieval prototypes and how they're evaluated.", Dia: RagLoop },
     {
-        kicker: "Mar 2025 — now · TUHH", co: "Research project", role: "Digital Twin Dashboard & MLOps",
-        body: "A monitoring dashboard for a digital-twin simulation with anomaly detection and time-series forecasting, tested and shipped through GitHub Actions in Docker.",
-        tags: ["Python", "Dash", "Plotly", "Scikit-learn", "Docker", "GitHub Actions"], Dia: Series, research: true,
+        type: "Leadership", when: "Feb — Mar 2026", org: "Nordex Group · Hamburg", role: "Project Manager — enterprise AI project",
+        bullets: [
+            "Coordinated an enterprise AI project across several internal teams and external partners.",
+            "Cleared an infrastructure blocker that had stalled the project for weeks by bringing the cloud and network teams together.",
+            "Kept everyone aligned with clear ownership, action trackers and regular status updates.",
+            "Delivered on the deadline.",
+        ],
+        tags: ["Project management", "Stakeholder communication", "Cross-functional leadership", "Vendor coordination", "Agile delivery"], Dia: Timeline,
+    },
+    {
+        type: "Governance", when: "Aug 2025 — Jan 2026", org: "Nordex Group · Hamburg", role: "AI Governance & Architecture",
+        bullets: [
+            "Designed an end-to-end AI governance lifecycle — from use-case intake and data governance to validation, deployment and monitoring.",
+            "Turned Responsible AI principles into buildable architecture designs.",
+            "Mapped system boundaries, risk classes and transparency requirements to the EU AI Act.",
+            "Linked GDPR and EU AI Act articles directly into governance documentation for full traceability.",
+        ],
+        tags: ["AI governance", "Responsible AI", "EU AI Act", "GDPR", "Data governance", "Risk classification", "Architecture design"], Dia: Lifecycle,
+    },
+    {
+        type: "Research", when: "Mar 2025 — now", org: "TUHH · Hamburg", role: "Digital Twin Dashboard & MLOps",
+        bullets: [
+            "Built a live monitoring dashboard for a digital-twin simulation.",
+            "Added machine learning for anomaly detection and forecasting.",
+            "Automated testing and deployment with GitHub Actions, fully containerised with Docker.",
+        ],
+        tags: ["Python", "Dash", "Plotly", "Scikit-learn", "Docker", "GitHub Actions"], Dia: Series,
     },
 ];
 
@@ -160,35 +146,21 @@ export default function Work() {
 
     return (
         <section id="work" className="act wrap">
-            <header className="act-head">
-                <span className="act-no neu mono">03</span>
-                <div className="act-kicker"><span className="mono">Work</span></div>
-                <h2 className="act-title"><Lines lines={["Governance, data,", <span className="accent" key="a">and AI — in production.</span>]} /></h2>
-                <p className="act-lede">What I work on, shown rather than listed. Every diagram is a simplified, public-safe sketch of the kind of system — never an employer's internals.</p>
-            </header>
+            <SectionHead n="03" kicker="Experience" title="Where I've made an impact" sub="Three roles at Nordex Group — engineering, governance and project leadership — plus research at TUHH." />
             <ol className="stack" ref={listRef}>
                 {CARDS.map((c, i) => (
-                    <li key={i} className={`stack-card neu-lg ${c.intro ? "is-intro" : ""}`} style={{ "--i": i }}>
+                    <li key={i} className="stack-card neu-lg" style={{ "--i": i }}>
                         <div className="stack-text">
-                            {c.co ? (
-                                <>
-                                    <span className="mono">{c.kicker}</span>
-                                    <h3 className="stack-co">{c.co}</h3>
-                                    <p className="stack-role">{c.role}</p>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="stack-n">{c.n}</span>
-                                    <h3 className="stack-title">{c.title}</h3>
-                                </>
-                            )}
-                            <p className="stack-body">{c.body}</p>
-                            {c.tags && <ul className="stack-tags">{c.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>}
-                            {c.intro && <span className="mono stack-hint">Scroll — four focus areas follow ↓</span>}
+                            <div className="stack-meta">
+                                <span className={`chip mono ${c.type === "Current" ? "is-live" : ""}`}>{c.type === "Current" && <span className="dot-live" />}{c.type}</span>
+                                <span className="mono">{c.when}</span>
+                            </div>
+                            <h3 className="stack-title">{c.role}</h3>
+                            <p className="stack-org">{c.org}</p>
+                            <ul className="stack-bullets">{c.bullets.map(b => <li key={b}>{b}</li>)}</ul>
+                            <ul className="stack-tags">{c.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>
                         </div>
-                        <div className="stack-visual neu-in">
-                            {c.Dia ? <c.Dia /> : <Pillars />}
-                        </div>
+                        <div className="stack-visual neu-in"><c.Dia /></div>
                     </li>
                 ))}
             </ol>

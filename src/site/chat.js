@@ -14,6 +14,10 @@ import { useSyncExternalStore } from "react";
 const EMAIL = "shahriyarfarhan3101@gmail.com";
 
 const KB = [
+    { doc: "about.md", intent: "Who is Farhan", k: ["what does farhan do", "what do you do", "who is farhan", "who are you", "about you", "about farhan", "introduce", "tell me about"], a: "I help companies build AI they can trust. I build AI assistants and agents, I engineer the data they run on, and I make sure they meet rules like the EU AI Act and GDPR. Right now I do this at Nordex Group in Hamburg, alongside my MSc in Data Science." },
+    { doc: "value.md", intent: "Value", k: ["value", "bring", "why should", "why hire", "my team", "help us", "strength", "different"], a: "Three things: I can take an AI idea to a working product, I make it compliant and secure from day one instead of as an afterthought, and I can explain it clearly to non-technical people. I've also run a cross-team project to a deadline, so I'm comfortable owning delivery." },
+    { doc: "pm.md", intent: "Project management", k: ["project manag", "manage", "lead", "stakeholder", "coordinat", "deadline"], a: "I was the project manager for an enterprise AI project at Nordex: coordinating several teams and external partners, clearing an infrastructure blocker with the cloud and network teams, and keeping ownership and status clear until we hit the deadline." },
+    { doc: "security.md", intent: "AI security", k: ["security", "secure", "owasp", "prompt injection", "attack", "red team"], a: "For AI security I check LLM systems against the OWASP LLM Top 10 — prompt injection, data leakage, insecure tool use — and add guardrails, least-privilege access and audit logs. Argus AI runs these checks automatically, and this assistant has its own output policy check." },
     { doc: "work.md", intent: "Current work", k: ["nordex", "work on", "your job", "day to day", "currently", "doing now", "do you do", "experience"], a: "I'm a working student at Nordex Group in Hamburg, in Enterprise Data Management & AI. Day to day: data governance and cataloguing, pipelines and analytics on Azure Databricks, and helping our AI work line up with the EU AI Act and GDPR." },
     { doc: "argus.md", intent: "Project", k: ["argus", "compliance", "ai act", "side project", "startup", "project"], a: "Argus AI is my EU AI Act compliance platform. A LangGraph agent classifies AI systems into risk tiers, drafts GDPR DPIAs and checks OWASP LLM Top 10 risks — pausing for human review on high-risk cases — with a hash-chained audit trail. FastAPI, pgvector, Azure Container Apps, Terraform. Try the mini classifier further down." },
     { doc: "availability.md", intent: "Hiring", k: ["open to", "new role", "roles", "hire", "hiring", "available", "job offer", "opportunit", "looking for", "relocat"], a: `Yes — open to full-time and working-student roles in AI governance, data engineering and agentic AI, based in Hamburg. Fastest route: ${EMAIL}.` },
@@ -59,7 +63,7 @@ const STEPS = [
 const freshTrace = () => STEPS.map(([id, label]) => ({ id, label, status: "idle", detail: "" }));
 
 let state = {
-    msgs: [{ r: "b", t: "Hi, I'm Farhan's agent. Ask me anything — and watch the trace to see how I answer." }],
+    msgs: [{ r: "b", t: "Hi! I'm Farhan's AI assistant. Ask me anything about his work." }],
     busy: false,
     typing: "",
     draft: "",
@@ -137,7 +141,7 @@ export async function runDemo() {
     const run = ++demoRun;
     const live = () => run === demoRun;
     await sleep(1200);
-    for (const q of ["How do you approach AI governance?", "Are you open to new roles?"]) {
+    for (const q of ["What does Farhan do?", "What value can he bring to my team?"]) {
         for (let i = 1; i <= q.length; i++) { if (!live()) return; set({ draft: q.slice(0, i) }); await sleep(36); }
         await sleep(300);
         if (!live()) return;

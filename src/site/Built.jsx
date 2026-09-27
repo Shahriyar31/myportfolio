@@ -1,3 +1,4 @@
+import SectionHead from "./SectionHead";
 import { useRef, useState } from "react";
 import { Lines } from "./Motion";
 import { Icon } from "./Chrome";
@@ -87,11 +88,7 @@ export default function Built() {
     const others = PROJECTS.filter(p => p.title !== "Argus AI");
     return (
         <section id="built" className="act wrap">
-            <header className="act-head">
-                <span className="act-no neu mono">05</span>
-                <div className="act-kicker"><span className="mono">Built</span></div>
-                <h2 className="act-title"><Lines lines={["Things I've built,", <span className="accent" key="a">that you can poke.</span>]} /></h2>
-            </header>
+            <SectionHead n="04" kicker="Projects" title="Things I've built" sub="A live AI compliance platform and hands-on data and ML projects. Try the classifier below." />
 
             <article className="argus neu-lg">
                 <div className="argus-text">

@@ -1,3 +1,4 @@
+import SectionHead from "./SectionHead";
 import { useState } from "react";
 import { Lines } from "./Motion";
 import { Icon } from "./Chrome";
@@ -21,12 +22,7 @@ export default function Hello({ onOpenCv }) {
     };
     return (
         <section id="hello" className="act hello wrap">
-            <header className="act-head">
-                <span className="act-no neu mono">08</span>
-                <div className="act-kicker"><span className="mono">Hello · Moin</span></div>
-                <h2 className="act-title"><Lines lines={["Let's build AI", <span className="accent" key="a">people can trust.</span>]} /></h2>
-                <p className="act-lede">Open to full-time and working-student roles in AI governance, data engineering and agentic AI. It's {time} in Hamburg.</p>
-            </header>
+            <SectionHead n="09" kicker="Contact" title="Let's work together" sub="Open to roles in AI engineering, AI & data governance, AI security and agentic development." />
 
             <div className="hello-grid">
                 <button className={`big-btn ${pressed ? "is-pressed" : ""}`} onClick={press} aria-label={`Email ${EMAIL}`}>
