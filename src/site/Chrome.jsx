@@ -16,6 +16,7 @@ const I = {
     moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
     doc: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></>,
     arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+    shield: <><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6z" /><path d="m9 12 2 2 4-4" /></>,
     bring: <path d="M12 3l2.2 5.6L20 9.4l-4.5 3.9 1.4 5.9L12 16.1l-4.9 3.1 1.4-5.9L4 9.4l5.8-.8z" />,
     layers: <><path d="M12 3 3 8l9 5 9-5z" /><path d="m3 13 9 5 9-5" /></>,
     grad: <><path d="M2 9.5 12 5l10 4.5-10 4.5z" /><path d="M6 11.5v4.5c3.5 2.7 8.5 2.7 12 0v-4.5M22 9.5v5" /></>,
@@ -27,7 +28,7 @@ export const Icon = ({ n, size = 20 }) => (
 export const SECTIONS = [
     ["home", "Home", "home"],
     ["bring", "What I bring", "bring"],
-    ["how", "How I build", "layers"],
+    ["how", "How I build", "shield"],
     ["work", "Experience", "work"],
     ["skills", "Skills", "keys"],
     ["built", "Projects", "built"],

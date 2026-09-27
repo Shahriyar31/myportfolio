@@ -6,7 +6,7 @@ import { ChatDock, AgentSection } from "./site/Chat";
 import Journey from "./site/Journey";
 import Hero from "./site/Hero";
 import Bring from "./site/Bring";
-import HowIBuild from "./site/HowIBuild";
+import GovLab from "./site/GovLab";
 import Work from "./site/Work";
 import Skills from "./site/Skills";
 import Education from "./site/Education";
@@ -47,7 +47,7 @@ export default function App() {
             <main>
                 <Hero ready={ready} onOpenCv={openCv} />
                 <Bring />
-                <HowIBuild />
+                <GovLab />
                 <Work />
                 <Skills />
                 <Built />
