@@ -1,13 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Farhan Shahriyar — Portfolio</title>
+    <title>Farhan Shahriyar — AI &amp; Data Engineer</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0b0c0e" />
+    <script>
+      /* apply saved theme before first paint (no flash) */
+      try { var t = localStorage.getItem("fs-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <meta name="description" content="Farhan Shahriyar — AI & Data Engineer, MSc Data Science @ TUHH. Portfolio showcasing projects in RAG, MLOps, Cloud, and Data Engineering." />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <meta name="description" content="Farhan Shahriyar — AI &amp; Data Engineer in Hamburg. Data governance, Azure Databricks and EU AI Act–ready AI systems. MSc Data Science @ TUHH." />
+    <meta property="og:title" content="Farhan Shahriyar — AI &amp; Data Engineer" />
+    <meta property="og:description" content="Governed data and AI systems on Azure — from Databricks pipelines to EU AI Act–ready LLM tools." />
+    <meta property="og:image" content="https://farhanshahriyar.vercel.app/images/profile-suit.jpg" />
+    <meta property="og:url" content="https://farhanshahriyar.vercel.app/" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

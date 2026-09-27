@@ -7,3 +7,4 @@ portfolio_clean.zip
 .DS_Store
 .npm
 .vite
+.playwright-mcp/
