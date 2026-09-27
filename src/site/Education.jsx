@@ -2,6 +2,7 @@ import SectionHead from "./SectionHead";
 import { useState } from "react";
 import { Lines, Fade } from "./Motion";
 import Logo from "./Logo";
+import { unlock } from "./game";
 
 const DEGREES = [
     {
@@ -52,7 +53,7 @@ function Degree({ d, i }) {
                         {d.stats.map(([v, k]) => <div key={k} className="neu-in-sm"><dt className="mono">{k}</dt><dd>{v}</dd></div>)}
                     </dl>
                     <ul className="deg-hl">{d.highlights.map(h => <li key={h}>{h}</li>)}</ul>
-                    <button className="key key-sm deg-flip" onClick={() => setFlipped(true)} tabIndex={flipped ? -1 : 0}>See modules ↻</button>
+                    <button className="key key-sm deg-flip" onClick={() => { setFlipped(true); unlock("flip"); }} tabIndex={flipped ? -1 : 0}>See modules ↻</button>
                 </article>
                 <article className="deg-face deg-back neu-lg" aria-hidden={!flipped}>
                     <div className="deg-back-head">

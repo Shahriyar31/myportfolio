@@ -27,12 +27,13 @@ export const Icon = ({ n, size = 20 }) => (
 
 export const SECTIONS = [
     ["home", "Home", "home"],
+    ["map", "World map", "route"],
     ["bring", "What I bring", "bring"],
-    ["how", "How I build", "shield"],
+    ["how", "Boss fight", "shield"],
     ["work", "Experience", "work"],
     ["skills", "Skills", "keys"],
     ["built", "Projects", "built"],
-    ["route", "My story", "route"],
+    ["quest", "My story", "lens"],
     ["education", "Education", "grad"],
     ["agent", "Ask my AI", "agent"],
     ["lens", "Photography", "lens"],

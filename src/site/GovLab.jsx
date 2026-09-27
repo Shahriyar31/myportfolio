@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 import { WaveTitle } from "./SectionHead";
 import { reducedMotion, scrollToId } from "./hooks";
+import { unlock } from "./game";
 
 /*
  * "Break it. Then fix it." — an AI hiring assistant with four governance
@@ -72,7 +73,7 @@ function Dial({ risk }) {
                 <circle cx="100" cy="100" r="9" fill="var(--fg)" />
             </svg>
             <div className="dial-read">
-                <span className="mono">Risk</span>
+                <span className="mono">Monster strength</span>
                 <b style={{ color: r > 65 ? "#ff5d5d" : r > 0.5 ? "#ffb547" : "#3ee08f" }}>{Math.round(r)}</b>
                 <span className="dial-verdict">{verdict}</span>
                 {r > 65 && <span className="dial-fine mono">EU AI Act fines: up to €15M or 3% of turnover</span>}
@@ -137,6 +138,7 @@ export default function GovLab() {
     const [sw, setSw] = useState({ privacy: false, guard: false, human: false, audit: false });
     const [touched, setTouched] = useState(false);
     const count = Object.values(sw).filter(Boolean).length;
+    useEffect(() => { if (count === 4) unlock("boss"); }, [count]);
     const risk = SWITCHES.reduce((n, s) => n + (sw[s.id] ? 0 : s.w), 0);
 
     // Scroll flips the switches in order until the visitor flips one themselves
@@ -154,7 +156,7 @@ export default function GovLab() {
         return () => { cancelAnimationFrame(raf); window.removeEventListener("scroll", on); };
     }, [touched]);
 
-    const flip = id => { setTouched(true); setSw(s => ({ ...s, [id]: !s[id] })); };
+    const flip = id => { setTouched(true); setSw(s => { if (s[id]) unlock("breaker"); return { ...s, [id]: !s[id] }; }); };
     const reset = () => { setTouched(true); setSw({ privacy: false, guard: false, human: false, audit: false }); };
 
     return (
@@ -163,7 +165,7 @@ export default function GovLab() {
                 <div className="lab-glow" aria-hidden="true" />
                 <div className="lab-inner wrap">
                     <header className="lab-head">
-                        <span className="head-kicker"><span className="head-n neu-sm mono">02</span><span className="mono">How I build</span><span className="head-rule" /></span>
+                        <span className="head-kicker"><span className="head-n neu-sm mono">02</span><span className="mono">Boss fight · How I build</span><span className="head-rule" /></span>
                         <WaveTitle text="What happens to AI without governance?" className="sm" />
                         <p className="head-sub">An AI hiring assistant, live. Flip the switches — or keep scrolling. Each one is something I build into every AI system.</p>
                     </header>
@@ -178,7 +180,7 @@ export default function GovLab() {
                             <div className={`lab-done neu ${count === 4 ? "is-on" : ""}`}>
                                 {count === 4 ? (
                                     <>
-                                        <b>Safe, fair and explainable — this is what I build.</b>
+                                        <b>🛡️ Boss defeated. Safe, fair and explainable — this is what I build.</b>
                                         <div className="hb-ctas">
                                             <button className="key key-sm key-accent" onClick={() => scrollToId("work")}>See where I've built it</button>
                                             <button className="key key-sm" onClick={reset}>Break it again</button>

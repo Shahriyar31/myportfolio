@@ -115,7 +115,7 @@ export function AgentSection() {
 const CONTEXT = {
     home: "What does Farhan do?", bring: "What value can he bring to my team?", how: "How does he make AI safe?",
     work: "What did he do at Nordex?", skills: "What's his strongest skill?", built: "What is Argus AI?",
-    route: "Why did he move to Germany?", education: "What did he study?", agent: "How does this AI work?",
+    quest: "Why did he move to Germany?", map: "What does Farhan do?", education: "What did he study?", agent: "How does this AI work?",
     lens: "What does he photograph?", hello: "Is he open to work?",
 };
 

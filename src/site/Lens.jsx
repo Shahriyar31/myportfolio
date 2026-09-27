@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lines } from "./Motion";
 import { reducedMotion, useMedia } from "./hooks";
 import PHOTOS from "../data/photos.json";
+import { unlock } from "./game";
 
 const CATS = ["All", "Street", "Mountains", "Wildlife", "Light", "Close-up"];
 const src = (n, big) => `/photos/${n}${big ? "" : "-sm"}.webp`;
@@ -107,7 +108,7 @@ export default function Lens() {
                                         key={p.n}
                                         className="ph"
                                         style={{ transform: `rotateY(${i * step}deg) translateZ(${R}px)`, animationDelay: `${(i % 12) * 40}ms` }}
-                                        onClick={() => { if (state.current.moved < 6) setOpen(list.indexOf(p)); }}
+                                        onClick={() => { if (state.current.moved < 6) { setOpen(list.indexOf(p)); unlock("photo"); } }}
                                         aria-label={`Open ${p.t || p.c + " photograph"}`}
                                     >
                                         <img src={src(p.n)} alt="" loading="lazy" decoding="async" draggable="false" />
