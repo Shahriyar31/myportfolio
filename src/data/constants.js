@@ -1,6 +1,6 @@
 // ── DATA ──────────────────────────────────────────────────────────────
 export const PROJECTS = [
-    { id: 1, title: "Internal AI Assistant", sub: "Nordex SE · Production", desc: "End-to-end RAG pipeline over 1,690 documents. Custom rapidfuzz tool router solving a core Azure AI Foundry limitation. 11× lower cost, 4× faster inference.", tags: ["Azure AI Foundry", "RAG", "GPT-4o", "Python", "Docker"], color: "#3B82F6", glow: "59,130,246", icon: "🤖", badge: "Production", link: null },
+    { id: 1, title: "Argus AI", sub: "EU AI Act Governance Platform", desc: "Open compliance platform that classifies AI systems under the EU AI Act, drafts GDPR DPIAs and checks OWASP LLM Top 10 risks. LangGraph agent with human-in-the-loop review, RAG over the regulation text in pgvector, and a hash-chained audit trail.", tags: ["FastAPI", "LangGraph", "pgvector", "Azure Container Apps", "Terraform"], color: "#3B82F6", glow: "59,130,246", icon: "⚖️", badge: "Live", link: "https://eu-ai-act-governance-platform.vercel.app" },
     { id: 2, title: "Digital Twin Dashboard", sub: "TUHH Research", desc: "Real-time anomaly detection & forecasting for a digital twin simulation. Full CI/CD via GitHub Actions + Docker.", tags: ["Python", "Dash", "Plotly", "Docker", "Scikit-learn"], color: "#8B5CF6", glow: "139,92,246", icon: "🔬", badge: "Research", link: "https://github.com/rkraeuter/DigitalTwinGF3" },
     { id: 3, title: "Poultry Shield", sub: "AI Veterinary Diagnostics", desc: "CNN achieving 97.51% diagnostic accuracy. Flask + OpenCV on AWS EC2, cutting diagnosis time by 40%.", tags: ["TensorFlow", "Flask", "AWS EC2", "OpenCV"], color: "#10B981", glow: "16,185,129", icon: "🐔", badge: "97.51% Acc.", link: "https://github.com/Shahriyar31/Poultry_Shield-Deep-Learning-for-Poultry-Coccidiosis-Diagnosis" },
     { id: 4, title: "Radiation Tracker", sub: "Real-Time Streaming", desc: "GCP streaming platform with Apache Kafka & Flink. Full stack containerised with Docker Compose.", tags: ["Apache Kafka", "Apache Flink", "GCP", "Docker", "Node.js"], color: "#F59E0B", glow: "245,158,11", icon: "☢️", badge: "Real-Time", link: "https://github.com/Shahriyar31/Radiaton_Tracking" },
@@ -8,22 +8,68 @@ export const PROJECTS = [
     { id: 6, title: "Book Analysis", sub: "NLP & Collaborative Filtering", desc: "EDA of Amazon Book Reviews using NLP and collaborative filtering.", tags: ["Python", "Pandas", "NLP", "Jupyter"], color: "#EC4899", glow: "236,72,153", icon: "📚", badge: "NLP", link: "https://github.com/Shahriyar31/Book-Analysis" },
 ];
 
+// ── EXPERIENCE ────────────────────────────────────────────────────────
+// Public-safe wording only: describe responsibilities and technologies,
+// never internal metrics, system names, vendors, incidents or decisions.
+// Title and scope mirror the CV so the two never disagree.
+export const EXPERIENCE = [
+    {
+        id: "nordex",
+        company: "Nordex Group",
+        role: "Working Student — Enterprise Data Management & AI Engineering",
+        date: "Aug 2025 — Present",
+        location: "Hamburg, DE",
+        current: true,
+        summary: "Part of the enterprise data team at a global wind-turbine manufacturer, working where data governance, the Azure data platform and applied AI meet.",
+        focus: [
+            { k: "AI & Data Governance", d: "Data governance and cataloguing with Microsoft Purview, plus AI governance work that maps use cases to EU AI Act and GDPR requirements." },
+            { k: "Azure Databricks", d: "Building and maintaining data pipelines and analytics workflows on Azure Databricks." },
+            { k: "Azure Cloud", d: "Working with the Azure services and DevOps practices the data and AI platform runs on." },
+            { k: "Applied AI", d: "Supporting AI model development and deployment with the data engineering team, including LLM and retrieval (RAG) prototypes and their evaluation." },
+        ],
+        tech: ["Azure Databricks", "Microsoft Purview", "Azure", "Azure DevOps", "Apache Spark", "Python", "SQL", "EU AI Act", "GDPR"],
+    },
+    {
+        id: "tuhh",
+        company: "Hamburg University of Technology",
+        role: "Research Project — Digital Twin Dashboard & MLOps",
+        date: "Mar 2025 — Present",
+        location: "Hamburg, DE",
+        current: false,
+        summary: "Monitoring dashboard for a digital-twin simulation, with ML for anomaly detection and forecasting shipped through a containerised CI/CD pipeline.",
+        focus: [
+            { k: "Monitoring", d: "Interactive Dash + Plotly dashboard visualising real-time simulation data." },
+            { k: "ML", d: "Anomaly detection and time-series forecasting for predictive insight into particle behaviour." },
+            { k: "MLOps", d: "GitHub Actions CI/CD for testing and deployment, fully containerised with Docker." },
+        ],
+        tech: ["Python", "Dash", "Plotly", "Scikit-learn", "Docker", "GitHub Actions"],
+    },
+];
+
+// What I'm focused on right now (landing page "Now" panel)
+export const NOW = [
+    ["AI Governance", "EU AI Act · GDPR · Purview"],
+    ["Data Platform", "Azure Databricks · Spark"],
+    ["Cloud", "Azure · DevOps · Terraform"],
+    ["Building", "Argus AI — compliance as code"],
+];
+
 export const SKILLS = {
-    "AI & MLOps": ["Azure AI Foundry", "RAG Pipelines", "LLM Evaluation", "MLflow", "TensorFlow", "Scikit-learn", "GPT-4o / GPT-5"],
-    "Data Engineering": ["Azure Databricks", "Apache Kafka", "Apache Spark", "Apache Flink", "ETL Pipelines", "Azure Purview"],
+    "AI & MLOps": ["RAG Pipelines", "LangGraph Agents", "LLM Evaluation", "MLflow", "TensorFlow", "Scikit-learn", "AI Governance"],
+    "Data Engineering": ["Azure Databricks", "Apache Spark", "Apache Kafka", "Apache Flink", "ETL Pipelines", "Microsoft Purview"],
     "Cloud & DevOps": ["Azure", "AWS", "GCP", "Docker", "Kubernetes", "GitHub Actions", "Terraform"],
     "Languages & DBs": ["Python", "SQL", "Bash", "PostgreSQL", "MongoDB", "MySQL"],
 };
 
-export const ROLES = ["AI & Data Engineer", "MLOps Practitioner", "MSc @ TUHH", "RAG Systems Builder", "Cloud Data Engineer"];
-export const SUGGS = ["What did you build at Nordex?", "Your strongest skill?", "Open to work?", "Research at TUHH?"];
+export const ROLES = ["AI & Data Engineer", "Data Governance on Azure", "Databricks Pipelines", "EU AI Act Tooling", "MSc @ TUHH"];
+export const SUGGS = ["What do you work on?", "Your strongest skill?", "Open to work?", "What is Argus AI?"];
 
 export const PHOTO_COUNT = 20;
 
 export const FACTS = [
     "I moved from India to Hamburg alone at 22 🇮🇳→🇩🇪",
-    "I built a RAG pipeline over 1,690 documents at Nordex ⚡",
-    "My LLM eval saved 11× in cost vs GPT-5 💸",
+    "I work on data governance & Databricks pipelines at Nordex ⚡",
+    "I built Argus AI, an EU AI Act compliance platform ⚖️",
     "I shoot landscape & street photography 📷",
     "I speak Bengali, English & basic German 🗣️",
     "My B.Tech CGPA was 8.73 / 10 🎓",
@@ -88,8 +134,8 @@ export const EDU_CHAPTERS = [
         degree: "M.Sc. Data Science",
         school: "Hamburg University of Technology (TUHH)",
         quote: "Moved countries, changed everything.",
-        body: "Left India alone at 22. Enrolled at TUHH and landed a Werkstudent role at Nordex SE within months — building production AI from scratch. Advanced ML and big data in the classroom. RAG pipelines and LLM evaluation in the real world.",
-        stats: [["1,690", "RAG docs"], ["11×", "Cost saved"], ["29", "Eval Q's"]],
+        body: "Left India alone at 22. Enrolled at TUHH and joined Nordex Group as a working student in enterprise data management & AI. Advanced ML and big data in the classroom; data governance, Databricks and applied AI at work.",
+        stats: [["M.Sc.", "Data Science"], ["2023", "Started"], ["DE", "Hamburg"]],
         pills: ["Machine Learning", "Big Data", "MLOps", "Statistics", "Digital Twins", "Deep Learning", "Data Eng."],
         accent: "a", icon: "🎓", live: true,
     },
