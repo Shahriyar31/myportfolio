@@ -6,6 +6,7 @@ import { ChatDock, AgentSection } from "./site/Chat";
 import Journey from "./site/Journey";
 import Hero from "./site/Hero";
 import Work from "./site/Work";
+import Education from "./site/Education";
 import Built from "./site/Built";
 import Toolkit from "./site/Toolkit";
 import Lens from "./site/Lens";
@@ -46,6 +47,7 @@ export default function App() {
                 <AgentSection />
                 <Journey />
                 <Work />
+                <Education />
                 <Built />
                 <Toolkit />
                 <Lens />

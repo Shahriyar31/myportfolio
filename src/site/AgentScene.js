@@ -60,7 +60,9 @@ export default class AgentScene {
         this.resize = this.resize.bind(this);
         this.tick = this.tick.bind(this);
         this.resize();
-        window.addEventListener("resize", this.resize);
+        // Track the canvas itself: layout can change its size without a window resize
+        this.ro = new ResizeObserver(() => this.resize());
+        this.ro.observe(canvas);
     }
 
     buildLights() {
@@ -159,6 +161,9 @@ export default class AgentScene {
     buildEdges() {
         this.flows = [];
         const sparkGeo = new THREE.SphereGeometry(0.06, 12, 8);
+        this.packetMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16), this.m.spark);
+        this.packetMesh.visible = false;
+        this.root.add(this.packetMesh);
         EDGES.forEach(([a, b, bend, dashed]) => {
             const A = V(NODES.find(n => n.id === a).pos), B = V(NODES.find(n => n.id === b).pos);
             const mid = A.clone().lerp(B, 0.5).add(V(bend));
@@ -197,6 +202,17 @@ export default class AgentScene {
 
     setPointer(x, y) { this.pointer.set(x, y); }
 
+    /** Highlight one step and fly a packet to it from the previous step. */
+    setActive(id) {
+        if (id === this.active) return;
+        const from = this.active && this.nodes[this.active], to = this.nodes[id];
+        this.active = id;
+        if (!from || !to) return;
+        const A = from.userData.base.clone(), B = to.userData.base.clone();
+        const mid = A.clone().lerp(B, 0.5).add(new THREE.Vector3(0, 0.9, 1.2));
+        this.packet = { curve: new THREE.QuadraticBezierCurve3(A, mid, B), t: 0 };
+    }
+
     resize() {
         const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
         if (!w || !h) return;
@@ -207,17 +223,18 @@ export default class AgentScene {
         this.camera.fov = this.narrow ? 42 : 30;
         this.camera.updateProjectionMatrix();
         const a = w / h;
-        this.root.position.set(this.narrow ? 0.1 : 4.9 + (a - 1.6) * 3.2, this.narrow ? 4.6 : -0.4, 0);
-        this.root.scale.setScalar(this.narrow ? 0.6 : Math.min(1, 0.78 + (a - 1.3) * 0.3));
+        this.root.position.set(this.narrow ? 0.1 : 5.3 + (a - 1.6) * 3.2, this.narrow ? 4.6 : -0.4, 0);
+        this.root.scale.setScalar(this.narrow ? 0.54 : Math.min(1, 0.78 + (a - 1.3) * 0.3));
     }
 
     projectLabel(id, el) {
         if (!el) return;
         const g = this.nodes[id];
-        const off = { agent: 1.4, lakehouse: 1.25, sources: 0.85, catalog: 0.95, policy: 1.3, answer: 0.7, ledger: 0.6 }[id] || 1;
-        const p = new THREE.Vector3(0, -off, 0).applyMatrix4(g.matrixWorld).project(this.camera);
+        // where each tag sits relative to its node (x, y in node space)
+        const [ox, oy] = { agent: [0, -1.4], lakehouse: [0, -1.25], sources: [0, -0.85], catalog: [2.1, 0.4], policy: [0, -1.3], answer: [0, -0.7], ledger: [0, -0.6] }[id] || [0, -1];
+        const p = new THREE.Vector3(ox, oy, 0).applyMatrix4(g.matrixWorld).project(this.camera);
         el.style.transform = `translate3d(${(p.x * 0.5 + 0.5) * this.canvas.clientWidth}px, ${(-p.y * 0.5 + 0.5) * this.canvas.clientHeight}px, 0)`;
-        el.classList.toggle("is-hot", this.heat[id] > 0.2 || this.hovered === id);
+        el.classList.toggle("is-hot", this.active === id || this.hovered === id);
     }
 
     tick() {
@@ -239,7 +256,7 @@ export default class AgentScene {
 
         NODES.forEach(n => {
             const g = this.nodes[n.id], u = g.userData;
-            this.heat[n.id] = Math.max(0, this.heat[n.id] - dt * 0.7);
+            this.heat[n.id] = Math.max(this.active === n.id ? 0.75 : 0, this.heat[n.id] - dt * 0.7);
             const h = Math.max(this.heat[n.id], this.hovered === n.id ? 0.6 : 0);
             g.position.y = u.base.y + Math.sin(t * 0.8 + u.phase) * 0.12;
             const s = 1 + h * 0.08;
@@ -255,6 +272,15 @@ export default class AgentScene {
                 if (c.userData.bob !== undefined) c.position.y = Math.sin(t * 1.4 + c.userData.bob) * 0.1;
             });
         });
+
+        if (this.packet) {
+            this.packet.t = Math.min(1, this.packet.t + dt * 1.1);
+            const e = 1 - Math.pow(1 - this.packet.t, 3);
+            this.packetMesh.visible = this.packet.t < 1;
+            this.packetMesh.position.copy(this.packet.curve.getPoint(e));
+            this.packetMesh.scale.setScalar(0.6 + Math.sin(Math.PI * e) * 0.8);
+            if (this.packet.t >= 1) this.packet = null;
+        }
 
         // Data flowing along the edges; faster where the trace is active
         this.flows.forEach(f => {
@@ -276,7 +302,7 @@ export default class AgentScene {
     dispose() {
         this.stop(); this.off?.();
         window.removeEventListener("agent-step", this.onStep);
-        window.removeEventListener("resize", this.resize);
+        this.ro?.disconnect();
         this.scene.environment?.dispose();
         this.scene.traverse(o => { o.geometry?.dispose(); if (o.material) [].concat(o.material).forEach(m => m.dispose()); });
         this.renderer.dispose();

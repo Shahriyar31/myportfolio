@@ -50,7 +50,9 @@ export default class GlobeScene {
         this.resize = this.resize.bind(this);
         this.tick = this.tick.bind(this);
         this.resize();
-        window.addEventListener("resize", this.resize);
+        // Track the canvas itself: layout can change its size without a window resize
+        this.ro = new ResizeObserver(() => this.resize());
+        this.ro.observe(canvas);
     }
 
     buildDots() {
@@ -249,7 +251,7 @@ export default class GlobeScene {
     stop() { this.running = false; this.renderer.setAnimationLoop(null); }
     dispose() {
         this.stop(); this.off?.();
-        window.removeEventListener("resize", this.resize);
+        this.ro?.disconnect();
         this.scene.traverse(o => { o.geometry?.dispose(); if (o.material) [].concat(o.material).forEach(m => { m.map?.dispose(); m.dispose(); }); });
         this.renderer.dispose();
     }

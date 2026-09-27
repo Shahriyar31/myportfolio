@@ -48,7 +48,7 @@ function Medallion() {
 }
 
 function Topology() {
-    const boxes = [["Databricks", 60, 50], ["ADLS storage", 200, 50], ["Key Vault", 60, 110], ["Purview", 200, 110]];
+    const boxes = [["Databricks", 60, 50], ["ADLS storage", 200, 50], ["Key Vault", 60, 110], ["Data catalogue", 200, 110]];
     return (
         <svg viewBox="0 0 460 200" className="dia">
             <rect className="dia-group" x="40" y="24" width="300" height="130" rx="18" />
@@ -122,9 +122,9 @@ const CARDS = [
     {
         kicker: "Aug 2025 — now · Hamburg", co: "Nordex Group", role: "Working Student — Enterprise Data Management & AI Engineering",
         body: "Part of the enterprise data team, working where data governance, the Azure data platform and applied AI meet.",
-        tags: ["Azure Databricks", "Microsoft Purview", "Azure DevOps", "Spark", "Python", "SQL", "EU AI Act", "GDPR"], dia: null, intro: true,
+        tags: ["Azure Databricks", "Azure DevOps", "Spark", "Python", "SQL", "EU AI Act", "GDPR"], dia: null, intro: true,
     },
-    { n: "01", title: "AI & data governance", body: "Cataloguing and classifying data with Microsoft Purview, tracing lineage, and helping map AI use cases to their EU AI Act and GDPR obligations.", Dia: Lineage },
+    { n: "01", title: "AI & data governance", body: "Cataloguing and classifying data, tracing lineage, and helping map AI use cases to their EU AI Act and GDPR obligations.", Dia: Lineage },
     { n: "02", title: "Databricks pipelines", body: "Building and maintaining data pipelines and analytics workflows on Azure Databricks — from raw ingestion to business-ready tables.", Dia: Medallion },
     { n: "03", title: "Azure platform & DevOps", body: "Working with the Azure services and DevOps practices the data and AI platform runs on — workspaces, storage, secrets and CI/CD.", Dia: Topology },
     { n: "04", title: "Applied AI", body: "Supporting AI model development and deployment with the data engineering team, including LLM and retrieval prototypes and how they're evaluated.", Dia: RagLoop },
@@ -162,7 +162,7 @@ export default function Work() {
         <section id="work" className="act wrap">
             <header className="act-head">
                 <span className="act-no neu mono">03</span>
-                <div className="act-kicker"><span className="mono">Work</span><span className="bn">কাজ</span></div>
+                <div className="act-kicker"><span className="mono">Work</span></div>
                 <h2 className="act-title"><Lines lines={["Governance, data,", <span className="accent" key="a">and AI — in production.</span>]} /></h2>
                 <p className="act-lede">What I work on, shown rather than listed. Every diagram is a simplified, public-safe sketch of the kind of system — never an employer's internals.</p>
             </header>

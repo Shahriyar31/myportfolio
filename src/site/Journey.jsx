@@ -13,7 +13,7 @@ const STEPS = [
     { from: 0.16, to: 0.32, year: "2022", place: "West Bengal", title: "The planning year", body: "A year of language classes, applications and portfolio work — and long walks photographing the streets I was about to leave behind.", photos: [45, 14, 20], stat: ["1", "year of prep"] },
     { from: 0.32, to: 0.58, year: "2023", place: "In the air", title: "One-way ticket", body: "Twenty-two, alone, one suitcase. Everything I knew on one side of the arc; everything I wanted on the other.", pass: true },
     { from: 0.58, to: 0.72, year: "2023", place: "Hamburg · Germany", title: "M.Sc. Data Science, TUHH", body: "Hamburg University of Technology: machine learning, big data, statistics — in a new country and a new language.", photos: [26, 35, 36], stat: ["M.Sc.", "Data Science"] },
-    { from: 0.72, to: 0.86, year: "2025", place: "Nordex Group · Hamburg", title: "Enterprise data & AI", body: "Working student in Enterprise Data Management & AI Engineering: data governance with Purview, Databricks pipelines, and AI governance for the EU AI Act.", work: true },
+    { from: 0.72, to: 0.86, year: "2025", place: "Nordex Group · Hamburg", title: "Enterprise data & AI", body: "Working student in Enterprise Data Management & AI Engineering: data governance, Databricks pipelines, and AI governance for the EU AI Act.", work: true },
     { from: 0.86, to: 1.01, year: "2026", place: "Now", title: "Building Argus AI", body: "An EU AI Act compliance platform I'm building on the side — and still, always, carrying a camera.", photos: [52, 34, 41], stat: ["7,004", "km from home"] },
 ];
 
@@ -49,7 +49,7 @@ function Pass({ km }) {
                 </div>
             </div>
             <div className="pass-stub neu-in-sm" aria-hidden="true">
-                <span className="bn">ফ</span>
+                <span className="pass-fs">FS</span>
                 <div className="barcode">{Array.from({ length: 26 }, (_, i) => <i key={i} style={{ width: (i * 7) % 3 + 1 }} />)}</div>
             </div>
         </div>
@@ -63,7 +63,7 @@ function WorkCard() {
                 {["gold", "silver", "bronze"].map(l => <span key={l} className={`jt-slab ${l}`}>{l}</span>)}
             </div>
             <ul className="jt-list">
-                {["Microsoft Purview", "Azure Databricks", "EU AI Act · GDPR", "Azure DevOps"].map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}
+                {["Azure Databricks", "Data governance", "EU AI Act · GDPR", "Azure DevOps"].map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}
             </ul>
         </div>
     );
@@ -153,7 +153,7 @@ export default function Journey() {
                     <header className="journey-head">
                         <span className="act-no neu mono">02</span>
                         <div>
-                            <div className="act-kicker"><span className="mono">The route</span><span className="bn">পথ</span></div>
+                            <div className="act-kicker"><span className="mono">The route</span></div>
                             <h2 className="journey-title">7,004 km<br /><span className="accent">in one story</span></h2>
                         </div>
                     </header>

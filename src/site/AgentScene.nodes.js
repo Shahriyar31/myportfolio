@@ -1,11 +1,12 @@
-// Node copy for the hero diagram — kept separate so the main bundle
-// can show tooltips without pulling in three.js.
+// Hero diagram content, in plain English first and technology second, so it
+// reads for recruiters as well as engineers. Kept apart from AgentScene so the
+// main bundle can render labels without pulling in three.js.
 export const NODES = [
-    { id: "sources", label: "Sources", pos: [-3.1, 3.3, 0], kind: "sources", section: "work", title: "Docs, tables & streams", text: "Raw material: documents, relational tables and event streams — Kafka and Flink in my streaming projects." },
-    { id: "lakehouse", label: "Lakehouse", sub: "Databricks", pos: [-3.0, 0.2, 0], kind: "lakehouse", section: "work", title: "Medallion lakehouse", text: "The medallion pattern — raw, cleaned, business-ready — on Azure Databricks with Spark. Databricks pipelines and analytics workflows are what I build and maintain at work." },
-    { id: "catalog", label: "Catalog & lineage", sub: "Purview", pos: [0.2, 3.6, -1.0], kind: "catalog", section: "work", title: "Governance catalogue", text: "Microsoft Purview: catalogue, classify and trace lineage so every dataset has an owner, a sensitivity label and a history." },
-    { id: "agent", label: "Agent", sub: "LangGraph", pos: [0.5, -0.4, 0], kind: "agent", section: "agent", title: "Tool-using agent", text: "An LLM that plans and calls tools — retrieval, SQL, checks — with human-in-the-loop on risky decisions, as in Argus AI." },
-    { id: "policy", label: "Policy gate", sub: "EU AI Act · GDPR", pos: [3.4, 0.6, 0.2], kind: "policy", section: "built", title: "Guardrails before anything ships", text: "Risk-tier the use case under the EU AI Act, check GDPR duties and OWASP LLM Top 10 risks — then let it through." },
-    { id: "answer", label: "Answer", pos: [3.9, 3.4, 0.4], kind: "answer", section: "agent", title: "Grounded output", text: "Cited, policy-checked answers — the only thing the user ever sees." },
-    { id: "ledger", label: "Audit ledger", pos: [3.6, -2.5, 0.3], kind: "ledger", section: "built", title: "Tamper-evident trail", text: "Every decision hash-chained with SHA-256, so any change to history is detectable. Ask my agent something and watch it write one." },
+    { id: "sources", n: 1, title: "Company data", tech: "Docs · databases · streams", logos: ["docs", "postgres", "kafka"], pos: [-3.1, 3.3, 0], kind: "sources", section: "work", text: "It starts with raw company data — documents, databases and live event streams." },
+    { id: "lakehouse", n: 2, title: "Clean & organise", tech: "Databricks · Spark", logos: ["databricks", "spark"], pos: [-3.0, 0.2, 0], kind: "lakehouse", section: "work", text: "Raw data becomes reliable, analysis-ready tables in a lakehouse on Azure Databricks." },
+    { id: "catalog", n: 3, title: "Govern", tech: "Catalogue · lineage · labels", logos: ["catalog", "lineage"], pos: [0.2, 3.6, -1.0], kind: "catalog", section: "work", text: "Every dataset gets an owner, a sensitivity label and a history you can trace." },
+    { id: "agent", n: 4, title: "AI agent", tech: "LangGraph · Python", logos: ["langchain", "python"], pos: [0.5, -0.4, 0], kind: "agent", section: "agent", text: "An AI agent reads that governed data, plans, and uses tools to find an answer." },
+    { id: "policy", n: 5, title: "Compliance check", tech: "EU AI Act · GDPR", logos: ["eu", "gdpr"], pos: [3.4, 0.6, 0.2], kind: "policy", section: "built", text: "Before anything goes out, it's checked for risk, privacy and security." },
+    { id: "answer", n: 6, title: "Trusted answer", tech: "Grounded · cited", logos: ["answer"], pos: [3.9, 3.4, 0.4], kind: "answer", section: "agent", text: "People get an answer they can trust, backed by sources." },
+    { id: "ledger", n: 7, title: "Audit log", tech: "Tamper-evident", logos: ["ledger"], pos: [3.6, -2.5, 0.3], kind: "ledger", section: "built", text: "Every step is recorded, so any decision can be explained later." },
 ];

@@ -16,6 +16,7 @@ const I = {
     moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
     doc: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></>,
     arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+    grad: <><path d="M2 9.5 12 5l10 4.5-10 4.5z" /><path d="M6 11.5v4.5c3.5 2.7 8.5 2.7 12 0v-4.5M22 9.5v5" /></>,
 };
 export const Icon = ({ n, size = 20 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{I[n]}</svg>
@@ -26,13 +27,14 @@ export const SECTIONS = [
     ["agent", "My agent", "agent"],
     ["route", "The Route", "route"],
     ["work", "Work", "work"],
+    ["education", "Education", "grad"],
     ["built", "Built", "built"],
     ["toolkit", "Toolkit", "keys"],
     ["lens", "Lens", "lens"],
     ["hello", "Hello", "hello"],
 ];
 
-/* ── Preloader: the ফ monogram draws itself once per session ── */
+/* ── Preloader: the FS monogram, once per session ── */
 export function Preloader({ onReveal }) {
     const skip = useRef((() => {
         try { return sessionStorage.getItem("fs-seen") === "1" || reducedMotion(); } catch { return reducedMotion(); }
@@ -55,7 +57,7 @@ export function Preloader({ onReveal }) {
     if (phase === "gone") return null;
     return (
         <div className={`pre ${phase === "exit" ? "is-exit" : ""}`} aria-hidden="true">
-            <div className="pre-dial neu-lg"><span className="pre-mark bn">ফ</span></div>
+            <div className="pre-dial neu-lg"><span className="pre-mark">FS</span></div>
             <span className="mono">Farhan Shahriyar · AI &amp; Data Engineer</span>
         </div>
     );
@@ -74,7 +76,7 @@ export function TopBar({ onOpenCv, onMenu, menu }) {
     return (
         <header className={`top ${hidden && !menu ? "is-hidden" : ""}`}>
             <a href="#home" className="brand" onClick={e => { e.preventDefault(); scrollToId("home"); }} aria-label="Farhan Shahriyar — back to top">
-                <span className="brand-mark neu-sm bn" aria-hidden="true">ফ</span>
+                <span className="brand-mark neu-sm" aria-hidden="true">FS</span>
                 <span className="brand-name">Farhan Shahriyar<small className="mono">AI &amp; Data Engineer</small></span>
             </a>
             <div className="top-right">

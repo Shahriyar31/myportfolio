@@ -22,12 +22,12 @@ export const EXPERIENCE = [
         current: true,
         summary: "Part of the enterprise data team at a global wind-turbine manufacturer, working where data governance, the Azure data platform and applied AI meet.",
         focus: [
-            { k: "AI & Data Governance", d: "Data governance and cataloguing with Microsoft Purview, plus AI governance work that maps use cases to EU AI Act and GDPR requirements." },
+            { k: "AI & Data Governance", d: "Data governance and cataloguing, plus AI governance work that maps use cases to EU AI Act and GDPR requirements." },
             { k: "Azure Databricks", d: "Building and maintaining data pipelines and analytics workflows on Azure Databricks." },
             { k: "Azure Cloud", d: "Working with the Azure services and DevOps practices the data and AI platform runs on." },
             { k: "Applied AI", d: "Supporting AI model development and deployment with the data engineering team, including LLM and retrieval (RAG) prototypes and their evaluation." },
         ],
-        tech: ["Azure Databricks", "Microsoft Purview", "Azure", "Azure DevOps", "Apache Spark", "Python", "SQL", "EU AI Act", "GDPR"],
+        tech: ["Azure Databricks", "Azure", "Azure DevOps", "Apache Spark", "Python", "SQL", "EU AI Act", "GDPR"],
     },
     {
         id: "tuhh",
@@ -48,7 +48,7 @@ export const EXPERIENCE = [
 
 // What I'm focused on right now (landing page "Now" panel)
 export const NOW = [
-    ["AI Governance", "EU AI Act · GDPR · Purview"],
+    ["AI Governance", "EU AI Act · GDPR · lineage"],
     ["Data Platform", "Azure Databricks · Spark"],
     ["Cloud", "Azure · DevOps · Terraform"],
     ["Building", "Argus AI — compliance as code"],
@@ -56,7 +56,7 @@ export const NOW = [
 
 export const SKILLS = {
     "AI & MLOps": ["RAG Pipelines", "LangGraph Agents", "LLM Evaluation", "MLflow", "TensorFlow", "Scikit-learn", "AI Governance"],
-    "Data Engineering": ["Azure Databricks", "Apache Spark", "Apache Kafka", "Apache Flink", "ETL Pipelines", "Microsoft Purview"],
+    "Data Engineering": ["Azure Databricks", "Apache Spark", "Apache Kafka", "Apache Flink", "ETL Pipelines", "Data Lineage"],
     "Cloud & DevOps": ["Azure", "AWS", "GCP", "Docker", "Kubernetes", "GitHub Actions", "Terraform"],
     "Languages & DBs": ["Python", "SQL", "Bash", "PostgreSQL", "MongoDB", "MySQL"],
 };

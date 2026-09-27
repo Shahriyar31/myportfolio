@@ -89,7 +89,7 @@ export function AgentSection() {
         <section id="agent" className="act wrap" ref={ref}>
             <header className="act-head">
                 <span className="act-no neu mono">01</span>
-                <div className="act-kicker"><span className="mono">Talk to my agent</span><span className="bn">প্রশ্ন করো</span></div>
+                <div className="act-kicker"><span className="mono">Talk to my agent</span></div>
                 <h2 className="act-title"><Lines lines={["A governed agent,", <span className="accent" key="a">working in the open.</span>]} /></h2>
                 <p className="act-lede">Ask it about my work. Every answer runs the same loop I build for real systems — intent, retrieval, generation, a policy check, and a hash-chained audit entry — and you can watch each step.</p>
             </header>

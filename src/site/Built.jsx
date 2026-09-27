@@ -88,8 +88,8 @@ export default function Built() {
     return (
         <section id="built" className="act wrap">
             <header className="act-head">
-                <span className="act-no neu mono">04</span>
-                <div className="act-kicker"><span className="mono">Built</span><span className="bn">নির্মাণ</span></div>
+                <span className="act-no neu mono">05</span>
+                <div className="act-kicker"><span className="mono">Built</span></div>
                 <h2 className="act-title"><Lines lines={["Things I've built,", <span className="accent" key="a">that you can poke.</span>]} /></h2>
             </header>
 

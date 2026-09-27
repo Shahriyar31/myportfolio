@@ -22,8 +22,8 @@ export default function Hello({ onOpenCv }) {
     return (
         <section id="hello" className="act hello wrap">
             <header className="act-head">
-                <span className="act-no neu mono">07</span>
-                <div className="act-kicker"><span className="mono">Hello</span><span className="bn">নমস্কার · Moin</span></div>
+                <span className="act-no neu mono">08</span>
+                <div className="act-kicker"><span className="mono">Hello · Moin</span></div>
                 <h2 className="act-title"><Lines lines={["Let's build AI", <span className="accent" key="a">people can trust.</span>]} /></h2>
                 <p className="act-lede">Open to full-time and working-student roles in AI governance, data engineering and agentic AI. It's {time} in Hamburg.</p>
             </header>
@@ -55,7 +55,7 @@ export default function Hello({ onOpenCv }) {
                 <span className="mono">
                     {ledger.length
                         ? <>My agent wrote {ledger.length} audit {ledger.length === 1 ? "entry" : "entries"} for you · last {ledger[0].hash.slice(0, 8)}…</>
-                        : <>Designed &amp; built in Hamburg · <span className="bn">ফ</span></>}
+                        : <>Designed &amp; built in Hamburg</>}
                 </span>
                 <button className="key key-sm" onClick={() => scrollToId("home")}>Back to top ↑</button>
             </footer>

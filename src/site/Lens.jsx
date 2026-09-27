@@ -86,8 +86,8 @@ export default function Lens() {
     return (
         <section id="lens" className="act">
             <header className="act-head wrap">
-                <span className="act-no neu mono">06</span>
-                <div className="act-kicker"><span className="mono">Through the lens</span><span className="bn">ছবি</span></div>
+                <span className="act-no neu mono">07</span>
+                <div className="act-kicker"><span className="mono">Through the lens</span></div>
                 <h2 className="act-title"><Lines lines={["Off-screen,", <span className="accent" key="a">I collect light.</span>]} /></h2>
                 <p className="act-lede">Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them; click any photo.</p>
             </header>
