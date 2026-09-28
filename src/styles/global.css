@@ -843,3 +843,7 @@ body:has(.world-tip.is-on) { cursor: pointer; }
 .hud-map svg:not(.is-far) .isl { stroke-width: 0.6; }
 .hud-map svg:not(.is-far) .route { stroke-width: 0.5; }
 .pane-stack { display: flex; flex-direction: column; gap: 12px; }
+
+/* frosted sections fade in from the world instead of starting with a hard edge */
+.act { -webkit-mask-image: linear-gradient(transparent, #000 110px); mask-image: linear-gradient(transparent, #000 110px); }
+.hud-found { font-size: 9.5px !important; color: var(--mute) !important; }

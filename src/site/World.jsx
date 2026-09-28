@@ -14,7 +14,7 @@ const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bri
 // top-down points of interest for the mini-map (x, z)
 const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [-16, -6], [-79.5, -61], [-75, -58]];
 
-function Hud({ hudRef, meRef, placeRef, chapRef, barRef }) {
+function Hud({ hudRef, meRef, placeRef, chapRef, barRef, exploredRef }) {
     return (
         <div ref={hudRef} className="hud neu" aria-hidden="true">
             <div className="hud-map neu-in-sm">
@@ -29,6 +29,7 @@ function Hud({ hudRef, meRef, placeRef, chapRef, barRef }) {
             <div className="hud-txt">
                 <span ref={chapRef} className="mono" />
                 <b ref={placeRef} />
+                <span ref={exploredRef} className="hud-found mono" />
                 <span ref={barRef} className="hud-bar">{CHAPTERS.map(([id]) => <i key={id} />)}</span>
             </div>
         </div>
@@ -40,7 +41,7 @@ export default function World() {
     const [tip, setTip] = useState(null);
     const tipRef = useRef(null);
     const tipVal = useRef(null);
-    const hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
+    const exploredRef = useRef(null), seen = useRef(new Set()), hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
 
     useEffect(() => {
         let scene, alive = true, raf = 0;
@@ -71,7 +72,7 @@ export default function World() {
                 const st = pose(el.dataset.station);
                 if (!st.follow) return st;
                 const pt = scene.flightPoint(Math.min(1, Math.max(0, flightT)));
-                return { ...st, l: pt, p: [pt[0] + 7, pt[1] + 3, pt[2] + 10] };
+                return { ...st, l: pt, p: [pt[0] + 6, pt[1] + 8, pt[2] - 7] }; // high on the south side: clear of the HQ at landing
             };
             const a = poseOf(A), b = poseOf(B);
             const far = narrow ? 1.75 : 1.35 * Math.max(1, Math.sqrt(1.7 / (innerWidth / innerHeight))); // squarer screens need more room
@@ -99,7 +100,14 @@ export default function World() {
             if (ch >= 0) {
                 const name = (t < 0.5 ? a : b).name || "";
                 chapRef.current.textContent = `${String(ch + 1).padStart(2, "0")} / ${String(CHAPTERS.length).padStart(2, "0")} · ${CHAPTERS[ch][1]}`;
-                if (placeRef.current.textContent !== name) placeRef.current.textContent = name;
+                if (placeRef.current.textContent !== name) {
+                    placeRef.current.textContent = name;
+                    // a light collect-them-all: every new place you reach counts
+                    if (name) seen.current.add(name);
+                    const all = new Set([...document.querySelectorAll("main [data-station]")].map(e => STATIONS[e.dataset.station]?.name).filter(Boolean));
+                    const n = [...seen.current].filter(x => all.has(x)).length;
+                    exploredRef.current.textContent = n >= all.size ? `All ${all.size} places explored ★` : `Explored ${n} / ${all.size} places`;
+                }
                 [...barRef.current.children].forEach((b, k) => { b.className = k < ch ? "is-done" : k === ch ? "is-cur" : ""; });
                 meRef.current.setAttribute("transform", `translate(${look[0].toFixed(1)} ${look[2].toFixed(1)})`);
                 // zoom the map to the island you are on; show both while travelling between them
@@ -147,7 +155,7 @@ export default function World() {
     return (
         <>
             <canvas ref={ref} className="world" aria-hidden="true" />
-            <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} />
+            <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} exploredRef={exploredRef} />
             <div ref={tipRef} className={`world-tip neu ${tip ? "is-on" : ""}`} aria-hidden="true">{tip?.label}{tip && SECTION_FOR[tip.id] && <span className="mono">click to visit</span>}</div>
         </>
     );

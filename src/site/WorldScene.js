@@ -47,15 +47,15 @@ export default class WorldScene {
         const c = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.82, metalness: 0, ...o });
         const glow = color => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.2, roughness: 0.4 });
         return {
-            grass: c(0x7fbf73, { flatShading: true }), grass2: c(0x6aab62, { flatShading: true }), rock: c(0xb89a7e, { flatShading: true }), rock2: c(0x96806c, { flatShading: true }),
-            sand: c(0xe6d3aa), path: c(0xe9dfca), white: c(0xf3f0ea), cream: c(0xeadcc3), roof: c(0xd9735a), roof2: c(0x6d7fa6), brick: c(0xc66a4a),
-            wood: c(0x94664a), leaf: c(0x4f9a5a, { flatShading: true }), leaf2: c(0x66b36a, { flatShading: true }), dark: c(0x39424e), steel: c(0xcfd6df, { roughness: 0.5, metalness: 0.2 }),
+            grass: c(0x9dbb8c, { flatShading: true }), grass2: c(0x8cac7e, { flatShading: true }), rock: c(0xc7b09a, { flatShading: true }), rock2: c(0x96806c, { flatShading: true }),
+            sand: c(0xe6d3aa), path: c(0xe9dfca), white: c(0xf3f0ea), cream: c(0xeadcc3), roof: c(0xc98f74), roof2: c(0x8391a8), brick: c(0xb98067),
+            wood: c(0x94664a), leaf: c(0x628f68, { flatShading: true }), leaf2: c(0x7fa67e, { flatShading: true }), dark: c(0x39424e), steel: c(0xcfd6df, { roughness: 0.5, metalness: 0.2 }),
             glass: new THREE.MeshStandardMaterial({ color: 0x7fb6d9, roughness: 0.15, metalness: 0.3, transparent: true, opacity: 0.88 }),
-            panel: c(0x2c4f7a, { roughness: 0.3, metalness: 0.4 }), red: c(0xe0524d), gold: c(0xf0c24e, { metalness: 0.3, roughness: 0.4 }),
+            panel: c(0x2c4f7a, { roughness: 0.3, metalness: 0.4 }), red: c(0xd26b63), gold: c(0xf0c24e, { metalness: 0.3, roughness: 0.4 }),
             bronze: c(0xb97c4d, { metalness: 0.25, roughness: 0.5 }), silver: c(0xc3ccd6, { metalness: 0.35, roughness: 0.4 }),
             accent: glow(0x73d4ff), accent2: glow(0xb69cff), warn: glow(0xff5d5d), ok: glow(0x3ee08f),
             window: new THREE.MeshStandardMaterial({ color: 0x33414f, emissive: 0xffc46b, emissiveIntensity: 0, roughness: 0.4 }),
-            cloud: c(0xffffff, { roughness: 1 }),
+            cloud: c(0xffffff, { roughness: 1, transparent: true, opacity: 0.6, depthWrite: false }),
         };
     }
     mesh(geo, mat, x = 0, y = 0, z = 0, parent) {
@@ -276,7 +276,7 @@ export default class WorldScene {
         const N = this.mobile ? 90 : 180;
         this.packets = [];
         const keys = ["wind", "solar", "factory", "toGate", "toTower", "toTown", "toHq", "attack"];
-        const geo = new THREE.SphereGeometry(0.11, 10, 8);
+        const geo = new THREE.SphereGeometry(0.075, 10, 8);
         this.pMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
         this.pInst = new THREE.InstancedMesh(geo, this.pMat, N); W.add(this.pInst);
         const colA = new THREE.Color(0x73d4ff), colB = new THREE.Color(0xb69cff), colR = new THREE.Color(0xff4d4d);
