@@ -765,7 +765,7 @@ body:has(.world-tip.is-on) { cursor: pointer; }
   padding: clamp(96px, 15svh, 150px) var(--gutter) 0; text-align: center; overflow: hidden; }
 /* soft pool of background colour behind the name, so it reads over the 3D world */
 .hx-stick::before { content: ""; position: absolute; left: 50%; top: 8%; width: min(1300px, 130vw); height: 62%; transform: translateX(-50%); z-index: -1; pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--bg) 35%, transparent), transparent); opacity: calc(1 - var(--p) * 1.5); }
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--bg) 78%, transparent), transparent); opacity: calc(1 - var(--p) * 1.5); }
 .hx-top { opacity: calc(1 - var(--p) * 3); }
 .hx-name { display: flex; flex-direction: column; align-items: center; margin-top: clamp(14px, 2.4svh, 28px);
   font-family: var(--f-display); font-weight: 600; font-size: clamp(64px, 13.2vw, 232px); line-height: 0.84; letter-spacing: -0.045em; }

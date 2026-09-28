@@ -7,14 +7,14 @@ import { scrollToId } from "./hooks";
 const STOPS = [
     {
         station: "lake", n: "01", kicker: "Data engineering & governance", where: "The data lake", title: "Data you can trust",
-        promise: "Raw data from machines, apps and sensors flows into a lakehouse that refines it — bronze, silver, gold — on Databricks and Spark, with clear ownership and lineage.",
+        promise: "Raw data from turbines, solar fields and factories flows into a lake that refines it — bronze, silver, gold — on Databricks and Spark, with clear ownership and lineage.",
         gets: ["Analysis-ready data", "Know where every number came from"],
         tools: [["databricks", "Databricks"], ["spark", "Spark"], ["sql", "SQL"], ["kafka", "Kafka"]],
         proof: [["Nordex data platform", "work"], ["Streaming projects", "built"]],
     },
     {
         station: "gate", n: "02", kicker: "AI governance & security", where: "The governance gate", title: "Ready for regulation, hard to trick",
-        promise: "Every flow passes a gate. I sort AI use cases by EU AI Act risk and map GDPR duties — and stop attacks like prompt injection and data theft right at the gate.",
+        promise: "Every flow passes a gate. I sort AI use cases by EU AI Act risk and map GDPR duties — and the red packets you see are attacks (prompt injection, data theft) that the gate stops.",
         gets: ["Compliance built in, not bolted on", "Guardrails and an audit trail for every decision"],
         tools: [["eu", "EU AI Act"], ["gdpr", "GDPR"], ["owasp", "OWASP LLM Top 10"], ["shield", "NIST AI RMF"], ["human", "Human-in-the-loop"]],
         proof: [["Governance lifecycle", "work"], ["Play the game ↓", "game"]],
@@ -31,8 +31,8 @@ const STOPS = [
 export default function Bring() {
     return (
         <section id="bring" aria-label="What I do">
-            <Opener station="overview" n="01" kicker="What I do" title="Follow the data — from raw to trustworthy AI"
-                sub="Data flows in, gets refined, passes a gate, and powers AI. Watch the shape change as you scroll — three stops, three things I do." />
+            <Opener station="overview" n="01" kicker="What I do" title="A valley where data becomes trustworthy AI"
+                sub="Follow the data: it flows in from the hills, is refined in the lake, checked at the gate, and powers the AI tower. Three stops — three things I do." />
             {STOPS.map((s, i) => (
                 <Stop key={s.n} station={s.station} side={i % 2 ? "right" : "left"}>
                     <div className="pane-kicker"><span className="scene-n">{s.n}</span><span className="mono">{s.kicker}</span><span className="pane-where mono">📍 {s.where}</span></div>

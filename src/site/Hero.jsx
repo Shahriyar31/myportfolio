@@ -82,9 +82,9 @@ export default function Hero({ ready }) {
                 <div className="hx-fade"><Fade play={ready} delay={900} className="hx-sub">
                     <p>AI & Data Engineer. I build <RoleTicker /></p>
                 </Fade></div>
-                <button className="hx-cue" onClick={() => scrollToId("bring")} aria-label="Scroll to begin">
+                <button className="hx-cue" onClick={() => scrollToId("bring")} aria-label="Scroll to enter the valley">
                     <span className="hx-cue-ring neu-sm"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" /></svg><i /></span>
-                    <span className="mono">Scroll to begin</span>
+                    <span className="mono">Scroll to enter the valley</span>
                 </button>
             </div>
         </section>
