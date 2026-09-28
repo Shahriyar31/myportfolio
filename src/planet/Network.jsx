@@ -59,64 +59,60 @@ function Logo({ ic, color }) {
 }
 const tint = ([, ic, color]) => (typeof ic === "string" ? color : `#${ic.hex}`);
 
+const GROUPS = [["AI & MLOps", 0, 7], ["Data Engineering", 7, 13], ["Cloud & DevOps", 13, 20], ["Languages & DBs", 20, 26]];
 export default function Network() {
     const ui = useUI(), [role, setRole] = useState(ROLES[0]), [hover, setHover] = useState(null), [hint, setHint] = useState(false);
-    const box = useRef(null), nodes = useRef({}), [lines, setLines] = useState({ w: 0, h: 0, e: [] });
+    const box = useRef(null), nodes = useRef({}), groups = useRef([]), [lines, setLines] = useState({ w: 0, h: 0, e: [] });
     const lit = new Set(role.skills), hidOn = new Set(HID.filter(([id]) => role.w[id] >= 0.5).map(([id]) => id));
-    // measure where every node is, then draw the connections between them
+    // measure where things are, then draw: lit skills → what I do → the role (only the path that matters)
     useLayoutEffect(() => {
         const el = box.current; if (!el) return;
         const measure = () => {
-            const b = el.getBoundingClientRect(), c = id => { const n = nodes.current[id]; if (!n) return null; const r = n.getBoundingClientRect(); return [r.left - b.left + r.width / 2, r.top - b.top + r.height / 2]; };
-            const vertical = matchMedia("(max-width: 860px)").matches, e = [];
-            S.forEach(([name, , , hs]) => hs.forEach(h => e.push({ k: `${name}>${h}`, a: c(`s:${name}`), b: c(`h:${h}`), from: name, to: h })));
-            HID.forEach(([h]) => ROLES.forEach(r => e.push({ k: `${h}>${r.id}`, a: c(`h:${h}`), b: c(`r:${r.id}`), from: h, to: r.id })));
-            setLines({ w: b.width, h: b.height, vertical, e: e.filter(x => x.a && x.b) });
+            const b = el.getBoundingClientRect(), rc = n => n.getBoundingClientRect();
+            const c = id => { const n = nodes.current[id]; if (!n) return null; const r = rc(n); return [r.left - b.left + r.width / 2, r.top - b.top + r.height / 2]; };
+            const e = [];
+            GROUPS.forEach(([, from, to], gi) => { const g = groups.current[gi]; if (!g) return; const gr = rc(g); S.slice(from, to).forEach(([name, , , hs]) => { const n = nodes.current[`s:${name}`]; if (!n) return; const r = rc(n); hs.forEach(h => { const t = c(`h:${h}`); if (t) e.push({ k: `${name}>${h}`, a: [gr.right - b.left, r.top - b.top + r.height / 2], b: t, from: name, to: h }); }); }); });
+            HID.forEach(([h]) => ROLES.forEach(r => { const a = c(`h:${h}`), t = nodes.current[`r:${r.id}`]; if (!a || !t) return; const tr = rc(t); e.push({ k: `${h}>${r.id}`, a, b: [tr.left - b.left, tr.top - b.top + tr.height / 2], from: h, to: r.id }); }));
+            setLines({ w: b.width, h: b.height, e });
         };
         measure(); const ro = new ResizeObserver(measure); ro.observe(el); document.fonts?.ready.then(measure);
         return () => ro.disconnect();
     }, []);
-    // the garden on the planet glows in the role's colour while this chapter is on screen
     useEffect(() => { const el = box.current; const io = new IntersectionObserver(([e]) => World.scene?.setRole(e.isIntersecting ? role.color : null), { threshold: 0.2 }); io.observe(el); return () => io.disconnect(); }, [role]);
     const pick = r => { setRole(r); World.scene?.setRole(r.color); World.scene?.once("emote-yes"); };
-    const path = ({ a: [x1, y1], b: [x2, y2] }) => lines.vertical ? `M${x1} ${y1} C${x1} ${(y1 + y2) / 2}, ${x2} ${(y1 + y2) / 2}, ${x2} ${y2}` : `M${x1} ${y1} C${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`;
+    const path = ({ a: [x1, y1], b: [x2, y2] }) => `M${x1} ${y1} C${x1 + (x2 - x1) * 0.5} ${y1}, ${x1 + (x2 - x1) * 0.5} ${y2}, ${x2} ${y2}`;
     const hs = hover && S.find(x => x[0] === hover);
     const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "near the photographer's tripod" };
     return (
-        <div className="pl-card pl-netcard is-drawn" style={{ "--rc": role.color }}>
+        <div className="pl-netcard" style={{ "--rc": role.color }}>
             <div className="pl-net-head">
                 <div><span className="pl-kick mono">07 · My toolkit · a neural network of skills</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
-                <p className="pl-p">Pick the role you are hiring for. The skills it needs light up, and the signal flows through what I do with them.</p>
+                <p className="pl-p">Pick a role. The skills it needs light up, and the signal flows through what I do with them, all the way to the job.</p>
             </div>
             <div className="pl-net" ref={box}>
                 <svg className="pl-net-svg" width={lines.w} height={lines.h} aria-hidden="true">
-                    {lines.e.map(x => {
-                        const on = (lit.has(x.from) && hidOn.has(x.to)) || (hidOn.has(x.from) && x.to === role.id), hov = hover && x.from === hover;
-                        const w = HID.some(h => h[0] === x.from) ? (ROLES.find(r => r.id === x.to).w[x.from] || 0.1) : 1;
-                        return <path key={x.k} d={path(x)} className={on ? "is-on" : hov ? "is-hov" : ""} style={{ opacity: on || hov ? 1 : 0.1 + w * 0.12 }} />;
-                    })}
+                    {lines.e.map(x => { const on = (lit.has(x.from) && hidOn.has(x.to)) || (hidOn.has(x.from) && x.to === role.id), hov = hover === x.from; if (!on && !hov) return null; return <path key={x.k} d={path(x)} className={on ? "is-on" : "is-hov"} />; })}
                 </svg>
-                <div className="pl-net-in" role="list" aria-label="Skills">
-                    {S.map(sk => (
-                        <button key={sk[0]} role="listitem" ref={el => { nodes.current[`s:${sk[0]}`] = el; }} className={`pl-neuron ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }}
-                            onPointerEnter={() => setHover(sk[0])} onPointerLeave={() => setHover(null)} onFocus={() => setHover(sk[0])} onBlur={() => setHover(null)} aria-label={`${sk[0]}${sk[4] ? `: used at ${sk[4]}` : ""}`}>
-                            <Logo ic={sk[1]} color={sk[2]} />
-                        </button>
+                <div className="pl-net-in">
+                    {GROUPS.map(([g, from, to], gi) => (
+                        <div key={g} className="pl-cluster" ref={el => { groups.current[gi] = el; }}>
+                            <span className="mono">{g}</span>
+                            <div>{S.slice(from, to).map(sk => (
+                                <button key={sk[0]} ref={el => { nodes.current[`s:${sk[0]}`] = el; }} className={`pl-skill ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }}
+                                    onPointerEnter={() => setHover(sk[0])} onPointerLeave={() => setHover(null)} onFocus={() => setHover(sk[0])} onBlur={() => setHover(null)} onClick={() => setHover(sk[0])}>
+                                    <span className="pl-skill-ic"><Logo ic={sk[1]} color={sk[2]} /></span>{sk[0]}
+                                </button>))}
+                            </div>
+                        </div>
                     ))}
                 </div>
-                <div className="pl-net-hid">
-                    {HID.map(([id, name]) => <div key={id} className={`pl-hidden ${hidOn.has(id) ? "is-on" : ""}`}><span>{name}</span><i ref={el => { nodes.current[`h:${id}`] = el; }} /></div>)}
+                <div className="pl-net-hid">{HID.map(([id, name]) => <div key={id} className={`pl-hidden ${hidOn.has(id) ? "is-on" : ""}`}><i ref={el => { nodes.current[`h:${id}`] = el; }} /><span>{name}</span></div>)}</div>
+                <div className="pl-net-out">
+                    <span className="mono">Hiring for…</span>
+                    <div role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} ref={el => { nodes.current[`r:${r.id}`] = el; }} className={`pl-role ${r.id === role.id ? "is-on" : ""}`} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}</div>
+                    <div className="pl-focus" aria-live="polite">{hs ? <><b>{hs[0]}</b><span>{hs[4] ? `Used at: ${hs[4]}` : "In my toolkit"}</span></> : <><b>{role.name} · {role.skills.length} skills</b><span>Hover a skill to see where I used it.</span></>}</div>
+                    <div className="pl-proofs" key={role.id}>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.1 + k * 0.08}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
                 </div>
-                <div className="pl-net-out" role="tablist" aria-label="Pick a role">
-                    {ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} ref={el => { nodes.current[`r:${r.id}`] = el; }} className={`pl-role ${r.id === role.id ? "is-on" : ""}`} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}
-                </div>
-            </div>
-            <div className="pl-net-foot">
-                <div className="pl-focus" aria-live="polite">
-                    {hs ? <><b>{hs[0]}</b><span>{hs[4] ? `Used at: ${hs[4]}` : "In my toolkit"}</span></>
-                        : <><b>{role.name}</b><span>{role.skills.length} skills lit · hover a logo to see where I used it</span></>}
-                </div>
-                <div className="pl-proofs" key={role.id}>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.1 + k * 0.08}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
             </div>
             <div className="pl-orbline">
                 <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} title={o.name}><i /></span>)}</div>

@@ -17,8 +17,8 @@ export const PLACES = {
     journey: { from: 176, cgec: 176, home: 192, runway: 199, to: 262 },   // college → home, getting ready → take-off → ocean → Hamburg
     tuhh: { theta: 272 },
     skills: { theta: 300 },
-    lens: { theta: 324 },
-    contact: { theta: 346 },
+    lens: { theta: 318 },
+    contact: { theta: 334 },
     oceanFrom: 204, oceanTo: 256,
 };
 

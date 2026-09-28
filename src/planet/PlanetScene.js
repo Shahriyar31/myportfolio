@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler.js";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import fontData from "three/examples/fonts/helvetiker_bold.typeface.json";
 import { PLACES, SKIES, ORBS, R } from "./world";
 
 /*
@@ -66,7 +69,7 @@ export default class PlanetScene {
     box(w, h, d, mat, parent, x, y, z, r = 0.06) { return this.mesh(new RoundedBoxGeometry(w, h, d, 2, r), mat, parent, x, y + h / 2, z); }
     cyl(rt, rb, h, mat, parent, x, y, z, s = 16) { return this.mesh(new THREE.CylinderGeometry(rt, rb, h, s), mat, parent, x, y + h / 2, z); }
     /** a group standing on the planet at (theta, back), upright */
-    spot(theta, back = 0, lift = 0) { const g = new THREE.Group(), d = dirAt(theta, back); g.position.copy(d).multiplyScalar(R + lift); g.quaternion.setFromUnitVectors(UP, d); this.planet.add(g); return g; }
+    spot(theta, back = 0, lift = 0) { const g = new THREE.Group(), d = dirAt(theta, back); g.position.copy(d).multiplyScalar(R + lift); g.quaternion.setFromEuler(new THREE.Euler(-back * D2R, 0, -theta * D2R, "ZYX")); this.planet.add(g); return g; }
 
     /* ── sky, light, planet ── */
     sky() {
@@ -117,7 +120,7 @@ export default class PlanetScene {
     places() {
         const M = this.M, P = PLACES;
         // hero: a signpost with my name, a bench, lamps
-        { const g = this.spot(P.home.theta, 7); this.signpost(g, "Farhan Shahriyar", "AI Engineer · Hamburg"); this.lamp(this.spot(P.home.theta - 5, -4)); this.lamp(this.spot(P.home.theta + 6, -4)); }
+        { this.nameLetters("FARHAN", P.home.theta, 5.5); }
         // what I do: the AI tower
         { const g = this.tower = this.spot(P.what.theta, 9);
             this.cyl(1.1, 1.5, 0.5, M.white, g, 0, 0, 0, 24); this.cyl(0.5, 0.8, 5.2, M.steel, g, 0, 0.5, 0, 24);
@@ -156,7 +159,7 @@ export default class PlanetScene {
         { const J = P.journey;
             this.cgec(this.spot(J.cgec, 7.5));
             const home = this.homeSpot = this.spot(J.home, 8); this.box(1.8, 1.3, 1.6, M.cream, home, 0, 0, 0); const roof = this.mesh(new THREE.ConeGeometry(1.5, 0.9, 4), M.red, home, 0, 1.75, 0); roof.rotation.y = Math.PI / 4;
-            this.palmSpots = [[J.cgec - 6, -3], [J.cgec + 5, 13], [J.home + 5, 13], [J.cgec - 11, 5], [J.home - 3, 12]];
+            this.palmSpots = [[J.cgec - 6, 13], [J.cgec + 5, 13], [J.home + 5, 13], [J.cgec - 11, 5], [J.home - 3, 12]];
             const run = this.spot(J.runway, 0, 0.01); const strip = this.mesh(new THREE.BoxGeometry(3.4, 0.04, 1.4), M.dark, run); strip.receiveShadow = true;
             for (let i = 0; i < 5; i++) this.box(0.4, 0.01, 0.08, M.white, run, -1.4 + i * 0.7, 0.04, 0, 0.005);
             const uni = this.uni = this.spot(P.tuhh.theta, 8); this.tuhh(uni);
@@ -175,7 +178,7 @@ export default class PlanetScene {
             this.fireflies = this.makeFireflies(P.lens.theta); }
         // contact: my desk (placeholder until furniture loads) and a mailbox
         { this.deskSpot = this.spot(P.contact.theta, 3.2); this.box(1.8, 0.08, 0.9, M.wood, this.deskSpot, 0, 0.75, 0); this.screenMat = new THREE.MeshStandardMaterial({ color: 0x0b1320, emissive: 0x5fd0ff, emissiveIntensity: 0.9 });
-            const mail = this.spot(P.contact.theta + 6, 5); this.cyl(0.06, 0.06, 1.1, M.dark, mail, 0, 0, 0, 6); this.mailBox = this.box(0.7, 0.5, 0.45, M.red, mail, 0, 1.1, 0, 0.12);
+            const mail = this.spot(P.contact.theta - 7, 5); this.cyl(0.06, 0.06, 1.1, M.dark, mail, 0, 0, 0, 6); this.mailBox = this.box(0.7, 0.5, 0.45, M.red, mail, 0, 1.1, 0, 0.12);
             this.envelope = this.box(0.5, 0.02, 0.34, M.white, mail, 0, 1.64, 0, 0.01); this.envelope.visible = false; }
         this.scatter();
     }
@@ -206,6 +209,23 @@ export default class PlanetScene {
         if (Math.floor(performance.now() / 400) % 2) { const last = L[L.length - 1]; x.fillStyle = "#fff"; x.fillRect(14 + last.ind * 14 + last.parts.reduce((a, p) => a + p[0] + 6, 0), 19 + (L.length - 1) * 15, 3, 9); }
         this.codeTex.needsUpdate = true;
     }
+    /** my name as big 3D letters standing on the planet; click one and it flips */
+    nameLetters(word, theta, back) {
+        const font = new FontLoader().parse(fontData), cols = [0xf4efe6, 0xf4efe6, 0xf4efe6, 0x5fd0ff, 0xa58cff, 0x5fd0ff];
+        this.letters = [...word].map((ch, i) => {
+            const geo = new TextGeometry(ch, { font, size: 1.05, depth: 0.32, curveSegments: 5, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.035, bevelSegments: 2 });
+            geo.computeBoundingBox(); const b = geo.boundingBox; geo.translate(-(b.max.x + b.min.x) / 2, 0, -0.16);
+            const mat = new THREE.MeshStandardMaterial({ color: cols[i], roughness: 0.55, metalness: 0.05, emissive: cols[i], emissiveIntensity: i > 2 ? 0.25 : 0.04 });
+            const half = (word.length - 1) / 2, g = this.spot(theta + (i - half) * 5.4 + Math.sign(i - half) * 3.2, back), holder = new THREE.Group(); g.add(holder);
+            const m = new THREE.Mesh(geo, mat); m.castShadow = !this.mobile; m.receiveShadow = true; holder.add(m); m.userData.letter = i; this.clickables.push(m);
+            holder.rotation.y = (i - (word.length - 1) / 2) * -0.06;
+            return { holder, m, t0: -10 };
+        });
+    }
+    kick(i) { const L = this.letters?.[i]; if (!L || this.clock.elapsedTime - L.t0 < 1.2) return; L.t0 = this.clock.elapsedTime; L.dir = Math.random() > 0.5 ? 1 : -1; }
+    /** where the camera looks: dy lifts the world, fx slides it, zoom leans in, focus flies to a point */
+    setView(v = {}) { this.viewGoal = { dy: 0, fx: 0, zoom: 0, focus: null, ...v }; }
+    focusPoint(f) { if (!f) return null; if (f.floor !== undefined) return this.floors?.[f.floor]?.getWorldPosition(V(0, 0, 0)); if (f.what === "lab") return this.labHolo?.getWorldPosition(V(0, 0, 0)); return null; }
     /** a flat sign with text (canvas texture) */
     sign(lines, w, h, { bg = "#f7f1e6", fg = "#1a2230", band, font = "'Clash Display', Arial Black, sans-serif" } = {}) {
         const cv = document.createElement("canvas"), W = 1024, H = Math.round(1024 * h / w); cv.width = W; cv.height = H; const x = cv.getContext("2d");
@@ -274,8 +294,13 @@ export default class PlanetScene {
     setPrep(v) { this.prep = v; }
     /** where a floor of the Nordex tower (or the AI core) is on screen, for cards popping out of it */
     screenOf(what, i = 0) {
-        const o = what === "floor" ? this.floors?.[i] : what === "core" ? this.core : what === "lab" ? this.labHolo : what === "mail" ? this.mailBox : null; if (!o) return null;
-        const v = o.getWorldPosition(V(0, 0, 0)).project(this.camera), r = this.canvas.getBoundingClientRect();
+        let w;
+        if (what === "me") { if (!this.me || !this.me.visible) return null; w = this.me.getWorldPosition(V(0, 0, 0)).add(V(0, this.sitting || this.base === "sit" ? 1.25 : 1.55, 0)); }
+        else if (what === "plane") { if (!this.planeG) return null; w = this.planeG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.7, 0)); }
+        else if (what === "tower") { w = this.tower.localToWorld(V(Math.cos(i) * 6.4, 3.3 + Math.sin(i * 2) * 0.2, Math.sin(i) * 2.4)); }
+        else { const o = what === "floor" ? this.floors?.[i] : what === "core" ? this.core : what === "lab" ? this.labHolo : what === "mail" ? this.mailBox : null; if (!o) return null; w = o.getWorldPosition(V(0, 0, 0)); }
+        const cam = w.clone().applyMatrix4(this.camera.matrixWorldInverse), v = w.project(this.camera), r = this.canvas.getBoundingClientRect();
+        if (what === "tower") return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height, depth: -cam.z };
         return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
     }
     signpost(g, title, sub) {
@@ -304,7 +329,7 @@ export default class PlanetScene {
     scatter() {
         const busy = [];
         Object.values(PLACES).forEach(p => { if (p.theta !== undefined) busy.push(p.theta); if (p.items) p.items.forEach(i => busy.push(i.theta)); });
-        busy.push(PLACES.journey.cgec, PLACES.journey.home, PLACES.journey.runway, PLACES.lab.theta, PLACES.contact.theta + 6);
+        for (let i = -3; i <= 3; i++) busy.push(PLACES.home.theta + i * 5); busy.push(PLACES.journey.cgec, PLACES.journey.home, PLACES.journey.runway, PLACES.lab.theta, PLACES.contact.theta - 7);
         this.treeDirs = []; const n = this.mobile ? 70 : 150;
         for (let t = 0; t < n * 6 && this.treeDirs.length < n; t++) {
             const d = V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(), theta = ((Math.atan2(d.x, d.y) / D2R) + 360) % 360;
@@ -469,6 +494,7 @@ export default class PlanetScene {
         const rect = this.canvas.getBoundingClientRect(), p = new THREE.Vector2((cx - rect.left) / rect.width * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1);
         this.ray.setFromCamera(p, this.camera);
         const hit = this.ray.intersectObjects(this.clickables, false)[0]; if (!hit) return null;
+        if (hit.object.userData.letter !== undefined) { this.kick(hit.object.userData.letter); return { letter: hit.object.userData.letter }; }
         if (hit.object.userData.orb !== undefined) { const o = this.orbs[hit.object.userData.orb]; if (o.got) return null; this.once("pick-up"); return { orb: o.id }; }
         let me = false; hit.object.traverseAncestors(a => { if (a === this.me) me = true; }); if (me) { this.once("jump"); return { me: true }; }
         if (hit.object === this.ground && this.lib && this.flowers < 40) { this.flowers++; const local = this.planet.worldToLocal(hit.point.clone()), d = local.clone().normalize();
@@ -488,7 +514,7 @@ export default class PlanetScene {
     resize() {
         const w = this.canvas.clientWidth, h = this.canvas.clientHeight; if (!w || !h) return;
         this.renderer.setSize(w, h, false); this.camera.aspect = w / h;
-        const portrait = w / h < 0.85; this.camera.fov = portrait ? 52 : 38;
+        const portrait = this.portrait = w / h < 0.85; this.camera.fov = portrait ? 52 : 38;
         // phones: the world sits in the top half, above the cards; big screens: centred
         this.camBase = portrait ? { p: V(0, R + 3.9, 17), l: V(0, R - 1.7, 0) } : { p: V(0, R + 2.9, 13.2), l: V(0, R + 1.6, 0) };
         this.camera.updateProjectionMatrix();
@@ -505,8 +531,14 @@ export default class PlanetScene {
         // camera: gentle parallax with the pointer
         this.smooth.lerp(this.pointer, 0.04);
         // the project park: the camera leans in while I code
-        this.zoomK = (this.zoomK || 0) + ((this.coding ? 1 : 0) - (this.zoomK || 0)) * (1 - Math.pow(0.1, dt));
-        if (this.camBase) { const z = this.zoomK, look = this.camBase.l.clone().add(V(0, -0.7 * z, 0)); this.camera.position.copy(this.camBase.p).lerp(look, 0.3 * z).add(V(this.smooth.x * 1.2, this.smooth.y * 0.5, 0)); this.camera.lookAt(look); }
+        const vg = this.viewGoal || { dy: 0, fx: 0, zoom: 0 }, vw = this.view ||= { dy: 0, fx: 0, zoom: 0, fk: 0, fp: V(0, R, 0) }, kk = 1 - Math.pow(0.08, dt);
+        vw.dy += (vg.dy - vw.dy) * kk; vw.fx += (vg.fx - vw.fx) * kk; vw.zoom += (vg.zoom - vw.zoom) * kk;
+        const fp = this.focusPoint(vg.focus); vw.fk += ((fp ? 1 : 0) - vw.fk) * (1 - Math.pow(0.12, dt)); if (fp) vw.fp.lerp(fp, fp && vw.fk < 0.05 ? 1 : kk);
+        if (this.camBase) {
+            const look = this.camBase.l.clone().add(V(vw.fx, vw.dy, 0)), pos = this.camBase.p.clone().add(V(vw.fx, vw.dy, 0)).lerp(look, 0.3 * vw.zoom);
+            if (vw.fk > 0.001) { const fl = vw.fp.clone(), fpos = vw.fp.clone().add(V(this.portrait ? 0 : -2.2, 0.6, this.portrait ? 12 : 9.5)); look.lerp(fl.add(V(this.portrait ? 0 : -2.2, this.portrait ? -2.2 : 0, 0)), vw.fk); pos.lerp(fpos, vw.fk); }
+            this.camera.position.copy(pos).add(V(this.smooth.x * 1.2, this.smooth.y * 0.5, 0)); this.camera.lookAt(look);
+        }
         // me
         if (this.me) {
             const flying = this.flight > 0.02 && this.flight < 0.98;
@@ -529,6 +561,7 @@ export default class PlanetScene {
             }
         }
         if (this.bag) { this.bagK += ((this.prep && this.me?.visible ? 1 : 0) - this.bagK) * 0.1; this.bag.visible = this.bagK > 0.01; this.bag.scale.setScalar(Math.max(0.001, this.bagK)); this.bag.rotation.y = Math.sin(t * 0.8) * 0.05; }
+        (this.letters || []).forEach(L => { const k = (t - L.t0) / 1.1; if (k < 0 || k > 1) { L.holder.position.y = 0; L.holder.rotation.x = 0; L.holder.scale.set(1, 1, 1); return; } const e = Math.sin(k * Math.PI); L.holder.position.y = e * 1.8; L.holder.rotation.x = k * Math.PI * 2 * L.dir; const sq = k > 0.85 ? 1 - Math.sin((k - 0.85) / 0.15 * Math.PI) * 0.25 : 1; L.holder.scale.set(1 + (1 - sq) * 0.5, sq, 1); });
         // project beacons and the skills garden
         (this.beacons || []).forEach((b, k) => { b.k += ((k === this.projOn ? 1 : 0) - b.k) * 0.08; b.ring.material.opacity = b.k * 0.9; b.beam.material.opacity = b.k * 0.32; b.ring.material.color.copy(this.projCol); b.beam.material.color.copy(this.projCol); b.ring.scale.setScalar(1 + Math.sin(t * 2.2) * 0.05); });
         this.roleK += ((this.roleOn ? 1 : 0) - this.roleK) * 0.08; this.pedMat.emissive.copy(this.roleCol).multiplyScalar(this.roleK * 0.9);
@@ -544,7 +577,7 @@ export default class PlanetScene {
                 const arr = this.trail.geometry.attributes.position.array; this.trailPts.forEach((p, i) => { arr[i * 3] = p.x - i * 0.07; arr[i * 3 + 1] = p.y - i * 0.004; arr[i * 3 + 2] = p.z; });
                 this.trail.geometry.setDrawRange(0, this.trailPts.length); this.trail.geometry.attributes.position.needsUpdate = true; this.trail.material.opacity = 0.55;
             } else {
-                const park = f >= 0.98 ? this.planeLanded ||= this.spot(PLACES.tuhh.theta - 7, 0) : this.planeParked;
+                const park = f >= 0.98 ? this.planeLanded ||= this.spot(PLACES.tuhh.theta - 15, 9) : this.planeParked;
                 if (this.planeG.parent !== park) { park.add(this.planeG); this.planeG.position.set(0, 0.45, 0); this.planeG.rotation.set(0, 0, 0); this.planeG.scale.setScalar(0.8); }
                 this.trail.material.opacity *= 0.9; this.trailPts.length = 0;
             }

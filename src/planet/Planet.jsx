@@ -10,6 +10,11 @@ import { scrollToId, reducedMotion } from "../site/hooks";
  * ← / → walk to the previous / next chapter.
  */
 export const World = { scene: null };
+/* each chapter can ask for its own camera: Views[id] = () => ({ dy, fx, zoom, focus }) */
+export const Views = {};
+/* a line for me to say right now (overrides the chapter's line for a few seconds) */
+let sayTimer = 0;
+export function say(text, ms = 3200) { clearTimeout(sayTimer); setUI({ say: text }); sayTimer = setTimeout(() => setUI({ say: null }), ms); }
 
 /* the education story, in slots of scroll: college → getting ready → the flight → Hamburg */
 export const JOURNEY = { spans: [1, 1, 1.4, 1], prep: [0.75, 1.85], takeoff: 2.05, land: 3.15 };
@@ -18,7 +23,7 @@ export const JOURNEY = { spans: [1, 1, 1.4, 1], prep: [0.75, 1.85], takeoff: 2.0
 export const PROJECT_ORDER = PLACES.projects.items.map(i => i.id);
 export function scrollToProject(k) {
     const el = document.getElementById("projects"); if (!el) return;
-    const y = el.getBoundingClientRect().top + scrollY + innerHeight * (+el.dataset.slot || 1) * (k + 0.15);
+    const y = el.getBoundingClientRect().top + scrollY + innerHeight * (+el.dataset.slot || 1) * k;
     window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.1 }) : scrollTo({ top: y, behavior: "smooth" });
 }
 
@@ -87,21 +92,23 @@ export default function Planet() {
             const pj = document.getElementById("projects");
             if (pj) {
                 const r = pj.getBoundingClientRect(), inView = r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5;
-                const k = Math.min(PROJECT_ORDER.length - 1, Math.max(0, Math.floor(slotsInto(pj) + 0.45)));
+                const k = Math.min(PROJECT_ORDER.length - 1, Math.max(0, Math.round(slotsInto(pj))));
                 if (k !== state.project) setUI({ project: k });
                 scene.setCoding(inView); scene.setProject(inView ? k : -1, PROJECTS.find(x => x.id === PROJECT_ORDER[k])?.color);
             }
+            scene.setView(Views[state.chapter]?.() || {});
             const cur = CHAPTERS.map(([id]) => document.getElementById(id)).filter(Boolean).reduce((best, el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5 ? el.id : best; }, state.chapter);
             if (cur !== state.chapter) setUI({ chapter: cur });
         };
         const loop = () => { direct(); raf = requestAnimationFrame(loop); };
         const move = e => scene?.setPointer(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-        const onDown = e => { down = e.target === ref.current || e.target.closest?.(".pl-sec, .pl-stage, .pl-deck") === e.target ? [e.clientX, e.clientY] : null; };
+        const onDown = e => { down = e.target === ref.current || e.target.closest?.(".pl-sec, .pl-stage, .pl-deck, .pl-show-stage, .pl-what-stage, .pl-what-sec, .pl-show-track, .pl-hero-copy") === e.target ? [e.clientX, e.clientY] : null; };
         const onUp = e => {
             if (!down || !scene || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;
             const r = scene.click(e.clientX, e.clientY); if (!r) return;
             if (r.orb) setTimeout(() => collect(r.orb), 400);
-            else if (r.me) toast(["Hi! 👋 Scroll to walk with me.", "Wheee!", "Try the arrow keys too."][Math.floor(Math.random() * 3)]);
+            else if (r.me) say(["Hi! 👋 Scroll to walk with me.", "Wheee!", "Try the arrow keys too."][Math.floor(Math.random() * 3)]);
+            else if (r.letter !== undefined) say(["Hey, those are my letters! 😄", "Careful, that's my name!", "Boing! Try the others."][Math.floor(Math.random() * 3)]);
         };
         const key = e => {
             if (e.target.closest?.("input, textarea, [contenteditable]") || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -128,6 +135,8 @@ export default function Planet() {
         <>
             <canvas ref={ref} className="pl-world" aria-hidden="true" />
             <Hud ui={ui} />
+            <Bubble ui={ui} />
+            <Welcome />
         </>
     );
 }
@@ -147,5 +156,64 @@ function Hud({ ui }) {
             {open && <div className="pl-orbs-tip pl-glass" role="status">Five glowing skill orbs are hidden on my planet. Click one when you see it. {ui.orbs.length === ORBS.length ? "You found them all: neural vision is yours." : "Find all five to unlock neural vision."}</div>}
             <div className={`pl-toast pl-glass ${ui.toast ? "is-on" : ""}`} role="status" aria-live="polite">{ui.toast}</div>
         </>
+    );
+}
+
+/* what I say in each chapter (and at each stop of the journey) */
+const LINES = {
+    home: "Hey there, welcome to my little planet! 👋",
+    what: "Here's what I actually do. Three things, done properly.",
+    break: "Go on, try to break my AI. I won't mind.",
+    experience: "Happy to walk you through my work at Nordex. Let's ride up!",
+    projects: "Things I've built. Some are early work, but I learned from every one.",
+    contact: "Thanks for walking with me. Fancy writing me a letter?",
+};
+const JOURNEY_LINES = ["Welcome to my college tour: Cooch Behar, where it all started.", "A year of forms, visas and packing. Worth it.", "Off to Germany! Wish me luck ✈", "Landed! Hamburg, rain and all. 🌧"];
+function journeyStop(p) { const [a, b] = JOURNEY.spans; return p < a - 0.1 ? 0 : p < a + b - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; }
+/* a speech bubble above my head; it follows me (or the plane) around the screen */
+function Bubble({ ui }) {
+    const el = useRef(null), [shown, setShown] = useState(""), text = ui.say || (ui.chapter === "journey" ? JOURNEY_LINES[journeyStop(ui.journey ?? 0)] : LINES[ui.chapter]) || "";
+    const flying = ui.chapter === "journey" && journeyStop(ui.journey ?? 0) === 2;
+    useEffect(() => { // type it out
+        if (reducedMotion()) { setShown(text); return; }
+        setShown(""); let i = 0; const id = setInterval(() => { i += 2; setShown(text.slice(0, i)); if (i >= text.length) clearInterval(id); }, 28); return () => clearInterval(id);
+    }, [text]);
+    useEffect(() => {
+        let raf = 0;
+        const loop = () => {
+            raf = requestAnimationFrame(loop); const b = el.current, s = World.scene; if (!b) return;
+            const at = s?.screenOf(flying ? "plane" : "me");
+            if (!at || !text || state.neural || at.y < 40 || at.y > innerHeight + 10 || at.x < -20 || at.x > innerWidth + 20) { b.style.opacity = "0"; return; }
+            const hit = document.elementFromPoint(Math.max(0, Math.min(innerWidth - 1, at.x)), Math.max(0, Math.min(innerHeight - 1, at.y + 18)));
+            if (hit && hit.tagName !== "CANVAS" && !hit.matches?.("main, body, .pl-sec, .pl-deck, .pl-stage, .pl-show-stage, .pl-show-track, .pl-show-slot, .pl-what-sec, .pl-what-stage, .pl-hero, .pl-desk, .pl-in, .pl-sats-row, .pl-beams, .pl-exp-line, .pl-exp-line path")) { b.style.opacity = "0"; return; }
+            const w = b.offsetWidth, left = Math.max(12, Math.min(innerWidth - w - (innerWidth > 860 ? 110 : 12), at.x - 26)), y = Math.max(80, at.y - 14);
+            b.style.opacity = "1"; b.style.transform = `translate(${left}px, ${y}px) translateY(-100%)`; b.style.setProperty("--tail", `${Math.min(w - 16, Math.max(16, at.x - left))}px`);
+        };
+        raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+    }, [flying, text]);
+    return <div ref={el} className="pl-bubble" aria-live="polite" role="status">{shown}<span className="pl-caret" aria-hidden="true" /></div>;
+}
+
+/* the first time someone visits: a short, honest hello */
+function Welcome() {
+    const [on, setOn] = useState(false);
+    useEffect(() => {
+        let seen = false; try { seen = !!localStorage.getItem("fs-welcomed"); } catch { /* private mode */ }
+        if (seen) return;
+        const id = setInterval(() => { if (!document.body.classList.contains("is-locked") && World.scene) { clearInterval(id); setTimeout(() => { setOn(true); World.scene?.once("emote-yes"); }, 1400); } }, 300);
+        return () => clearInterval(id);
+    }, []);
+    const close = () => { setOn(false); try { localStorage.setItem("fs-welcomed", "1"); } catch { /* private mode */ } };
+    if (!on) return null;
+    return (
+        <div className="pl-welcome" role="dialog" aria-label="Welcome">
+            <div className="pl-welcome-box">
+                <span className="pl-wave" aria-hidden="true">👋</span>
+                <h2>Hi, I'm Farhan.</h2>
+                <p>Thanks for stopping by. I'm an AI engineer at the start of my career, and I'm still learning something new every week.</p>
+                <p>I built this little planet to show you what I work on, honestly and without the buzzwords. Walk with me, or take the 60-second read if you're short on time.</p>
+                <div className="pl-ctas"><button className="pl-btn is-main" onClick={close}>Walk with me →</button><button className="pl-btn" onClick={() => { close(); dispatchEvent(new Event("quick-read")); }}>Quick read · 60 s</button></div>
+            </div>
+        </div>
     );
 }
