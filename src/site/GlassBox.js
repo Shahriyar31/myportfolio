@@ -49,6 +49,7 @@ export default class GlassBox {
         this.inner.add(this.dots);
         this.dummy = new THREE.Object3D();
 
+        this.intro = 0; this.spinV = 0; this.spin = 0; this.focusIdx = -1; this.mood = 0; this.goalMood = 0;
         this.explode = 0; this.goalExplode = 0; this.pointer = new THREE.Vector2(); this.smooth = new THREE.Vector2();
         this.clock = new THREE.Clock(); this.tick = this.tick.bind(this); this.resize = this.resize.bind(this);
         this.ro = new ResizeObserver(this.resize); this.ro.observe(canvas); this.resize();
@@ -62,6 +63,12 @@ export default class GlassBox {
         this.goalExplode = explode;
     }
     setPointer(x, y) { this.pointer.set(x, y); }
+    /** light up one layer (hovering a card), -1 for none */
+    focus(i) { this.focusIdx = i; }
+    /** scroll speed gives the box a spin */
+    kick(v) { this.spinV += Math.max(-4, Math.min(4, v)) * 0.004; }
+    /** 1 = verified: the edges glow green */
+    setMood(m) { if (m && !this.goalMood) this.plates.forEach((_, i) => setTimeout(() => this.flash(i, "#3ee08f"), i * 140)); this.goalMood = m; }
     plateY(i) { return BASE_Y[i] * (1 + this.explode * 0.75); }
 
     flash(i, hex) { const u = this.plates[i].userData; u.flash = 1; u.flashCol.set(hex); }
@@ -105,14 +112,24 @@ export default class GlassBox {
         if (this.goal) { const e = this.goal.snap ? 1 : 1 - Math.pow(0.004, dt); g.position.x += (this.goal.x - g.position.x) * e; g.position.y += (this.goal.y - g.position.y) * e; g.scale.setScalar(g.scale.x + (this.goal.s - g.scale.x) * e); }
         this.explode += (this.goalExplode - this.explode) * (1 - Math.pow(0.01, dt));
         this.smooth.lerp(this.pointer, 0.06);
-        g.rotation.y = t * 0.18 + this.smooth.x * 0.5; g.rotation.x = 0.28 - this.smooth.y * 0.25;
-        this.glassMat.opacity = 0.1 * (1 - this.explode * 0.4);
-        this.edges.material.opacity = 0.55 * (1 - this.explode * 0.5);
+        // intro: the box assembles itself — layers drop in one by one, then the glass appears
+        this.intro = Math.min(1, this.intro + dt / 2.6);
+        const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3), glassIn = ease((this.intro - 0.55) / 0.45);
+        this.spinV *= Math.pow(0.08, dt); this.spin += this.spinV;
+        g.rotation.y = t * 0.18 + this.spin + this.smooth.x * 0.5 + (1 - ease(this.intro)) * 1.6; g.rotation.x = 0.28 - this.smooth.y * 0.25;
+        this.mood += (this.goalMood - this.mood) * (1 - Math.pow(0.05, dt));
+        this.glassMat.opacity = 0.1 * (1 - this.explode * 0.4) * glassIn;
+        this.edges.material.opacity = (0.55 * (1 - this.explode * 0.5) + this.mood * 0.4) * glassIn;
+        this.edges.material.color.setRGB(0.62 - this.mood * 0.38, 0.89, 1 - this.mood * 0.44);
+        this.dots.visible = this.intro > 0.7;
         this.plates.forEach((p, i) => {
-            p.position.y = this.plateY(i);
+            const k = ease(this.intro * 1.9 - i * 0.28); // bottom layer first
+            p.position.y = this.plateY(i) + (1 - k) * 3.2; p.scale.setScalar(0.6 + k * 0.4); p.material.opacity = 0.6 * k;
             const u = p.userData; u.flash = Math.max(0, u.flash - dt * 1.3);
             p.material.emissive.copy(u.col).lerp(u.flashCol, u.flash); p.material.color.copy(p.material.emissive);
-            p.material.emissiveIntensity = 0.45 + u.flash * 1.6 + Math.sin(t * 2 + i) * 0.05;
+            const f = this.focusIdx < 0 ? 0.45 : i === this.focusIdx ? 1.5 : 0.15;
+            u.glow = (u.glow ?? 0.45) + (f - (u.glow ?? 0.45)) * (1 - Math.pow(0.02, dt));
+            p.material.emissiveIntensity = u.glow + u.flash * 1.6 + Math.sin(t * 2 + i) * 0.05;
         });
         const top = this.plateY(3) + 0.5, wall = this.plateY(0);
         this.dotData.forEach((d, i) => {

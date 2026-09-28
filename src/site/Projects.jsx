@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Head } from "./Hero";
-import { Fade } from "./Motion";
+import { Fade, CountUp } from "./Motion";
 import Preview from "./Previews";
 import { PROJECTS } from "../data/constants";
 
@@ -33,9 +33,9 @@ export default function Projects() {
                         <div className="v-ctas"><a className="v-btn is-main" href={argus.link} target="_blank" rel="noreferrer">Open Argus AI ↗</a></div>
                     </div>
                     <ul className="v-feature-facts">
-                        <li><b>4</b>EU AI Act risk tiers, with article-level reasons</li>
-                        <li><b>10</b>OWASP LLM risks checked</li>
-                        <li><b>1</b>human in the loop for high-risk cases</li>
+                        <li><CountUp to="4" />EU AI Act risk tiers, with article-level reasons</li>
+                        <li><CountUp to="10" />OWASP LLM risks checked</li>
+                        <li><CountUp to="1" />human in the loop for high-risk cases</li>
                         <li><b>SHA-256</b>hash-chained audit trail</li>
                     </ul>
                 </Fade>

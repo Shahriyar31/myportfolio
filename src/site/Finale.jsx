@@ -17,7 +17,8 @@ export default function Finale({ onOpenCv, onQuick }) {
     return (
         <section id="contact" className="v-sec v-finale">
             <div className="v-wrap">
-                <Head n="06" kicker="Your verdict" title={["So, can you trust", <>this AI engineer?</>]} />
+                <div className="v-glass-end" data-glass data-explode="0" data-mood={verified ? "ok" : ""} aria-hidden="true" />
+                <Head n="06" kicker="Your verdict" title={["So, can you trust", "this AI engineer?"]} />
                 <Fade className="v-verdict">
                     <div className="v-verdict-l">
                         <span className="mono">What you checked</span>

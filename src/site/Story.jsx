@@ -22,7 +22,7 @@ export default function Story() {
                     <Head n="05" kicker="The person" title="From one side of the world to the other." />
                     <Fade delay={150}><figure className="v-portrait"><img src="/images/profile-suit.jpg" alt="Farhan Shahriyar" width="480" height="600" loading="lazy" /><figcaption className="mono"><span>Farhan Shahriyar</span><span>Hamburg</span></figcaption></figure></Fade>
                 </div>
-                <ol className="v-beats">
+                <ol className="v-beats" data-draw>
                     {BEATS.map(([y, where, what, d], i) => (
                         <Fade as="li" key={y} delay={i * 120}>
                             <span className="v-beat-y mono">{y}</span>
@@ -33,12 +33,14 @@ export default function Story() {
                 </ol>
                 <Fade className="v-photos-head"><p>When I'm not building, I shoot landscape and street photography.</p></Fade>
             </div>
-            <div className="v-photos" role="list">
+            <div className="v-photos" data-draw>
+              <div className="v-photos-track" role="list">
                 {strip.map((p, i) => (
                     <button key={p.n} role="listitem" className="v-photo" onClick={() => setIdx(i)} aria-label={`Open photo: ${p.t || p.c}`}>
                         <img src={photoSrc(p.n)} alt={p.t || `${p.c} photograph`} loading="lazy" width={p.w} height={p.h} />
                     </button>
                 ))}
+              </div>
             </div>
             {idx >= 0 && <Lightbox list={strip} idx={idx} setIdx={setIdx} />}
         </section>

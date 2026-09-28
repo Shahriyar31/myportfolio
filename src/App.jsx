@@ -12,6 +12,7 @@ import Story from "./site/Story";
 import Finale from "./site/Finale";
 import QuickRead from "./site/QuickRead";
 import GlassStage from "./site/GlassStage";
+import Fx from "./site/Fx";
 import { reducedMotion } from "./site/hooks";
 
 /*
@@ -54,6 +55,7 @@ export default function App() {
             <div className="v-bg" aria-hidden="true" />
             <div className="v-progress" aria-hidden="true"><i /></div>
             <GlassStage />
+            <Fx />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onQuick={openQuick} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} onQuick={openQuick} />

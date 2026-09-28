@@ -54,7 +54,7 @@ export default function Challenge() {
     return (
         <section id="challenge" className="v-sec">
             <div className="v-wrap">
-                <Head n="01" kicker="The challenge" title={["Don't trust my CV.", <><em>Try to break my AI.</em></>]}
+                <Head n="01" kicker="The challenge" title={["Don't trust my CV.", <em>Try to break my AI.</em>]}
                     sub="It guards a secret code. Make it leak, or make it break its rules. Watch your message climb the glass box: four real layers of defence, and you can see all of them." />
                 <div className="v-console">
                     <div className="v-glass-slot" data-glass data-explode="0.75">

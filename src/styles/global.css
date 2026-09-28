@@ -1485,3 +1485,55 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 .v-glass-cap .v-stamp { top: -16px; right: 14px; bottom: auto; }
 .v-glass-cap small { padding-right: 0; }
 @media (max-width: 860px) { .v-slot-hint { display: none; } }
+
+/* ══ motion layer ═══════════════════════════════════════════════════════ */
+/* letter-by-letter 3D reveal */
+.chars { perspective: 800px; }
+.chl { display: block; }
+.chw { display: inline-block; white-space: nowrap; }
+.ch { display: inline-block; opacity: 0; transform: translateY(0.55em) rotateX(-75deg); transform-origin: 50% 100%; filter: blur(8px);
+  transition: opacity .7s var(--ease), transform .9s var(--ease), filter .7s var(--ease); }
+.chars.is-in .ch { opacity: 1; transform: none; filter: none; }
+.v-h1 em .ch, .v-h2 em .ch { background: linear-gradient(100deg, var(--accent), #b69cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v-h1 em, .v-h2 em { background: none; -webkit-background-clip: initial; background-clip: initial; color: inherit; }
+
+/* glowing cursor (desktop) */
+.v-cursor { position: fixed; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; z-index: 3000; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(circle, rgba(115,212,255,.9), rgba(115,212,255,.15) 60%, transparent 70%); transition: transform .25s var(--ease), opacity .3s; }
+@media (hover: none), (pointer: coarse) { .v-cursor { display: none; } }
+[data-theme="light"] .v-cursor { mix-blend-mode: multiply; background: radial-gradient(circle, rgba(11,107,143,.6), transparent 70%); }
+
+/* cards: tilt toward the pointer + a light that follows it */
+.v-card, .v-proj, .v-feature, .v-early { position: relative; transition: transform .45s var(--ease), border-color .3s; transform-style: preserve-3d; }
+.v-card::after, .v-proj::after, .v-feature::after, .v-early::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--accent) 16%, transparent), transparent 60%); }
+.v-card:hover::after, .v-proj:hover::after, .v-feature:hover::after, .v-early:hover::after { opacity: 1; }
+.v-card > *, .v-proj > *, .v-feature > * { position: relative; z-index: 1; }
+.magnetic { display: inline-block; transition: transform .35s var(--ease); }
+
+/* the glass box's other stops */
+.v-what-top { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: center; }
+.v-glass-what { height: 360px; }
+.v-glass-end { float: right; width: 300px; height: 300px; margin: -20px 0 0 24px; }
+
+/* timeline & story beats draw themselves as you scroll */
+.v-timeline { position: relative; }
+.v-timeline::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 100%; background: linear-gradient(var(--accent), #b69cff); transform-origin: top; transform: scaleY(calc(var(--p, 0) * 1.6)); opacity: .8; }
+.v-timeline .v-job { padding-left: 24px; }
+.v-beats li { position: relative; border-top-color: var(--line); }
+.v-beats li::before { content: ""; position: absolute; left: 0; top: -2px; height: 2px; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(clamp(0, calc(var(--p, 0) * 3 - 0.4), 1)); }
+.v-beats li:nth-child(2)::before { transform: scaleX(clamp(0, calc(var(--p, 0) * 3 - 0.9), 1)); }
+.v-beats li:nth-child(3)::before { transform: scaleX(clamp(0, calc(var(--p, 0) * 3 - 1.4), 1)); }
+
+/* photo strip slides sideways while you scroll down */
+.v-photos { overflow: hidden; padding: 18px 0 8px; }
+.v-photos-track { display: flex; gap: 10px; width: max-content; padding-inline: max(var(--gutter), calc((100vw - 1120px) / 2)); transform: translateX(calc(var(--p, 0) * -38%)); will-change: transform; }
+
+@media (max-width: 860px) {
+  .v-what-top { grid-template-columns: 1fr; } .v-glass-what { height: 280px; order: -1; }
+  .v-glass-end { float: none; width: 220px; height: 220px; margin: 0 auto 10px; }
+  .v-photos { overflow-x: auto; } .v-photos-track { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ch { transition: none; opacity: 1; transform: none; filter: none; } .v-photos-track { transform: none; } }
+
+.v-glass-cap .v-stamp { top: -28px; }

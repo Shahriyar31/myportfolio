@@ -76,3 +76,35 @@ export const Arrow = ({ className = "arrow" }) => (
         <path d="M1 7h11M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 );
+
+/** Letter-by-letter 3D reveal. `lines` items are strings or <em>string</em>. */
+export function Chars({ lines, as: Tag = "div", className = "", delay = 0, stagger = 22, play = true }) {
+    const [ref, inView] = useInView({ threshold: 0.3 });
+    let n = 0;
+    const split = (text, wrap) => text.split(/(\s+)/).map((w, wi) => (/^\s+$/.test(w) ? w : (
+        <span className="chw" key={wi}>{[...w].map((c, ci) => { const d = delay + n++ * stagger; const ch = <span className="ch" key={ci} style={{ transitionDelay: `${d}ms` }}>{c}</span>; return wrap ? wrap(ch, ci) : ch; })}</span>
+    )));
+    return (
+        <Tag ref={ref} className={`chars ${play && inView ? "is-in" : ""} ${className}`} aria-label={lines.map(l => (typeof l === "string" ? l : l.props.children)).join(" ")}>
+            {lines.map((l, i) => (
+                <span className="chl" key={i} aria-hidden="true">
+                    {typeof l === "string" ? split(l) : <l.type {...l.props}>{split(String(l.props.children))}</l.type>}
+                </span>
+            ))}
+        </Tag>
+    );
+}
+
+/** Counts up to `to` when it scrolls into view (non-numeric values are shown as-is). */
+export function CountUp({ to, ms = 1400 }) {
+    const [ref, inView] = useInView({ threshold: 0.5 });
+    const num = Number(to), spanRef = useRef(null);
+    useLayoutEffect(() => {
+        if (!inView || Number.isNaN(num) || !spanRef.current) return;
+        let raf = 0; const t0 = performance.now();
+        const f = now => { const k = Math.min(1, (now - t0) / ms); spanRef.current.textContent = String(Math.round(num * (1 - Math.pow(1 - k, 3)))); if (k < 1) raf = requestAnimationFrame(f); };
+        raf = requestAnimationFrame(f);
+        return () => cancelAnimationFrame(raf);
+    }, [inView, num, ms]);
+    return <b ref={ref}><span ref={spanRef}>{Number.isNaN(num) ? to : 0}</span></b>;
+}

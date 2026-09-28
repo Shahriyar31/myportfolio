@@ -8,7 +8,7 @@ export default function Experience() {
         <section id="experience" className="v-sec">
             <div className="v-wrap">
                 <Head n="03" kicker="Experience" title="Where I do it for real." />
-                <ol className="v-timeline">
+                <ol className="v-timeline" data-draw>
                     {EXPERIENCE.map((e, i) => (
                         <Fade as="li" key={e.id} delay={i * 100} className="v-job">
                             <div className="v-job-when mono">{e.date}{e.current && <b>Now</b>}</div>

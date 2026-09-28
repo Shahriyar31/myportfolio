@@ -10,11 +10,12 @@ export const Glass = { box: null };
 export default function GlassStage() {
     const ref = useRef(null);
     useEffect(() => {
-        let box = null, alive = true, raf = 0, shown = 0, cur = null, since = 0;
+        let box = null, alive = true, raf = 0, shown = 0, cur = null, since = 0, lastY = scrollY;
         const cv = ref.current;
         const frame = () => {
             raf = requestAnimationFrame(frame);
             if (!box) return;
+            box.kick(scrollY - lastY); lastY = scrollY;
             const slots = [...document.querySelectorAll("[data-glass]")], mid = innerHeight / 2;
             let best = null, bw = 0, vis = 0;
             slots.forEach(el => {
@@ -29,6 +30,7 @@ export default function GlassStage() {
             cv.style.opacity = shown < 0.02 ? "0" : shown.toFixed(3);
             if (best && best.el !== cur) { cur = best.el; since = performance.now(); }
             // glide for ~0.9 s after switching slots, then stick to the slot exactly
+            if (best) box.setMood(best.el.dataset.mood === "ok" ? 1 : 0);
             if (best) box.place(best.left + best.width / 2, best.top + best.height / 2, best.height, best.explode, performance.now() - since > 900);
             if (shown < 0.01) box.stop(); else box.start();
         };
