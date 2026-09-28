@@ -1,6 +1,4 @@
-import SectionHead from "./SectionHead";
-import { useEffect, useRef } from "react";
-import { Lines } from "./Motion";
+import Stop, { Opener } from "./Stop";
 
 /* ── Animated diagrams (pure SVG + CSS; colours follow the theme) ── */
 
@@ -81,7 +79,7 @@ function Series() {
 
 const CARDS = [
     {
-        type: "Current", when: "Aug 2025 — now", org: "Nordex Group · Hamburg", role: "AI & Data Engineering",
+        station: "floor-1", floor: "Floor 1", type: "Current", when: "Aug 2025 — now", org: "Nordex Group · Hamburg", role: "AI & Data Engineering",
         bullets: [
             "Built an internal AI assistant end to end — it answers questions from company documents using retrieval-augmented generation (RAG).",
             "Designed a tool-routing layer so the assistant reliably picks the right tool for each request.",
@@ -91,7 +89,7 @@ const CARDS = [
         tags: ["Azure AI", "RAG", "LLM evaluation", "Python", "Docker", "Streamlit", "Azure Databricks", "Azure DevOps"], Dia: RagLoop,
     },
     {
-        type: "Leadership", when: "Feb — Mar 2026", org: "Nordex Group · Hamburg", role: "Project Manager — enterprise AI project",
+        station: "floor-2", floor: "Floor 2", type: "Leadership", when: "Feb — Mar 2026", org: "Nordex Group · Hamburg", role: "Project Manager — enterprise AI project",
         bullets: [
             "Coordinated an enterprise AI project across several internal teams and external partners.",
             "Cleared an infrastructure blocker that had stalled the project for weeks by bringing the cloud and network teams together.",
@@ -101,7 +99,7 @@ const CARDS = [
         tags: ["Project management", "Stakeholder communication", "Cross-functional leadership", "Vendor coordination", "Agile delivery"], Dia: Timeline,
     },
     {
-        type: "Governance", when: "Aug 2025 — Jan 2026", org: "Nordex Group · Hamburg", role: "AI Governance & Architecture",
+        station: "floor-3", floor: "Floor 3", type: "Governance", when: "Aug 2025 — Jan 2026", org: "Nordex Group · Hamburg", role: "AI Governance & Architecture",
         bullets: [
             "Designed an end-to-end AI governance lifecycle — from use-case intake and data governance to validation, deployment and monitoring.",
             "Turned Responsible AI principles into buildable architecture designs.",
@@ -111,7 +109,7 @@ const CARDS = [
         tags: ["AI governance", "Responsible AI", "EU AI Act", "GDPR", "Data governance", "Risk classification", "Architecture design"], Dia: Lifecycle,
     },
     {
-        type: "Research", when: "Mar 2025 — now", org: "TUHH · Hamburg", role: "Digital Twin Dashboard & MLOps",
+        station: "uni", floor: "University", type: "Research", when: "Mar 2025 — now", org: "TUHH · Hamburg", role: "Digital Twin Dashboard & MLOps",
         bullets: [
             "Built a live monitoring dashboard for a digital-twin simulation.",
             "Added machine learning for anomaly detection and forecasting.",
@@ -122,48 +120,25 @@ const CARDS = [
 ];
 
 export default function Work() {
-    const listRef = useRef(null);
-
-    // As each card slides over the previous one, the one underneath recedes
-    useEffect(() => {
-        let raf = 0;
-        const update = () => {
-            const cards = [...listRef.current.children];
-            cards.forEach((c, i) => {
-                const next = cards[i + 1];
-                if (!next) { c.style.setProperty("--k", 0); return; }
-                const gap = next.getBoundingClientRect().top - c.getBoundingClientRect().top;
-                const k = Math.min(1, Math.max(0, 1 - gap / (innerHeight * 0.75)));
-                c.style.setProperty("--k", k.toFixed(3));
-            });
-        };
-        const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
-        update();
-        window.addEventListener("scroll", on, { passive: true });
-        window.addEventListener("resize", on);
-        return () => { cancelAnimationFrame(raf); window.removeEventListener("scroll", on); window.removeEventListener("resize", on); };
-    }, []);
-
     return (
-        <section id="work" className="act wrap" data-shape="ambient" data-side="center" data-dim="0.82">
-            <SectionHead n="03" kicker="Experience" title="Where I've made an impact" sub="Three roles at Nordex Group — engineering, governance and project leadership — plus research at TUHH." />
-            <ol className="stack" ref={listRef}>
-                {CARDS.map((c, i) => (
-                    <li key={i} className="stack-card neu-lg" style={{ "--i": i }}>
-                        <div className="stack-text">
-                            <div className="stack-meta">
-                                <span className={`chip mono ${c.type === "Current" ? "is-live" : ""}`}>{c.type === "Current" && <span className="dot-live" />}{c.type}</span>
-                                <span className="mono">{c.when}</span>
-                            </div>
-                            <h3 className="stack-title">{c.role}</h3>
-                            <p className="stack-org">{c.org}</p>
-                            <ul className="stack-bullets">{c.bullets.map(b => <li key={b}>{b}</li>)}</ul>
-                            <ul className="stack-tags">{c.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>
-                        </div>
-                        <div className="stack-visual neu-in"><c.Dia /></div>
-                    </li>
-                ))}
-            </ol>
+        <section id="work" aria-label="Experience">
+            <Opener station="nordex" n="03" kicker="Experience" title="Climb the tower — one floor per role"
+                sub="Three roles at Nordex Group — engineering, project leadership and governance — plus research at TUHH." />
+            {CARDS.map((c, i) => (
+                <Stop key={c.role} station={c.station} side={i % 2 ? "left" : "right"} wide>
+                    <div className="pane-kicker">
+                        <span className={`chip mono ${c.type === "Current" ? "is-live" : ""}`}>{c.type === "Current" && <span className="dot-live" />}{c.type}</span>
+                        <span className="mono">{c.when}</span><span className="pane-where mono">🏢 {c.floor}</span>
+                    </div>
+                    <h3 className="pane-title">{c.role}</h3>
+                    <p className="stack-org">{c.org}</p>
+                    <div className="pane-split">
+                        <ul className="stack-bullets">{c.bullets.map(b => <li key={b}>{b}</li>)}</ul>
+                        <div className="pane-dia neu-in"><c.Dia /></div>
+                    </div>
+                    <ul className="stack-tags">{c.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>
+                </Stop>
+            ))}
         </section>
     );
 }

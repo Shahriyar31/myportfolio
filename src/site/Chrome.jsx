@@ -72,14 +72,15 @@ export function Preloader({ onReveal }) {
 export function TopBar({ onOpenCv, onMenu, menu }) {
     const { dark, setDark } = useTheme();
     const [hidden, setHidden] = useState(false);
+    const [solid, setSolid] = useState(false);
     useEffect(() => {
         let last = 0;
-        const on = () => { const y = window.scrollY; setHidden(y > last && y > 300); last = y; };
+        const on = () => { const y = window.scrollY; setHidden(y > last && y > 300); setSolid(y > 120); last = y; };
         window.addEventListener("scroll", on, { passive: true });
         return () => window.removeEventListener("scroll", on);
     }, []);
     return (
-        <header className={`top ${hidden && !menu ? "is-hidden" : ""}`}>
+        <header className={`top ${hidden && !menu ? "is-hidden" : ""} ${solid ? "is-solid" : ""}`}>
             <a href="#home" className="brand" onClick={e => { e.preventDefault(); scrollToId("home"); }} aria-label="Farhan Shahriyar — back to top">
                 <span className="brand-mark neu-sm" aria-hidden="true">FS</span>
                 <span className="brand-name">Farhan Shahriyar<small className="mono">AI &amp; Data Engineer</small></span>

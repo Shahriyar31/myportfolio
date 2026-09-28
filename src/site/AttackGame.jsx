@@ -229,7 +229,7 @@ export default function AttackGame() {
     const [title, note] = res ? rank(res) : [];
 
     return (
-        <section id="game" className="act wrap" data-shape="lock" data-side="center" data-dim="0.8">
+        <section id="game" className="act wrap" data-station="game">
             <SectionHead n="02" kicker="Mini-game · AI security" title="Stop the attack" sub="You are the AI's security layer. Click the malicious messages before they reach the company's AI — and let real users through." />
             <div className={`game-box neu-lg is-${phase}`}>
                 <canvas ref={canvasRef} className="game" aria-label="Game area" />

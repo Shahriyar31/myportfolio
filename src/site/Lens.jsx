@@ -85,8 +85,8 @@ export default function Lens() {
     const W = mobile ? 150 : 200, GAP = mobile ? 14 : 22;
 
     return (
-        <section id="lens" className="act" data-shape="ambient" data-side="center" data-dim="0.85">
-            <div className="wrap"><SectionHead n="09" kicker="Photography" title="Through my lens" sub="Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them." /></div>
+        <section id="lens" className="act" data-station="sky">
+            <div className="wrap"><SectionHead n="08" kicker="Photography" title="Through my lens" sub="Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them." /></div>
 
             <div className="lens-filters wrap" role="tablist" aria-label="Photo categories">
                 {CATS.map(c => {

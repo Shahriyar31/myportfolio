@@ -102,7 +102,7 @@ export default function Skills() {
     const detail = focus ?? (letter && all.find(s => s.name.toLowerCase().startsWith(letter)));
 
     return (
-        <section id="skills" className="act wrap" data-shape="ambient" data-side="center" data-dim="0.8">
+        <section id="skills" className="act wrap" data-station="sky">
             <SectionHead n="04" kicker="Skills" title="My toolkit" sub="Drag the sphere to spin it. Hover a logo to see where I used it — or type a letter to find a tool." />
             <div className="sph">
                 <div className="sph-side">

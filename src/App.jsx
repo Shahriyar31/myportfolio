@@ -4,13 +4,12 @@ import "./styles/global.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
 import Hero from "./site/Hero";
-import Particles from "./site/Particles";
+import World from "./site/World";
 import AttackGame from "./site/AttackGame";
-import Story from "./site/Story";
+import Journey from "./site/Journey";
 import Bring from "./site/Bring";
 import Work from "./site/Work";
 import Skills from "./site/Skills";
-import Education from "./site/Education";
 import Built from "./site/Built";
 import Lens from "./site/Lens";
 import Hello from "./site/Hello";
@@ -41,7 +40,7 @@ export default function App() {
     return (
         <>
             <a href="#bring" className="sr-only">Skip to content</a>
-            <Particles />
+            <World />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
@@ -53,8 +52,7 @@ export default function App() {
                 <Work />
                 <Skills />
                 <Built />
-                <Story />
-                <Education />
+                <Journey />
                 <AgentSection />
                 <Lens />
                 <Hello onOpenCv={openCv} />

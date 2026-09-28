@@ -21,9 +21,8 @@ export default function Hello({ onOpenCv }) {
         catch { window.location.href = `mailto:${EMAIL}`; }
     };
     return (
-        <section id="hello" className="act hello wrap">
-            <div className="hello-sky" data-shape="hello" data-side="center" data-dy="0.6" aria-hidden="true" />
-            <SectionHead n="10" kicker="Contact" title="Let's work together" sub="Open to roles in AI engineering, AI & data governance, AI security and agentic development." />
+        <section id="hello" className="act hello wrap" data-station="finale">
+            <SectionHead n="09" kicker="Contact" title="Let's work together" sub="Open to roles in AI engineering, AI & data governance, AI security and agentic development." />
 
             <div className="hello-grid">
                 <button className={`big-btn ${pressed ? "is-pressed" : ""}`} onClick={press} aria-label={`Email ${EMAIL}`}>

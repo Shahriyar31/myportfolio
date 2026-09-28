@@ -29,7 +29,7 @@ export default function Hero({ ready, onOpenCv }) {
     useEffect(() => { if (ready) runDemo(); }, [ready]);
 
     return (
-        <section id="home" className="hero" data-shape="portrait" data-side="right">
+        <section id="home" className="hero" data-station="hero">
             <div className="hero-inner wrap">
                 <div className="hero-copy">
                     <Fade play={ready} delay={80}>
