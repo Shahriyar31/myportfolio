@@ -1567,3 +1567,45 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 /* layering: background gradient → network → page content */
 .v-bg { z-index: 0; } .v-net { z-index: 0; }
 main { position: relative; z-index: 1; }
+
+/* ══ the vertical brain ═════════════════════════════════════════════════ */
+:root { --rail: 84px; }
+.v-nlabels { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.v-nlabel { position: absolute; left: 0; top: 0; padding: 4px 10px; border-radius: 999px; font: 500 10px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: #cfe9ff;
+  background: rgba(7,11,17,.7); border: 1px solid rgba(115,212,255,.25); white-space: nowrap; transition: opacity .4s; animation: resIn .6s var(--ease) both; }
+.v-nlabel.is-big { font-size: 12px; padding: 6px 12px; color: #fff; border-color: rgba(115,212,255,.5); }
+/* hero: me, in neurons */
+.v-hero { position: relative; }
+.v-hero .v-h1 { font-size: clamp(54px, 8vw, 118px); }
+.v-claim { margin-top: 18px; font-family: var(--f-display); font-size: clamp(22px, 2.4vw, 34px); font-weight: 600; letter-spacing: -.015em; }
+.v-claim b { background: linear-gradient(100deg, var(--accent), #b69cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v-hero .v-lede { margin-top: 10px; }
+.v-hero-copy { max-width: 620px; }
+.v-hero-hint { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); }
+.v-ask { margin-top: 24px; max-width: 580px; }
+.v-ask form { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 999px; background: rgba(8,12,18,.78); border: 1px solid rgba(115,212,255,.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 0 0 6px rgba(115,212,255,.06), 0 20px 50px -20px rgba(0,0,0,.8); }
+.v-ask form:focus-within { border-color: var(--accent); box-shadow: 0 0 0 6px rgba(115,212,255,.14); }
+.v-ask-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: djPulse 1.8s ease-out infinite; flex: none; }
+.v-ask input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #fff; font: 15px var(--f-sans); padding: 10px 4px; }
+.v-ask input::placeholder { color: #7d8a97; }
+.v-ask form button { height: 42px; padding: 0 20px; border-radius: 999px; font-weight: 700; font-size: 14px; background: var(--accent); color: #07121a; transition: opacity .2s; } .v-ask form button:disabled { opacity: .45; }
+.v-ask-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.v-ask-picks button { padding: 7px 12px; border-radius: 999px; font-size: 12.5px; color: #c7d1da; background: rgba(8,12,18,.6); border: 1px solid var(--line-2); transition: border-color .2s, color .2s; }
+.v-ask-picks button:hover:not(:disabled) { border-color: var(--accent); color: #fff; }
+.v-ask-a { margin-top: 12px; padding: 14px 16px; border-radius: 16px 16px 16px 4px; background: rgba(8,12,18,.82); border: 1px solid var(--line); color: #dfe7ee; font-size: 14.5px; line-height: 1.55; max-height: 9.5em; overflow: auto; animation: resIn .4s var(--ease); }
+.v-ask-think { color: var(--accent); animation: fdBlink 1s steps(2) infinite; }
+/* every chapter: text on the left, its brain region on the right */
+.is-panel > .v-wrap { width: min(700px, calc(100% - 2 * var(--gutter))); margin-left: max(var(--gutter), calc((100vw - 1120px) / 2)); }
+.is-panel .v-feature, .is-panel .v-pair { grid-template-columns: 1fr; }
+.is-story .v-person { grid-template-columns: 1fr; } .is-story .v-person .v-portrait { display: none; }
+.is-story .v-beats { grid-template-columns: 1fr; gap: 18px; max-width: 520px; }
+.is-story .v-beats li { padding-left: 18px; border-top: 0; border-left: 2px solid var(--line); padding-top: 0; }
+.is-story .v-beats li::before { left: -2px; top: 0; width: 2px; height: 100%; transform-origin: top; transform: scaleY(clamp(0, calc(var(--p, 0) * 3 - 0.6), 1)); }
+.rail { z-index: 880; }
+@media (max-width: 860px) {
+  .v-hero-hint { display: none; }
+  .v-ask form { padding-left: 12px; } .v-ask input { font-size: 14px; }
+  .is-panel > .v-wrap { width: calc(100% - 16px); margin-inline: auto; }
+  .v-nlabel { font-size: 9px; } .v-nlabel.is-big { font-size: 10px; }
+}
+.v-timeline::before { transform: scaleY(min(1, calc(var(--p, 0) * 1.6))); }

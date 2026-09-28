@@ -6,7 +6,7 @@ import BuildIt from "./BuildIt";
 import KeepLegal from "./KeepLegal";
 import ShipSafe from "./ShipSafe";
 import { useProgress } from "./progress";
-import { Net } from "./BrainStage";
+import { Net } from "./NeuroStage";
 
 /*
  * 02 · What I do — three things, one sentence each. Each has an optional hands-on demo
@@ -44,12 +44,12 @@ export default function WhatIDo() {
     const [open, setOpen] = useState(null);
     const p = useProgress();
     return (
-        <section id="what" className="v-sec is-side" data-cam="what">
+        <section id="what" className="v-sec is-side" data-node="2">
             <div className="v-wrap">
-                <Head n="02" kicker="What I do" title="Three things, done properly." sub="Each one is a layer of the network. Hover a card to watch its layer fire, or open its 1-minute hands-on demo." />
+                <Head n="02" kicker="What I do" title="Three things, done properly." sub="Three regions of my brain, on the right. Hover a card to make its region fire, or open its 1-minute hands-on demo." />
                 <div className="v-cards">
                     {CARDS.map((c, i) => (
-                        <Fade key={c.id} delay={i * 110} className="v-card" onPointerEnter={() => Net.brain?.setFocusLayer(c.layer)} onPointerLeave={() => Net.brain?.setFocusLayer(-1)}>
+                        <Fade key={c.id} delay={i * 110} className="v-card" onPointerEnter={() => Net.brain?.setFocus(i)} onPointerLeave={() => Net.brain?.setFocus(-1)}>
                             <span className="v-card-n mono">{c.n}</span>
                             <h3>{c.title}</h3>
                             <p>{c.plain}</p>

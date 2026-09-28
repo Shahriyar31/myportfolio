@@ -20,7 +20,7 @@ function Early({ p }) {
 export default function Projects() {
     const argus = PROJECTS.find(p => p.id === 1), twin = PROJECTS.find(p => p.id === 2), earlier = PROJECTS.filter(p => ![1, 2].includes(p.id));
     return (
-        <section id="work" className="v-sec is-panel" data-cam="wide">
+        <section id="work" className="v-sec is-panel" data-node="4">
             <div className="v-wrap">
                 <Head n="04" kicker="Selected work" title="Proof, not promises." />
                 <Fade className="v-feature">

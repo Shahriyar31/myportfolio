@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Net } from "./BrainStage";
+import { Net } from "./NeuroStage";
 import { Head } from "./Hero";
 import { Fade } from "./Motion";
 import { useProgress, mark } from "./progress";
@@ -17,7 +17,7 @@ export default function Finale({ onOpenCv, onQuick }) {
     const copy = async (text, what) => { try { if (what === "share" && navigator.share) { await navigator.share({ text, url: location.origin }); return; } await navigator.clipboard.writeText(text); setCopied(what); setTimeout(() => setCopied(""), 1800); } catch { /* cancelled */ } };
 
     return (
-        <section id="contact" className="v-sec v-finale is-panel" data-cam="end">
+        <section id="contact" className="v-sec v-finale is-panel" data-node="6">
             <div className="v-wrap">
                 <Head n="06" kicker="Your verdict" title={["So, can you trust", "this AI engineer?"]} />
                 <Fade className="v-verdict">

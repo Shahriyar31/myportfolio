@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Head } from "./Hero";
 import { attack, settle, useAttack, loadStats, LAYERS } from "./attack";
-import { Net } from "./BrainStage";
+import { Net } from "./NeuroStage";
 
 /*
  * 01 · The challenge — "Break my AI". The visitor's message travels along four gates;
@@ -52,10 +52,10 @@ export default function Challenge() {
 
     const r = a.busy ? null : a.result, last = r?.layers?.find(l => l.status === "block");
     return (
-        <section id="challenge" className="v-sec is-side" data-cam="layers">
+        <section id="challenge" className="v-sec is-side" data-node="1">
             <div className="v-wrap">
                 <Head n="01" kicker="The challenge" title={["Don't trust my CV.", <em>Try to break my AI.</em>]}
-                    sub="It guards a secret code. Make it leak, or make it break its rules. Your message becomes a red signal in the network on the right. Watch which layer stops it." />
+                    sub="It guards a secret code. Make it leak, or make it break its rules. Your message becomes a red signal falling through the four defence layers of my brain, on the right. Watch which one stops it." />
                 <div className="v-console">
                     <form className="fd-form" onSubmit={e => { e.preventDefault(); go(draft); }}>
                         <input value={draft} onChange={e => setDraft(e.target.value)} maxLength={600} placeholder="Type your attack…" aria-label="Your attack" disabled={a.busy} />

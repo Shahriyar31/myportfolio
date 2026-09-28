@@ -16,10 +16,10 @@ export default function Story() {
     const [idx, setIdx] = useState(-1);
     const strip = PHOTOS.slice(0, 10);
     return (
-        <section id="story" className="v-sec is-panel" data-cam="story">
+        <section id="story" className="v-sec is-side is-story" data-node="5">
             <div className="v-wrap">
                 <div className="v-person">
-                    <Head n="05" kicker="The person" title="From one side of the world to the other." />
+                    <Head n="05" kicker="The journey" title="From West Bengal to Hamburg." sub="Watch the signal on the right: that's me, flying 7,500 km to start again at 22." />
                     <Fade delay={150}><figure className="v-portrait"><img src="/images/profile-suit.jpg" alt="Farhan Shahriyar" width="480" height="600" loading="lazy" /><figcaption className="mono"><span>Farhan Shahriyar</span><span>Hamburg</span></figcaption></figure></Fade>
                 </div>
                 <ol className="v-beats" data-draw>

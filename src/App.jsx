@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Lenis from "lenis";
 import "./styles/global.css";
-import { Preloader, TopBar, Menu, CvModal } from "./site/Chrome";
+import { Preloader, TopBar, Menu, CvModal, Rail } from "./site/Chrome";
 import { ChatDock } from "./site/Chat";
 import Hero from "./site/Hero";
 import Challenge from "./site/Challenge";
@@ -11,8 +11,7 @@ import Projects from "./site/Projects";
 import Story from "./site/Story";
 import Finale from "./site/Finale";
 import QuickRead from "./site/QuickRead";
-import BrainStage from "./site/BrainStage";
-import Moment from "./site/Moment";
+import NeuroStage from "./site/NeuroStage";
 import Fx from "./site/Fx";
 import { reducedMotion } from "./site/hooks";
 
@@ -55,19 +54,18 @@ export default function App() {
             <a href="#challenge" className="sr-only">Skip to content</a>
             <div className="v-bg" aria-hidden="true" />
             <div className="v-progress" aria-hidden="true"><i /></div>
-            <BrainStage />
+            <NeuroStage />
             <Fx />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onQuick={openQuick} onMenu={() => setMenu(m => !m)} menu={menu} />
+            <Rail />
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} onQuick={openQuick} />
             <main>
                 <Hero ready={ready} onQuick={openQuick} />
-                <Moment cam="dive" kicker="Chapter 1 · Inside" lines={["Most AI is a black box.", <em>Let me show you inside mine.</em>]} sub="Keep scrolling. The chaos is about to organise itself." />
                 <Challenge />
                 <WhatIDo />
                 <Experience />
                 <Projects />
-                <Moment cam="person" kicker="Chapter 5 · The person" lines={["Behind every layer,", <em>one engineer.</em>]} />
                 <Story />
                 <Finale onOpenCv={openCv} onQuick={openQuick} />
             </main>
