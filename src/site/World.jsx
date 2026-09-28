@@ -72,7 +72,7 @@ export default function World() {
                 const st = pose(el.dataset.station);
                 if (!st.follow) return st;
                 const pt = scene.flightPoint(Math.min(1, Math.max(0, flightT)));
-                return { ...st, l: pt, p: [pt[0] + 6, pt[1] + 8, pt[2] - 7] }; // high on the south side: clear of the HQ at landing
+                return { ...st, l: pt, p: [pt[0] + 9, pt[1] + 3.5, pt[2] + 4] }; // side-on chase view; ends east of the lake, clear of the HQ
             };
             const a = poseOf(A), b = poseOf(B);
             const far = narrow ? 1.75 : 1.35 * Math.max(1, Math.sqrt(1.7 / (innerWidth / innerHeight))); // squarer screens need more room
@@ -96,7 +96,7 @@ export default function World() {
             scene.setFocus((t < 0.5 ? a : b).focus || null);
             // tour HUD: which chapter, which place, where on the map
             const ch = CHAPTERS.findIndex(([id]) => id === cur.closest("section[id]")?.id);
-            hudRef.current?.classList.toggle("is-on", ch >= 0);
+            hudRef.current?.classList.toggle("is-on", ch >= 0 && !cur.closest("section.act")); // big cards need the corner
             if (ch >= 0) {
                 const name = (t < 0.5 ? a : b).name || "";
                 chapRef.current.textContent = `${String(ch + 1).padStart(2, "0")} / ${String(CHAPTERS.length).padStart(2, "0")} · ${CHAPTERS[ch][1]}`;

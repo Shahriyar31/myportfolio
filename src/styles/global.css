@@ -845,5 +845,12 @@ body:has(.world-tip.is-on) { cursor: pointer; }
 .pane-stack { display: flex; flex-direction: column; gap: 12px; }
 
 /* frosted sections fade in from the world instead of starting with a hard edge */
-.act { -webkit-mask-image: linear-gradient(transparent, #000 110px); mask-image: linear-gradient(transparent, #000 110px); }
 .hud-found { font-size: 9.5px !important; color: var(--mute) !important; }
+
+/* ════ One language everywhere: every section is a glass card floating over the world ═════ */
+section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 24px)); max-width: none; margin: 30svh auto; margin-right: max(calc(var(--gutter) + var(--rail) + 24px), calc((100% - 1180px) / 2));
+  padding: clamp(26px, 3.6vw, 56px); border-radius: 36px; -webkit-mask-image: none; mask-image: none;
+  background: color-mix(in oklab, var(--bg) 84%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--raise-lg), var(--rim); }
+@media (max-width: 860px) {
+  section.act { width: calc(100% - 2 * var(--gutter)); margin: 18svh auto; padding: 22px 16px; border-radius: 26px; }
+}
