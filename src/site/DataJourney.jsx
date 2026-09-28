@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Fade } from "./Motion";
+import FrontDoor from "./FrontDoor";
 import Logo from "./Logo";
 import { scrollToId } from "./hooks";
 import { openChat, ask } from "./chat";
@@ -14,10 +14,10 @@ import { J, STAGES, frame, settleAt } from "./journey";
 const CH = [
     null, // hero
     {
-        n: "01", role: "Data Engineering", verb: "Ingest", title: "I catch data at the source.",
-        lede: "Wind turbines, sensors and markets stream raw data all day. I build the pipelines that take it in without dropping a byte.",
-        tools: [["kafka", "Kafka"], ["flink", "Flink"], ["spark", "Spark"], ["databricks", "Databricks"], ["python", "Python"]],
-        proof: [["StockFlow · Kafka → S3 → Glue", "built"], ["Radiation Tracker · Kafka + Flink", "built"], ["Databricks pipelines at Nordex", "work"]],
+        n: "01", role: "AI Platforms · Azure & Databricks", verb: "Ingest", title: "Every AI starts with data.",
+        lede: "Turbines and systems send raw data all day. I build the pipelines on Azure Databricks that take it in, so the AI has something real to stand on.",
+        tools: [["databricks", "Databricks"], ["spark", "Spark"], ["azure", "Azure"], ["python", "Python"], ["sql", "SQL"]],
+        proof: [["Databricks pipelines at Nordex", "work"], ["Earlier: streaming projects", "built"]],
     },
     {
         n: "02", role: "Data Platforms & Data Governance", verb: "Refine", title: "Then I make it trustworthy.",
@@ -26,11 +26,11 @@ const CH = [
         proof: [["Data governance & cataloguing at Nordex", "work"]],
     },
     {
-        n: "03", role: "AI Governance & Security", verb: "Govern", title: "Lawful, and hard to trick.",
-        lede: "Before data reaches an AI, it passes my gate: EU AI Act risk tiers, GDPR duties, OWASP LLM Top 10 guardrails and an audit trail. Built in, not bolted on.",
-        tools: [["eu", "EU AI Act"], ["gdpr", "GDPR"], ["owasp", "OWASP LLM"], ["shield", "NIST AI RMF"], ["human", "Human review"]],
+        n: "03", role: "AI Governance · DevSecOps", verb: "Govern", title: "Lawful, and hard to trick.",
+        lede: "Before data reaches an AI, it passes my gate: EU AI Act risk tiers, GDPR duties, OWASP LLM Top 10 guardrails, secure pipelines and an audit trail. Built in, not bolted on.",
+        tools: [["eu", "EU AI Act"], ["gdpr", "GDPR"], ["owasp", "OWASP LLM"], ["azuredevops", "Azure DevOps"], ["terraform", "Terraform"]],
         proof: [["Argus AI · live compliance agent", "built"], ["AI governance at Nordex", "work"]],
-        cta: ["Defend the gate yourself", () => scrollToId("game")],
+        cta: ["Try to break my AI", () => { window.__lenis ? window.__lenis.scrollTo(0, { duration: 2 }) : scrollTo({ top: 0, behavior: "smooth" }); }],
     },
     {
         n: "04", role: "AI & Agentic Engineering", verb: "Reason", title: "Now AI can reason on it.",
@@ -51,7 +51,7 @@ const REC = [
 ];
 const STATE = ["UNTRUSTED", "RAW", "REFINED", "GOVERNED", "ANSWERED"];
 
-export default function DataJourney({ ready }) {
+export default function DataJourney({ ready, onOpenCv }) {
     const root = useRef(null), link = useRef(null), panels = useRef([]);
     const [stage, setStage] = useState(0), [shown, setShown] = useState(-1);
 
@@ -87,13 +87,7 @@ export default function DataJourney({ ready }) {
         <section id="home" ref={root} className="dj" data-station="route" style={{ "--n": STAGES.reduce((s, x) => s + x.w, 0) }} aria-label="Farhan Shahriyar — what I do">
             <div className="dj-stick">
                 <header className={`dj-hero ${ready ? "is-in" : ""}`}>
-                    <Fade play={ready} delay={100}><span className="chip mono"><span className="dot-live" />Open to new roles · Hamburg, Germany</span></Fade>
-                    <h1 className="dj-name"><span>Farhan</span> <span>Shahriyar</span></h1>
-                    <Fade play={ready} delay={500} className="dj-claim"><p>I turn raw data into <em>AI you can trust.</em></p></Fade>
-                    <Fade play={ready} delay={750} className="dj-roles">
-                        {CH.slice(1).map((c, k) => <button key={c.n} className="dj-role" onClick={() => jump(k + 1)}><b>{c.verb}</b>{c.role}</button>)}
-                    </Fade>
-                    <Fade play={ready} delay={1000}><button className="dj-cue mono" onClick={() => jump(1)}><i />Scroll — you are the data</button></Fade>
+                    <FrontDoor ready={ready} onOpenCv={onOpenCv} onNext={() => jump(1)} />
                 </header>
 
                 {CH.map((c, i) => c && (

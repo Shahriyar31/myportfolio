@@ -32,7 +32,6 @@ export const STATIONS = {
 
 /* The tour, in order — shown in the chapter HUD. id = section id on the page. */
 export const CHAPTERS = [
-    ["game", "Bonus level"],
     ["work", "Experience"],
     ["built", "Projects"],
     ["story", "Education"],

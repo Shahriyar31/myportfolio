@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { scrollToId, reducedMotion } from "./hooks";
+import { NAME, TITLE } from "../data/profile";
 
 /* ── Icons (24px, 1.6 stroke) ── */
 const I = {
@@ -27,7 +28,6 @@ export const Icon = ({ n, size = 20 }) => (
 
 export const SECTIONS = [
     ["home", "Home", "home"],
-    ["game", "Play: stop the attack", "shield"],
     ["work", "Experience · Nordex HQ", "work"],
     ["built", "Projects", "built"],
     ["story", "Education", "grad"],
@@ -61,7 +61,7 @@ export function Preloader({ onReveal }) {
     return (
         <div className={`pre ${phase === "exit" ? "is-exit" : ""}`} aria-hidden="true">
             <div className="pre-dial neu-lg"><span className="pre-mark">FS</span></div>
-            <span className="mono">Farhan Shahriyar · AI &amp; Data Engineer</span>
+            <span className="mono">{NAME} · {TITLE}</span>
         </div>
     );
 }
@@ -81,7 +81,7 @@ export function TopBar({ onOpenCv, onMenu, menu }) {
         <header className={`top ${hidden && !menu ? "is-hidden" : ""} ${solid ? "is-solid" : ""}`}>
             <a href="#home" className="brand" onClick={e => { e.preventDefault(); scrollToId("home"); }} aria-label="Farhan Shahriyar — back to top">
                 <span className="brand-mark neu-sm" aria-hidden="true">FS</span>
-                <span className="brand-name">Farhan Shahriyar<small className="mono">AI &amp; Data Engineer</small></span>
+                <span className="brand-name">{NAME}<small className="mono">{TITLE}</small></span>
             </a>
             <div className="top-right">
                 <button className={`toggle ${dark ? "" : "is-on"}`} onClick={() => setDark(!dark)} aria-label={`Switch to ${dark ? "light" : "dark"} mode`} role="switch" aria-checked={!dark}>

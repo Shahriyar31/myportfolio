@@ -10,7 +10,7 @@ import { J, pose as journeyPose, frame as journeyFrame, packetU } from "./journe
  * glides to that station. data-flight on an element maps its scroll progress
  * to the plane's flight.
  */
-const SECTION_FOR = { lake: "home", tower: "home", gate: "game", sources: "home", hq: "work", uni: "tuhh", town: "home", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
+const SECTION_FOR = { lake: "home", tower: "home", gate: "home", sources: "home", hq: "work", uni: "tuhh", town: "home", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
 
 // top-down points of interest for the mini-map (x, z)
 const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [1.5, 14.8], [-12.5, 4.5], [-79.5, -61], [-75, -58]];

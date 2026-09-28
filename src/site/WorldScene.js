@@ -450,7 +450,7 @@ export default class WorldScene {
     packetTick(dt, t) {
         if (!this.pk) return;
         this.pkU += (this.pkGoalU - this.pkU) * (1 - Math.pow(0.00002, dt));
-        this.pkOn += (this.pkGoalOn - this.pkOn) * (1 - Math.pow(0.01, dt));
+        this.pkOn += ((this.attacking ? 0 : this.pkGoalOn) - this.pkOn) * (1 - Math.pow(0.01, dt));
         this.pkColor.lerp(this.pkGoalColor, 1 - Math.pow(0.02, dt));
         const pos = this.route.getPointAt(Math.min(1, Math.max(0, this.pkU)));
         pos.y += Math.sin(t * 2.2) * 0.08;
@@ -469,6 +469,64 @@ export default class WorldScene {
         const d = this.dummy;
         this.pkHist.forEach((h, i) => { d.position.copy(h); d.scale.setScalar(s * (1 - i / this.pkN) * 1.2); d.updateMatrix(); this.pkTrail.setMatrixAt(i, d.matrix); });
         this.pkTrail.instanceMatrix.needsUpdate = true;
+    }
+
+    /* ── "Break my AI": one visitor message flies gate → tower; the server's verdict decides where it dies ── */
+    tween(ms, fn) { return new Promise(res => { const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / ms); fn(k); k < 1 && !this.disposed ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); }); }
+    async attackRun(result, onPhase = () => {}) {
+        const ease = k => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+        const S = V(-3, 9, 9), G = V(3, 1.9, -1), T = V(9.5, 7.4, -2.6), E = V(14, 13, 8);
+        const far = this.mobile ? 1.55 : 1;
+        this.override = this.mobile ? { p: V(6 + 15, 3 + 13, -2.5 + 30), l: V(6, 1, -2.5) } : { p: V(8.5 + 13, 4.5 + 11, -3.5 + 27), l: V(8.5, 4.5, -3.5) };
+        this.attacking = true;
+        const g = new THREE.Group(), mk = (geo, c, o = 1, w = false) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, wireframe: w, depthWrite: false, blending: THREE.AdditiveBlending })); g.add(m); return m; };
+        mk(new THREE.IcosahedronGeometry(0.22, 2), 0xffffff);
+        const shell = mk(new THREE.IcosahedronGeometry(0.5, 1), 0xff5d5d, 0.9, true), glow = mk(new THREE.SphereGeometry(0.8, 18, 12), 0xff5d5d, 0.18);
+        const ring = mk(new THREE.TorusGeometry(1.1, 0.04, 8, 48), 0x73d4ff, 0); ring.rotation.x = Math.PI / 2;
+        g.position.copy(S); this.scene.add(g);
+        const spin = setInterval(() => { shell.rotation.x += 0.08; shell.rotation.y += 0.11; }, 16);
+        const fly = (a, b, lift, ms) => { const c = new THREE.QuadraticBezierCurve3(a, a.clone().lerp(b, 0.5).add(V(0, lift, 0)), b); return this.tween(ms, k => g.position.copy(c.getPoint(ease(k)))); };
+        const scan = ms => this.tween(ms, k => { ring.material.opacity = Math.sin(Math.PI * k) * 0.9; ring.position.y = 0.9 - k * 1.8; });
+        const color = c => [shell, glow].forEach(m => m.material.color.set(c));
+        const burst = async (at, c = 0xff4d4d) => {
+            const bits = Array.from({ length: 16 }, (_, i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), new THREE.MeshBasicMaterial({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); m.position.copy(at); m.userData.v = V(Math.cos(i * 2.4) * (0.5 + (i % 3) * 0.3), 0.4 + (i % 4) * 0.25, Math.sin(i * 2.4) * (0.5 + (i % 5) * 0.2)); this.scene.add(m); return m; });
+            const wave = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 40), new THREE.MeshBasicMaterial({ color: c, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
+            wave.position.copy(at); wave.lookAt(this.camera.position); this.scene.add(wave);
+            g.visible = false;
+            await this.tween(900, k => { bits.forEach(b => { b.position.addScaledVector(b.userData.v, 0.06); b.userData.v.y -= 0.02; b.material.opacity = 1 - k; }); wave.scale.setScalar(1 + k * 9); wave.material.opacity = 1 - k; });
+            [...bits, wave].forEach(m => { this.scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
+        };
+        const beamCol = this.beam.material.color.getHex();
+        try {
+            onPhase("input"); this.focusId = "gate";
+            await fly(S, G, 3, 1300);
+            // hover in the gate scanner until the server answers
+            let r = null; result.then(v => { r = v; });
+            do { await scan(700); } while (!r);
+            const blockedAt = r.at;
+            if (blockedAt === "input" || blockedAt === "judge") {
+                if (blockedAt === "judge") { onPhase("judge"); await scan(700); }
+                this.beam.material.color.set(0xff4d4d);
+                onPhase("blocked"); await burst(G);
+                return r;
+            }
+            onPhase("judge"); color(0xffc857); await scan(600);
+            onPhase("model"); this.focusId = "tower"; this.lineMat.opacity = 0.75;
+            await fly(G, T, 2.5, 1100);
+            await this.tween(700, k => g.scale.setScalar(1 - Math.sin(Math.PI * k) * 0.3));
+            onPhase("output"); await scan(700);
+            if (blockedAt === "output") { onPhase("blocked"); await burst(T); return r; }
+            color(0x3ee08f); onPhase("answered");
+            await fly(T, E, 2, 1200);
+            return r;
+        } finally {
+            clearInterval(spin);
+            this.scene.remove(g); g.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
+            this.lineMat.opacity = 0.25;
+            setTimeout(() => { this.beam.material.color.setHex(beamCol); }, 1200);
+            this.attacking = false; this.focusId = null;
+            setTimeout(() => { if (!this.attacking) this.override = null; }, 2200);
+        }
     }
 
     plane() {
@@ -552,12 +610,12 @@ export default class WorldScene {
         if (this.codeTex) this.codeTex.offset.y = -Math.floor(t * 3) / 16; // lines scroll like typing
         this.skyU.time.value = t;
         // camera glides; pointer adds a small parallax orbit
-        this.camPos.lerp(this.goalPos, 1 - Math.pow(0.001, dt));
-        this.camLook.lerp(this.goalLook, 1 - Math.pow(0.001, dt));
+        this.camPos.lerp(this.override?.p || this.goalPos, 1 - Math.pow(this.override ? 0.05 : 0.001, dt));
+        this.camLook.lerp(this.override?.l || this.goalLook, 1 - Math.pow(this.override ? 0.05 : 0.001, dt));
         this.smooth.lerp(this.pointer, 0.05);
         const off = V(this.smooth.x * 1.6, this.smooth.y * 0.9, 0);
         this.camera.position.copy(this.camPos).add(off);
-        if (this.orbitW > 0.001) { // slow sway around the look point (hero only); fades out with the weight
+        if (this.orbitW > 0.001 && !this.override) { // slow sway around the look point (hero only); fades out with the weight
             const a = Math.sin(t * 0.13) * 0.42 * this.orbitW;
             this.camera.position.sub(this.camLook).applyAxisAngle(V(0, 1, 0), a).add(this.camLook);
         }

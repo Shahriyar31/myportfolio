@@ -5,7 +5,6 @@ import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
 import DataJourney from "./site/DataJourney";
 import World from "./site/World";
-import AttackGame from "./site/AttackGame";
 import Journey from "./site/Journey";
 import Work from "./site/Work";
 import Skills from "./site/Skills";
@@ -40,15 +39,14 @@ export default function App() {
 
     return (
         <>
-            <a href="#game" className="sr-only">Skip to content</a>
+            <a href="#work" className="sr-only">Skip to content</a>
             <World />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} />
             <main>
-                <DataJourney ready={ready} />
-                <AttackGame />
+                <DataJourney ready={ready} onOpenCv={openCv} />
                 <Work />
                 <Built />
                 <Journey />
