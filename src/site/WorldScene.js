@@ -5,6 +5,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { getPalette, onPalette, getMode } from "./theme";
+import { ZONES } from "./stations";
 
 /*
  * The world behind the whole site.
@@ -39,7 +40,7 @@ export default class WorldScene {
 
         this.M = this.materials();
         this.sky(); this.lights();
-        this.mainIsland(); this.homeIsland(); this.streams(); this.plane(); this.clouds();
+        this.mainIsland(); this.homeIsland(); this.districts(); this.streams(); this.plane(); this.clouds();
         this.loadModels();
         if (!mobile) { // film look: soft bloom on lit windows, data streams and the AI core
             this.composer = new EffectComposer(this.renderer);
@@ -51,6 +52,41 @@ export default class WorldScene {
         this.ray = new THREE.Raycaster();
         this.resize = this.resize.bind(this); this.tick = this.tick.bind(this);
         this.ro = new ResizeObserver(this.resize); this.ro.observe(canvas); this.resize();
+    }
+
+    /* ── Districts: coloured ground plots with a glowing edge and a signpost ── */
+    districts() {
+        this.plots = []; this.signs = [];
+        const plot = (zone, x, z, r, parent = this.main, sign, sx = 0, sz = 0) => {
+            const c = new THREE.Color(ZONES[zone].color), g = this.group(x, z, null, null, 0, parent);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.03, 0.1, 6), new THREE.MeshStandardMaterial({ color: c.clone().lerp(new THREE.Color(0xf3efe6), 0.72), roughness: 0.95 }));
+            base.position.y = 0.02; base.rotation.y = Math.PI / 6; base.receiveShadow = true; g.add(base);
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(r * 1.02, 0.05, 6, 6), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.5 }));
+            ring.rotation.set(Math.PI / 2, 0, Math.PI / 6); ring.position.y = 0.08; g.add(ring);
+            this.plots.push({ zone, ring });
+            if (sign) this.signpost(sign, zone, x + sx, z + sz, parent);
+        };
+        plot("hq", -3, 10, 2.5, this.main, "Nordex HQ", -2.6, -1.8);
+        plot("campus", 3.4, 13, 4, this.main, "Campus · TUHH", 4.3, 1.4);
+        [["Argus AI", 13.5, -11], ["Radiation Tracker", 16, 0], ["StockFlow", 11.5, 12.5], ["Digital Twin", -9.5, 13.5], ["Poultry Shield", -15, 10]]
+            .forEach(([n, x, z]) => plot("park", x, z, 1.95, this.main, n, 1.6, 1.6));
+        plot("desk", -12.5, 4.5, 2.6, this.main, "My desk", 2.2, 1.6);
+        this.signpost("Data valley", "valley", -6.8, 4.2, this.main);
+        this.signpost("Home · West Bengal", "home", 2.5, 5.5, this.home);
+    }
+    signpost(text, zone, x, z, parent) {
+        const cv = document.createElement("canvas"); cv.width = 512; cv.height = 128; const g = cv.getContext("2d");
+        g.fillStyle = "#fbf8f2"; g.beginPath(); g.roundRect(4, 4, 504, 120, 26); g.fill();
+        g.fillStyle = ZONES[zone].color; g.beginPath(); g.roundRect(4, 4, 30, 120, [26, 0, 0, 26]); g.fill();
+        g.fillStyle = "#1c2430"; g.font = "600 54px 'Clash Display', 'General Sans', system-ui, sans-serif"; g.textBaseline = "middle";
+        let fs = 54; while (g.measureText(text).width > 430 && fs > 30) { fs -= 2; g.font = `600 ${fs}px 'Clash Display', 'General Sans', system-ui, sans-serif`; }
+        g.fillText(text, 56, 66);
+        const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+        const s = this.group(x, z, null, null, 0, parent);
+        this.cyl(0.05, 0.06, 1.5, this.M.dark, 0, 0, 0, s, 6);
+        const board = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.475), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, toneMapped: false }));
+        board.position.y = 1.7; s.add(board);
+        s.userData.zone = zone; s.scale.setScalar(0.8); this.signs.push(s);
     }
 
     /* ── Kenney models (CC0): real buildings, trees and rocks ─────────── */
@@ -87,8 +123,10 @@ export default class WorldScene {
         }
         this.townHouses.forEach(h => { h.visible = false; });
         this.townSpots.forEach(([x, z], i) => put(["h1", "h2", "h3", "h4", "h5", "h6"][i], this.town, x, z, 1.5 + (i % 3) * 0.2, (i * 1.3) % 6));
-        this.hqGlass.visible = false; put("sky", this.hq, 0, 0, 9.6).position.y = 0.4;
-        this.floors.forEach(f => f.scale.set(1.12, 1, 1.12));
+        this.hqGlass.visible = false; const sky = put("sky", this.hq, 0, 0, 9.6); sky.position.y = 0.4;
+        // the lit floor bands wrap the real building, in the HQ district colour
+        const fs = new THREE.Box3().setFromObject(sky).getSize(new THREE.Vector3()), hc = new THREE.Color(ZONES.hq.color);
+        this.floors.forEach(f => { f.scale.set((fs.x + 0.2) / 2.52, 1, (fs.z + 0.2) / 2.52); f.material.color.set(0x1d1730); f.material.emissive.copy(hc); f.material.opacity = 0.62; });
         this.lib.children.forEach(c => { c.visible = false; }); put("libb", this.lib, 0, 0, 2.6, Math.PI / 4);
         this.homeHouse.visible = false; put("h5", this.home, 3, 2, 1.8, -0.6);
         this.palmSpots.forEach(([x, z], i) => put(i % 2 ? "palm2" : "palm1", this.home, x, z, 2.4 + (i % 3) * 0.3, rnd() * 6));
@@ -100,8 +138,7 @@ export default class WorldScene {
     async deskScene(lib) {
         const { clone } = await import("three/examples/jsm/utils/SkeletonUtils.js");
         const D = this.desk = this.group(-12.5, 4.5, "desk", "Farhan's desk · Ask my AI", 0, this.main);
-        D.rotation.y = 1.4; D.scale.setScalar(1.35); // three-quarter view of his face and the screen at the desk stop
-        this.box(3.4, 0.1, 2.8, this.M.path, 0, 0, 0, D, 0.04);
+        D.rotation.y = -1.34; D.scale.setScalar(1.35); // three-quarter view of his face and the screen at the desk stop
         const k = 0.72 / new THREE.Box3().setFromObject(lib.desk).getSize(new THREE.Vector3()).y; // one scale for all furniture
         // add a model with its bottom-centre at (x, y, z); returns its size
         const add = (obj, x, y, z, ry = 0, scale = k) => {
@@ -114,15 +151,17 @@ export default class WorldScene {
         };
         const desk = add(lib.desk, 0, 0, 0), top = desk.y;
         add(lib.screen, 0, top, -0.12); add(lib.keys, 0, top, 0.16); add(lib.lamp, desk.x * 0.36, top, -0.05); add(lib.books, -desk.x * 0.38, top, 0);
-        add(lib.chair, 0, 0, 0.62, Math.PI); add(lib.plant, 1.3, 0, -0.9); add(lib.shelf, -1.45, 0, -0.6, Math.PI / 2);
-        // the character: sitting on the chair, facing the screen
+        add(lib.plant, 1.3, 0, -0.9); add(lib.shelf, -1.45, 0, -0.6, Math.PI / 2);
+        // the character, facing the screen
         const me = clone(lib.me); me.userData.clips = lib.me.userData.clips;
         const mh = new THREE.Box3().setFromObject(lib.me).getSize(new THREE.Vector3()).y;
-        const holder = new THREE.Group(); me.scale.setScalar(1.25 / mh); holder.add(me); holder.position.set(0, 0.1, 0.6); holder.rotation.y = Math.PI; D.add(holder);
+        const holder = new THREE.Group(); me.scale.setScalar(1.3 / mh); holder.add(me); holder.position.set(0, 0.1, 0.55); holder.rotation.y = Math.PI; D.add(holder);
         me.traverse(o => { if (o.isMesh) o.castShadow = !this.mobile; });
         const head = me.getObjectByName("head"); if (head) head.add(lib.glasses.clone(true));
         this.mixer = new THREE.AnimationMixer(me);
-        const sit = (lib.me.userData.clips || []).find(c => c.name === "sit"); if (sit) this.mixer.clipAction(sit).play();
+        // standing at the desk, typing
+        const clips = lib.me.userData.clips || [], type = clips.find(c => c.name === "interact-right") || clips.find(c => c.name === "idle");
+        if (type) { const act = this.mixer.clipAction(type); act.timeScale = 0.55; act.play(); }
         this.meHolder = holder;
         // glowing code on the monitor
         const cv = document.createElement("canvas"); cv.width = 256; cv.height = 160; const x = cv.getContext("2d");
@@ -435,6 +474,7 @@ export default class WorldScene {
     setView(pos, look) { this.goalPos.set(...pos); this.goalLook.set(...look); }
     jumpView(pos, look) { this.setView(pos, look); this.camPos.copy(this.goalPos); this.camLook.copy(this.goalLook); }
     setFocus(id) { this.focusId = id; }
+    setZone(z) { this.zone = z; }
     setFlight(t) { this.flight = t; }
     flightPoint(t) { return this.flightCurve.getPoint(t).toArray(); }
     setPointer(x, y) { this.pointer.set(x, y); }
@@ -460,6 +500,8 @@ export default class WorldScene {
     tick() {
         const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
         this.mixer?.update(dt);
+        this.signs?.forEach(s => { s.getWorldPosition(this._sp ||= new THREE.Vector3()); s.visible = s.userData.zone === this.zone || this._sp.distanceTo(this.camera.position) > 13; s.rotation.y = Math.atan2(this.camera.position.x - this._sp.x, this.camera.position.z - this._sp.z) - (s.parent.rotation?.y || 0); });
+        this.plots?.forEach(p => { const on = p.zone === this.zone; p.ring.material.emissiveIntensity += ((on ? 2.2 + Math.sin(t * 3) * 0.6 : 0.45) - p.ring.material.emissiveIntensity) * 0.1; });
         if (this.codeTex) this.codeTex.offset.y = -Math.floor(t * 3) / 16; // lines scroll like typing
         this.skyU.time.value = t;
         // camera glides; pointer adds a small parallax orbit

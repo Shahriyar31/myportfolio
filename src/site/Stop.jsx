@@ -1,10 +1,15 @@
 import { Fade } from "./Motion";
+import { ZONES, zoneOf } from "./stations";
 
 /** One screen-tall stop: the camera flies to `station`, the pane explains it. */
 export default function Stop({ station, side = "left", id, flight, children, wide }) {
+    const z = ZONES[zoneOf(station)];
     return (
-        <article id={id} className={`stop is-${side}`} data-station={station} data-flight={flight ? "" : undefined}>
-            <Fade className={`pane ${wide ? "is-wide" : ""}`}>{children}</Fade>
+        <article id={id} className={`stop is-${side}`} data-station={station} data-flight={flight ? "" : undefined} style={z ? { "--zone": z.color } : undefined}>
+            <Fade className={`pane ${wide ? "is-wide" : ""} ${z ? "has-zone" : ""}`}>
+                {z && <span className="pane-zone mono"><i />{z.name}</span>}
+                {children}
+            </Fade>
         </article>
     );
 }

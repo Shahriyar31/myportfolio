@@ -860,22 +860,23 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 .hud:not(.is-on) .hud-next { pointer-events: none; }
 @media (max-width: 860px) { .hud-next { align-self: center; } }
 
-/* ════ Labels in the world: what the card is about, and where things are ═══ */
-.world-pin, .world-tags { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
-.world-pin { opacity: 0; transition: opacity 0.4s; will-change: transform; }
-.world-pin.is-on { opacity: 1; }
-.world-pin-card { position: absolute; left: 0; bottom: 44px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 2px; padding: 8px 14px; border-radius: 14px; white-space: nowrap; max-width: 320px;
-  background: color-mix(in oklab, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.world-pin-card .mono { font-size: 9.5px; color: var(--accent); letter-spacing: 0.08em; }
-.world-pin-card b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-.world-pin::before { content: ""; position: absolute; left: -1px; bottom: 6px; width: 2px; height: 38px; background: linear-gradient(var(--accent), transparent); }
-.world-pin::after { content: ""; position: absolute; left: -6px; bottom: -6px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 25%, transparent); animation: pinPulse 1.8s ease-out infinite; }
-@keyframes pinPulse { 50% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--accent) 0%, transparent); } }
-.world-tags { opacity: 0; transition: opacity 0.5s; }
-.world-tags.is-on { opacity: 1; }
-.world-tag { position: absolute; left: 0; top: 0; translate: -50% -100%; padding: 5px 10px; border-radius: 99px; font-size: 10px; white-space: nowrap; color: var(--fg);
-  background: color-mix(in oklab, var(--bg) 80%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: var(--raise-sm); transition: opacity 0.3s; }
-@media (max-width: 860px) { .world-pin-card { max-width: 230px; } .world-pin-card b { font-size: 12.5px; } .world-tag { font-size: 9px; } }
+/* ════ Card → place: a living line from each card to its spot on the island ═══ */
+.world-link { position: fixed; inset: 0; width: 100vw; height: 100svh; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.45s; overflow: visible; }
+.world-link.is-on { opacity: 1; }
+.world-link path { fill: none; stroke: var(--zc); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 3 8; animation: linkFlow 0.9s linear infinite; filter: drop-shadow(0 0 6px var(--zc)); }
+@keyframes linkFlow { to { stroke-dashoffset: -11; } }
+.world-link circle { fill: var(--zc); }
+.world-link circle.s { fill: var(--bg); stroke: var(--zc); stroke-width: 2.5; }
+.world-link circle.ping { fill: none; stroke: var(--zc); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: linkPing 1.6s ease-out infinite; }
+@keyframes linkPing { from { transform: scale(0.5); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
+
+/* the card wears its district's colour: a tab on top and a glowing edge */
+.pane.has-zone { position: relative; border-top: 3px solid var(--zone); box-shadow: var(--raise-lg), var(--rim), 0 0 0 1px color-mix(in oklab, var(--zone) 35%, transparent), 0 18px 60px -30px var(--zone); }
+.pane-zone { position: absolute; top: -30px; left: 22px; display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 14px; border-radius: 12px 12px 0 0;
+  background: var(--zone); color: #fff; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+.pane-zone i { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px color-mix(in oklab, #fff 35%, transparent); animation: pinPulse 1.8s ease-out infinite; }
+@keyframes pinPulse { 50% { box-shadow: 0 0 0 7px color-mix(in oklab, #fff 0%, transparent); } }
+.pane.has-zone .pane-where { color: var(--zone); }
 
 /* ════ Hero name: an elegant italic first name over a heavy poster surname ═══ */
 .hx-name { font-size: clamp(58px, 11.5vw, 206px); }

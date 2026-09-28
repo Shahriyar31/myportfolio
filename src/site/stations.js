@@ -8,9 +8,9 @@ export const STATIONS = {
     gate: { name: "The governance gate", p: [11, 8, 12], l: [3, 2, -1], focus: "gate" },
     security: { name: "The governance gate", p: [16, 9, 8], l: [4.5, 2.5, -0.5], focus: "gate" },
     game: { name: "The governance gate", p: [9, 9, 12], l: [3, 2, -1], focus: "gate" },
-    "floor-1": { name: "Nordex HQ · floor 1", p: [4, 4.5, 20], l: [-3, 3, 10], focus: "floor-1" },
-    "floor-2": { name: "Nordex HQ · floor 2", p: [4, 7.5, 20], l: [-3, 6, 10], focus: "floor-2" },
-    "floor-3": { name: "Nordex HQ · floor 3", p: [4, 10.5, 20], l: [-3, 9, 10], focus: "floor-3" },
+    "floor-1": { name: "Nordex HQ · floor 1", p: [7, 5.5, 25], l: [-3, 3, 10], focus: "floor-1" },
+    "floor-2": { name: "Nordex HQ · floor 2", p: [7, 8.5, 25], l: [-3, 6, 10], focus: "floor-2" },
+    "floor-3": { name: "Nordex HQ · floor 3", p: [7, 11.5, 25], l: [-3, 9, 10], focus: "floor-3" },
     uni: { name: "TUHH campus", p: [-3, 7, 21], l: [5, 1.5, 11], focus: "uni" },
     sky: { name: "Above the valley", p: [6, 30, 30], l: [0, 22, -20] },
     "p-argus": { name: "The Argus lab", p: [25, 9, 0], l: [13.5, 1.5, -11], focus: "p-argus" },
@@ -25,7 +25,7 @@ export const STATIONS = {
     "tuhh": { name: "TUHH campus", p: [-3, 7, 21], l: [5, 1.5, 11], focus: "uni" },
     nordex: { name: "Nordex HQ", p: [4, 9, 22], l: [-3, 5, 10], focus: "hq" },
     now: { name: "The Argus lab", p: [21, 6, -4], l: [13.5, 1.5, -11], focus: "p-argus" },
-    chat: { name: "My desk", p: [-8, 3.4, 9], l: [-12.5, 1.1, 4.5] },
+    chat: { name: "My desk", p: [-6.5, 4.4, 10.5], l: [-12.5, 1.2, 4.5] },
     photos: { name: "Home island", p: [-56, 10, -34], l: [-78, -2, -60], warm: 0.7 },
     finale: { name: "Both islands", p: [-22, 40, 44], l: [-34, -2, -26] },
 };
@@ -42,3 +42,18 @@ export const CHAPTERS = [
     ["lens", "Photography"],
     ["hello", "Contact"],
 ];
+
+/* Districts of the valley. Each has a colour: its ground plot glows in it, and every card about it
+   carries a tab in the same colour, so a card and its place read as one thing. */
+export const ZONES = {
+    valley: { name: "Data valley", color: "#2fb3e6" },
+    hq: { name: "Nordex HQ", color: "#8b7cf6" },
+    park: { name: "Project park", color: "#f2a33a" },
+    campus: { name: "Campus · TUHH", color: "#2fbf88" },
+    desk: { name: "My desk", color: "#e46fd8" },
+    home: { name: "Home · West Bengal", color: "#ff7a59" },
+};
+const ZONE_OF = { lake: "valley", gate: "valley", tower: "valley", security: "valley", game: "valley", nordex: "hq", "floor-1": "hq", "floor-2": "hq", "floor-3": "hq",
+    uni: "campus", tuhh: "campus", "p-books": "campus", "p-argus": "park", "p-radiation": "park", "p-stock": "park", "p-twin": "park", "p-poultry": "park",
+    chat: "desk", "home-college": "home", "home-house": "home", photos: "home", flight: "home", now: "park" };
+export const zoneOf = station => ZONE_OF[station];

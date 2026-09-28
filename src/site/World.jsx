@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { STATIONS, CHAPTERS } from "./stations";
+import { STATIONS, CHAPTERS, ZONES, zoneOf } from "./stations";
 import { setWarmth } from "./theme";
 import { scrollToId, reducedMotion } from "./hooks";
 
@@ -10,11 +10,6 @@ import { scrollToId, reducedMotion } from "./hooks";
  * to the plane's flight.
  */
 const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "tuhh", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
-
-// district tags shown on the wide shots, so visitors learn the map
-const DISTRICTS = [["Data valley", -8, 5, -6], ["Governance gate", 3, 5.2, -1], ["AI tower", 9.5, 10.5, -4], ["Nordex HQ", -3, 11.4, 10], ["Campus · TUHH", 3.5, 4.4, 13.5],
-    ["Argus lab", 13.5, 4, -11], ["Radar", 16, 5.5, 0], ["StockFlow", 11.5, 4.5, 12.5], ["Digital twin", -9.5, 4.8, 13.5], ["Poultry barn", -15, 3.6, 10], ["My desk", -12.5, 3, 4.5], ["Home · West Bengal", -78, 4, -60]];
-const WIDE = new Set(["overview", "finale", "photos"]);
 
 // top-down points of interest for the mini-map (x, z)
 const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [1.5, 14.8], [-12.5, 4.5], [-79.5, -61], [-75, -58]];
@@ -47,7 +42,7 @@ export default function World() {
     const [tip, setTip] = useState(null);
     const tipRef = useRef(null);
     const tipVal = useRef(null);
-    const pinRef = useRef(null), tagsRef = useRef(null), view = useRef({ pin: null, wide: false });
+    const pinRef = useRef(null), view = useRef({ pin: null });
     const nextRef = useRef(null), exploredRef = useRef(null), seen = useRef(new Set()), hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
 
     useEffect(() => {
@@ -104,10 +99,9 @@ export default function World() {
             // what the pin points at: the subject of the card on screen
             {
                 const st = t < 0.5 ? a : b, el = t < 0.5 ? A : B, title = el.querySelector(".pane-title")?.textContent;
-                view.current.wide = WIDE.has(el.dataset.station);
-                view.current.pin = el.classList.contains("stop") && title && !st.follow ? { at: st.l, name: st.name, title } : null;
-                const pe = pinRef.current;
-                if (pe && view.current.pin && pe.dataset.k !== title) { pe.dataset.k = title; pe.querySelector("span").textContent = st.name; pe.querySelector("b").textContent = title; }
+                const zone = zoneOf(el.dataset.station);
+                scene.setZone(el.classList.contains("stop") ? zone : null);
+                view.current.pin = el.classList.contains("stop") && title && !st.follow ? { at: st.l, pane: el.querySelector(".pane"), color: ZONES[zone]?.color || "var(--accent)" } : null;
             }
             // tour HUD: which chapter, which place, where on the map
             const ch = CHAPTERS.findIndex(([id]) => id === cur.closest("section[id]")?.id);
@@ -153,16 +147,23 @@ export default function World() {
             try { scene = new WorldScene(ref.current, { mobile }); } catch { return; }
             // labels follow the camera every frame
             scene.afterTick = () => {
-                const v = view.current, pe = pinRef.current, tg = tagsRef.current;
-                if (pe) {
-                    const p = v.pin && scene.project(v.pin.at[0], v.pin.at[1] + 1.3, v.pin.at[2]);
-                    pe.classList.toggle("is-on", !!(p && p[2]));
-                    if (p) pe.style.transform = `translate3d(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px, 0)`;
+                const v = view.current, pe = pinRef.current;
+                if (pe) { // a line from the card to its place on the island
+                    const p = v.pin && scene.project(v.pin.at[0], v.pin.at[1], v.pin.at[2]), r = v.pin?.pane?.getBoundingClientRect();
+                    const on = !!(p && p[2] && r && r.bottom > 0 && r.top < innerHeight && (p[0] < r.left || p[0] > r.right || p[1] < r.top || p[1] > r.bottom));
+                    pe.classList.toggle("is-on", on);
+                    if (on) {
+                        const [tx, ty] = p, right = tx > r.right, below = ty > r.bottom && tx >= r.left && tx <= r.right;
+                        const sx = below ? Math.min(Math.max(tx, r.left + 30), r.right - 30) : right ? r.right : r.left;
+                        const sy = below ? r.bottom : ty < r.top || tx < r.left || right ? Math.min(Math.max(ty, r.top + 40), r.bottom - 40) : r.top;
+                        const mx = below ? sx : (sx + tx) / 2;
+                        pe.style.setProperty("--zc", v.pin.color);
+                        pe.querySelector("path").setAttribute("d", below ? `M${sx} ${sy} C${sx} ${(sy + ty) / 2} ${tx} ${(sy + ty) / 2} ${tx} ${ty}` : `M${sx} ${sy} C${mx} ${sy} ${mx} ${ty} ${tx} ${ty}`);
+                        pe.querySelector("circle.s").setAttribute("cx", sx); pe.querySelector("circle.s").setAttribute("cy", sy);
+                        pe.querySelector("g").setAttribute("transform", `translate(${tx.toFixed(1)} ${ty.toFixed(1)})`);
+                    }
                 }
-                if (tg) {
-                    tg.classList.toggle("is-on", v.wide);
-                    if (v.wide) [...tg.children].forEach((el, i) => { const [, x, y, z] = DISTRICTS[i], p = scene.project(x, y, z); el.style.transform = `translate3d(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px, 0)`; el.style.opacity = p[2] ? "" : "0"; });
-                }
+
             };
             if (import.meta.env.DEV) window.__world = scene;
             update();
@@ -186,8 +187,7 @@ export default function World() {
     return (
         <>
             <canvas ref={ref} className="world" aria-hidden="true" />
-            <div ref={pinRef} className="world-pin" aria-hidden="true"><div className="world-pin-card neu"><span className="mono" /><b /></div></div>
-            <div ref={tagsRef} className="world-tags" aria-hidden="true">{DISTRICTS.map(([n]) => <span key={n} className="world-tag mono">{n}</span>)}</div>
+            <svg ref={pinRef} className="world-link" aria-hidden="true"><path /><circle className="s" r="4" /><g><circle className="ping" r="9" /><circle r="5" /></g></svg>
             <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} exploredRef={exploredRef} nextRef={nextRef} />
             <div ref={tipRef} className={`world-tip neu ${tip ? "is-on" : ""}`} aria-hidden="true">{tip?.label}{tip && SECTION_FOR[tip.id] && <span className="mono">click to visit</span>}</div>
         </>
