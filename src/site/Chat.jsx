@@ -117,6 +117,7 @@ const CONTEXT = {
     work: "What did he do at Nordex?", skills: "What's his strongest skill?", built: "What is Argus AI?",
     story: "Why did he move to Germany?", game: "How does he make AI safe?", education: "What did he study?", agent: "How does this AI work?",
     lens: "What does he photograph?", hello: "Is he open to work?",
+    what: "What does Farhan build?", break: "How does he make AI safe?", experience: "What did he do at Nordex?", projects: "What is Argus AI?", journey: "Why did he move to Germany?", contact: "Is he open to work?",
 };
 
 /* Floating assistant, on every screen */

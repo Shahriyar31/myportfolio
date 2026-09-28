@@ -1,79 +1,70 @@
 import { useCallback, useEffect, useState } from "react";
 import Lenis from "lenis";
 import "./styles/global.css";
+import "./planet/planet.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
-import { ChatDock, AgentSection } from "./site/Chat";
-import DataJourney from "./site/DataJourney";
-import BuildIt from "./site/BuildIt";
-import KeepLegal from "./site/KeepLegal";
-import ShipSafe from "./site/ShipSafe";
-import Verdict from "./site/Verdict";
-import World from "./site/World";
-import Journey from "./site/Journey";
-import Work from "./site/Work";
-import Skills from "./site/Skills";
-import Built from "./site/Built";
-import Lens from "./site/Lens";
-import Hello from "./site/Hello";
-import { reducedMotion } from "./site/hooks";
-import Stop from "./site/Stop";
-import { openChat, ask } from "./site/chat";
+import { ChatDock } from "./site/Chat";
 import QuickRead from "./site/QuickRead";
+import Planet from "./planet/Planet";
+import { Hero, What, Break, Experience, Projects, Journey, Skills, Photos, Contact } from "./planet/Chapters";
+import { reducedMotion } from "./site/hooks";
 
+/*
+ * Farhan's tiny planet. One small world behind the page; a little 3D me walks around it as you scroll.
+ * Chapters, in walking order: meet me → what I do → break my AI → Nordex → projects →
+ * West Bengal → flight → Hamburg → skills → photography → my desk.
+ */
 export default function App() {
     const [ready, setReady] = useState(false);
-    const [cvOpen, setCvOpen] = useState(false), [quick, setQuick] = useState(false);
-    const openQuick = useCallback(() => setQuick(true), []), closeQuick = useCallback(() => setQuick(false), []);
-    const [menu, setMenu] = useState(false);
+    const [cvOpen, setCvOpen] = useState(false), [quick, setQuick] = useState(false), [menu, setMenu] = useState(false);
     const reveal = useCallback(() => setReady(true), []);
-    const openCv = useCallback(() => setCvOpen(true), []);
-    const closeCv = useCallback(() => setCvOpen(false), []);
+    const openCv = useCallback(() => setCvOpen(true), []), closeCv = useCallback(() => setCvOpen(false), []);
+    const openQuick = useCallback(() => setQuick(true), []), closeQuick = useCallback(() => setQuick(false), []);
 
-    useEffect(() => { window.addEventListener("quick-read", openQuick); return () => window.removeEventListener("quick-read", openQuick); }, [openQuick]);
-
-    // Smooth scrolling (skipped for reduced-motion users)
+    useEffect(() => { addEventListener("quick-read", openQuick); return () => removeEventListener("quick-read", openQuick); }, [openQuick]);
+    // smooth scrolling (skipped for reduced-motion users)
     useEffect(() => {
         if (reducedMotion()) return;
-        const lenis = new Lenis({ lerp: 0.1 });
-        window.__lenis = lenis;
+        const lenis = new Lenis({ lerp: 0.1 }); window.__lenis = lenis;
         let raf = requestAnimationFrame(function loop(t) { lenis.raf(t); raf = requestAnimationFrame(loop); });
         return () => { cancelAnimationFrame(raf); lenis.destroy(); window.__lenis = undefined; };
     }, []);
-
     useEffect(() => {
         if (ready) { window.__lenis?.start(); document.body.classList.remove("is-locked"); }
         else { window.__lenis?.stop(); document.body.classList.add("is-locked"); }
     }, [ready]);
+    // cards lean towards the pointer
+    useEffect(() => {
+        if (reducedMotion() || matchMedia("(pointer: coarse)").matches) return;
+        let last = null;
+        const move = e => {
+            const c = e.target.closest?.(".pl-card");
+            if (last && last !== c) { last.style.removeProperty("--rx"); last.style.removeProperty("--ry"); }
+            last = c; if (!c) return;
+            const r = c.getBoundingClientRect(); c.style.setProperty("--rx", `${((0.5 - (e.clientY - r.top) / r.height) * 4).toFixed(2)}deg`); c.style.setProperty("--ry", `${(((e.clientX - r.left) / r.width - 0.5) * 6).toFixed(2)}deg`);
+            c.style.setProperty("--mx", `${((e.clientX - r.left) / r.width * 100).toFixed(1)}%`); c.style.setProperty("--my", `${((e.clientY - r.top) / r.height * 100).toFixed(1)}%`);
+        };
+        addEventListener("pointermove", move, { passive: true }); return () => removeEventListener("pointermove", move);
+    }, []);
 
     return (
         <>
-            <a href="#work" className="sr-only">Skip to content</a>
-            <World />
+            <a href="#what" className="sr-only">Skip to content</a>
+            <Planet />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onQuick={openQuick} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} onQuick={openQuick} />
-            <main>
-                <DataJourney ready={ready} onOpenCv={openCv} />
-                <BuildIt />
-                <KeepLegal />
-                <ShipSafe />
-                <Verdict onOpenCv={openCv} />
-                <Work />
-                <Built />
+            <main className="pl-main">
+                <Hero ready={ready} onQuick={openQuick} onCv={openCv} />
+                <What />
+                <Break />
+                <Experience />
+                <Projects />
                 <Journey />
                 <Skills />
-                <Stop id="desk" station="chat" side="left">
-                    <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Online</span><span className="pane-where mono">📍 My desk</span></div>
-                    <h3 className="pane-title">This is where I build</h3>
-                    <p className="pane-lede">Most days: an AI agent in one window, a data pipeline in the other. I built an AI that answers questions about my work — ask it anything.</p>
-                    <div className="hx-picks" style={{ justifyContent: "flex-start" }}>
-                        {["What does Farhan do?", "Is he open to work?"].map(q => <button key={q} className="key key-sm" onClick={() => { openChat(true); ask(q); }}>{q}</button>)}
-                    </div>
-                </Stop>
-                <AgentSection />
-                <Lens />
-                <Hello onOpenCv={openCv} />
+                <Photos />
+                <Contact onCv={openCv} onQuick={openQuick} />
             </main>
             <ChatDock />
             <CvModal open={cvOpen} onClose={closeCv} />

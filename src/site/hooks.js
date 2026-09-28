@@ -58,3 +58,9 @@ export function scrollToId(id) {
     else if (el === 0) window.scrollTo({ top: 0, behavior: "smooth" });
     else el.scrollIntoView({ behavior: "smooth" });
 }
+
+/** From inside a demo overlay: close it, then scroll to a section. */
+export function goTo(id) {
+    window.dispatchEvent(new Event("demo-close"));
+    setTimeout(() => scrollToId(id), 380);
+}

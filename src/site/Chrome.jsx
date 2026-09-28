@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { scrollToId, reducedMotion } from "./hooks";
 import { NAME, TITLE } from "../data/profile";
+import { CHAPTERS } from "../planet/world";
 
 /* ── Icons (24px, 1.6 stroke) ── */
 const I = {
@@ -26,20 +27,7 @@ export const Icon = ({ n, size = 20 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{I[n]}</svg>
 );
 
-export const SECTIONS = [
-    ["home", "Home · break my AI", "home"],
-    ["incident-build", "06:00 · Build it", "layers"],
-    ["incident-legal", "07:00 · Keep it legal", "doc"],
-    ["incident-ship", "07:30 · Ship it safely", "shield"],
-    ["verdict", "08:00 · Verdict", "bring"],
-    ["work", "Experience", "work"],
-    ["built", "Evidence · projects", "built"],
-    ["story", "Education", "grad"],
-    ["skills", "Skills", "keys"],
-    ["agent", "Ask my AI", "agent"],
-    ["lens", "Photography", "lens"],
-    ["hello", "Contact", "hello"],
-];
+export const SECTIONS = CHAPTERS; // the planet's chapters, in walking order
 
 /* ── Preloader: the FS monogram, once per session ── */
 export function Preloader({ onReveal }) {

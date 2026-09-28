@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import Stop from "./Stop";
-import { J } from "./journey";
-import { scrollToId } from "./hooks";
+import { goTo } from "./hooks";
 import { mark } from "./progress";
 
 /*
@@ -30,13 +28,11 @@ export default function KeepLegal() {
     const pick = t => {
         if (showing || done) return;
         setPicks(p => [...p, t]);
-        J.scene?.gateFlash(t === cur.tier ? 0x3ee08f : 0xff5d5d);
     };
 
     return (
-        <section id="incident-legal" aria-label="Incident 2: keep it legal">
-            <Stop station="gate" side="left" wide>
-                <div className="inc-kick mono"><span className="inc-clock">07:00</span><span>Incident 2 / 3 · Keep it legal</span><span className="inc-tag">EU AI Act · AI governance</span></div>
+        <div className="demo-body">
+                <div className="inc-kick mono"><span className="inc-clock">Demo 2</span><span>Keep it legal</span><span className="inc-tag">EU AI Act · AI governance</span></div>
                 <h3 className="pane-title">Legal asks: which of our AI ideas are even allowed?</h3>
                 <p className="pane-lede sm">Five ideas land on your desk. Sort each one into its EU AI Act risk level. Argus, my compliance agent, gives a second opinion.</p>
 
@@ -62,11 +58,10 @@ export default function KeepLegal() {
                         <b>✓ Sent to Legal{picks.length === CASES.length ? `: you matched Argus on ${score} of ${CASES.length}` : ""}.</b>
                         <p><span className="mono">In plain words</span>Before a company builds an AI, I work out what the law allows and what it requires. Then I build that into the product.</p>
                         <p><span className="mono">Under the hood</span>EU AI Act risk classification (Art. 5, Art. 50, Annex III), GDPR impact assessments, human-in-the-loop review, and hash-chained audit trails. Argus automates this with a LangGraph agent and RAG over the regulation text.</p>
-                        <div className="dj-proof"><span className="mono">Proof</span><a href="https://eu-ai-act-governance-platform.vercel.app" target="_blank" rel="noreferrer">Argus AI (live)</a><button onClick={() => scrollToId("work")}>AI governance at Nordex</button></div>
+                        <div className="dj-proof"><span className="mono">Proof</span><a href="https://eu-ai-act-governance-platform.vercel.app" target="_blank" rel="noreferrer">Argus AI (live)</a><button onClick={() => goTo("experience")}>AI governance at Nordex</button></div>
                         <p className="kl-note mono">Simplified illustration · not legal advice</p>
                     </div>
                 )}
-            </Stop>
-        </section>
+        </div>
     );
 }
