@@ -1114,3 +1114,50 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
   .fd:has(.fd-con.is-busy) .fd-q, .fd:has(.fd-con.is-busy) .fd-audit, .fd:has(.fd-con.is-busy) .fd-con-opener { opacity: 0; translate: 0 -30px; pointer-events: none; }
   .early { grid-template-columns: 1fr; }
 }
+
+/* ══ Incidents (the on-call shift) ═══════════════════════════════════════ */
+.inc-kick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.inc-clock { padding: 4px 9px; border-radius: 7px; background: #05080c; color: #ffc857; font-size: 13px; letter-spacing: .06em; box-shadow: 0 0 0 1px rgba(255,200,87,.3), 0 0 18px -6px #ffc857; }
+.inc-tag { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--accent); }
+.bi-q { display: flex; flex-direction: column; gap: 4px; padding: 11px 14px; border-radius: 14px 14px 14px 4px; background: color-mix(in oklab, var(--fg) 7%, transparent); font-weight: 600; font-size: 15px; }
+.bi-q .mono, .bi-rank > .mono, .bi-ans > .mono, .inc-proof .mono { font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); font-weight: 400; }
+.bi-docs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bi-doc { position: relative; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px 10px 34px; border-radius: 12px; border: 1px dashed var(--line-2); color: var(--mute); transition: border-color .25s, background .25s, color .25s, transform .3s var(--spring); }
+.bi-doc b { font-size: 13.5px; color: var(--fg); font-weight: 600; } .bi-doc small { font-size: 10px; letter-spacing: .06em; }
+.bi-doc.is-old small { color: #ff7b72; }
+.bi-plug { position: absolute; left: 12px; top: 13px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--dim); transition: all .3s; }
+.bi-doc:hover { transform: translateY(-2px); border-color: var(--accent); }
+.bi-doc.is-on { border-style: solid; border-color: var(--accent); background: color-mix(in oklab, var(--accent) 10%, transparent); }
+.bi-doc.is-on .bi-plug { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.bi-filter { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+.bi-filter input { position: absolute; opacity: 0; }
+.bi-filter small { color: var(--dim); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.bi-sw { position: relative; width: 38px; height: 22px; border-radius: 999px; background: color-mix(in oklab, var(--fg) 14%, transparent); transition: background .3s; flex: none; }
+.bi-sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--fg); transition: transform .35s var(--spring); }
+.bi-filter input:checked + .bi-sw { background: #3ee08f; } .bi-filter input:checked + .bi-sw::after { transform: translateX(16px); }
+.bi-filter input:focus-visible + .bi-sw { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bi-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bi-ask { padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 14px; color: #0b1016; background: var(--accent); box-shadow: 0 10px 30px -10px var(--accent); transition: transform .3s var(--spring), opacity .2s; }
+.bi-ask:hover { transform: translateY(-2px); } .bi-ask:disabled { opacity: .6; }
+.bi-skip { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); text-decoration: underline; text-underline-offset: 4px; }
+.bi-out { display: grid; gap: 10px; animation: resIn .5s var(--ease); }
+.bi-rank { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: #05080c; color: #dfe7ee; }
+.bi-empty { font-size: 11px; color: #6b7a88; }
+.bi-bar { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 10px; font-size: 12.5px; color: #8b98a6; }
+.bi-bar i { height: 6px; border-radius: 3px; background: #1a2530; position: relative; overflow: hidden; }
+.bi-bar i::after { content: ""; position: absolute; inset: 0; width: calc(var(--w) * 100%); border-radius: inherit; background: #4b5b6b; transition: width .8s var(--ease); }
+.bi-bar b { font-size: 11px; text-align: right; font-weight: 400; }
+.bi-bar.is-used { color: #fff; } .bi-bar.is-used i::after { background: #73d4ff; box-shadow: 0 0 10px #73d4ff; } .bi-bar.is-used b { color: #73d4ff; }
+.bi-bar.is-cut { text-decoration: line-through; opacity: .5; } .bi-bar.is-cut b { color: #ff7b72; text-decoration: none; }
+.bi-ans { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-2); }
+.bi-text { font-size: 15.5px; font-weight: 600; line-height: 1.4; }
+.bi-cites { margin: 0; padding-left: 20px; font-size: 12.5px; color: var(--mute); display: grid; gap: 3px; } .bi-cites b { color: var(--fg); font-weight: 600; }
+.bi-why { font-size: 13.5px; color: var(--mute); } .bi-hint { font-size: 11px; letter-spacing: .04em; color: var(--accent); }
+.bi-ans.is-guess, .bi-ans.is-wrong { border-color: rgba(255,93,93,.5); background: rgba(255,93,93,.07); } .bi-ans.is-guess .bi-text, .bi-ans.is-wrong .bi-text { color: #ff7b72; }
+.bi-ans.is-conflict, .bi-ans.is-partial { border-color: rgba(255,200,87,.5); background: rgba(255,200,87,.06); } .bi-ans.is-conflict .bi-text, .bi-ans.is-partial .bi-text { color: #ffc857; }
+.bi-ans.is-honest { border-color: var(--line-2); }
+.bi-ans.is-right { border-color: rgba(62,224,143,.55); background: rgba(62,224,143,.08); } .bi-ans.is-right .bi-text { color: #3ee08f; }
+.inc-proof { display: grid; gap: 8px; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(62,224,143,.45); background: rgba(62,224,143,.06); animation: resIn .6s var(--spring); }
+.inc-proof > b { color: #3ee08f; font-size: 16px; } .inc-proof p { font-size: 13.5px; line-height: 1.5; } .inc-proof p .mono { display: block; margin-bottom: 2px; }
+[data-theme="light"] .bi-rank { background: #1d232b; }
+@media (max-width: 860px) { .bi-docs { grid-template-columns: 1fr; } .bi-bar { grid-template-columns: 110px 1fr 50px; font-size: 11.5px; } }

@@ -659,6 +659,8 @@ export default class WorldScene {
         this.planeG.rotateY(-Math.PI / 2);
         this.trail.material.opacity = f > 0 && f < 1 ? 0.8 : 0.25;
 
+        // RAG incident: each connected source brightens the data streams into the AI tower
+        if (!this.attacking) this.lineMat.opacity += ((0.25 + (this.ragGlow || 0) * 0.2) - this.lineMat.opacity) * 0.08;
         this.packetTick(dt, t);
         if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera);
         this.afterTick?.();

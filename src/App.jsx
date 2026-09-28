@@ -4,6 +4,7 @@ import "./styles/global.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
 import DataJourney from "./site/DataJourney";
+import BuildIt from "./site/BuildIt";
 import World from "./site/World";
 import Journey from "./site/Journey";
 import Work from "./site/Work";
@@ -47,6 +48,7 @@ export default function App() {
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} />
             <main>
                 <DataJourney ready={ready} onOpenCv={openCv} />
+                <BuildIt />
                 <Work />
                 <Built />
                 <Journey />
