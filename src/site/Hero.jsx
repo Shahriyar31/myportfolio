@@ -1,6 +1,5 @@
 import { Fade, Lines, Chars, Magnetic } from "./Motion";
 import { scrollToId } from "./hooks";
-import { useProgress } from "./progress";
 import { NAME, TITLE, FOCUS } from "../data/profile";
 
 /* Section header used across the page: index, one short title, one line. */
@@ -16,9 +15,8 @@ export function Head({ n, kicker, title, sub }) {
 
 /* The claim. Everything a recruiter needs is on this one screen. */
 export default function Hero({ ready, onQuick }) {
-    const verified = useProgress().verdict?.status === "solved";
     return (
-        <section id="home" className="v-hero">
+        <section id="home" className="v-hero" data-cam="hero">
             <div className="v-wrap v-hero-grid">
                 <div className="v-hero-copy">
                     <Fade play={ready} delay={100}><span className="v-chip mono"><i className="dot-live" />Open to roles · Hamburg, Germany</span></Fade>
@@ -29,15 +27,7 @@ export default function Hero({ ready, onQuick }) {
                         <Magnetic><button className="v-btn" onClick={() => scrollToId("challenge")}>Try to break my AI ↓</button></Magnetic>
                     </Fade>
                     <Fade play={ready} delay={900}><p className="v-proof mono">Now: AI &amp; Data Engineering at Nordex · Argus AI live · M.Sc. TUHH</p></Fade>
-                </div>
-                <div className="v-hero-card">
-                    <div className="v-glass-hero" data-glass data-explode="0" />
-                    <Fade play={ready} delay={900} className="v-glass-cap">
-                        <span className="mono">Most AI is a black box.</span>
-                        <b>I build glass boxes.</b>
-                        <small>Four layers you can see into: input shield, AI judge, my AI, output scan.</small>
-                        <div className={`v-stamp mono ${verified ? "is-ok" : ""}`}>{verified ? <>Verified<small>by you ✓</small></> : <>Don't believe it?<small>break it below ↓</small></>}</div>
-                    </Fade>
+                    <Fade play={ready} delay={1400}><p className="v-hint mono"><i />Move your cursor: you're firing my neurons. Click anywhere for a burst.</p></Fade>
                 </div>
             </div>
         </section>

@@ -1537,3 +1537,33 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 @media (prefers-reduced-motion: reduce) { .ch { transition: none; opacity: 1; transform: none; filter: none; } .v-photos-track { transform: none; } }
 
 .v-glass-cap .v-stamp { top: -28px; }
+
+/* ══ Inside my AI: the living network behind the page ═══════════════════ */
+.v-bg { z-index: -2; }
+.v-net { position: fixed; inset: 0; width: 100vw; height: 100svh; z-index: -1; opacity: 0; transition: opacity 1.6s var(--ease); pointer-events: none; }
+.v-net.is-ready { opacity: 1; }
+.v-hero .v-h1, .v-moment-t, .v-hero .v-lede { text-shadow: 0 4px 40px rgba(3,6,10,.85); }
+.v-hero-grid { grid-template-columns: minmax(0, 1fr); } .v-hero-copy { max-width: 720px; }
+.v-hint { display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.v-hint i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: djPulse 1.8s ease-out infinite; box-shadow: 0 0 0 0 var(--accent); }
+.v-moment { min-height: 100svh; display: flex; align-items: center; }
+.v-moment-t { font-family: var(--f-display); font-weight: 600; font-size: clamp(40px, 7vw, 104px); line-height: .98; letter-spacing: -0.03em; margin-top: 14px; max-width: 14ch; }
+.v-moment-t em .ch { background: linear-gradient(100deg, var(--accent), #b69cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* chapters beside the network: one readable column on the left */
+.is-side .v-wrap > * { max-width: 600px; }
+.is-side .v-console { margin: 0; background: rgba(8,12,18,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.is-side .v-cards { grid-template-columns: 1fr; }
+.is-side .v-card { background: color-mix(in oklab, var(--bg) 82%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.is-side .v-presets { grid-template-columns: 1fr 1fr; }
+/* text-heavy chapters: a calm panel over the dimmed network */
+.is-panel > .v-wrap { padding: clamp(24px, 4vw, 56px); border-radius: 28px; background: color-mix(in oklab, var(--bg) 86%, transparent); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.is-panel#story > .v-wrap { padding-bottom: 12px; }
+.v-sec.is-panel { padding: clamp(60px, 9vh, 100px) 0; }
+@media (max-width: 860px) {
+  .is-side .v-wrap > * { max-width: none; }
+  .v-moment-t { font-size: clamp(38px, 11vw, 60px); }
+  .is-panel > .v-wrap { width: calc(100% - 16px); padding: 20px 16px; border-radius: 20px; }
+}
+/* layering: background gradient → network → page content */
+.v-bg { z-index: 0; } .v-net { z-index: 0; }
+main { position: relative; z-index: 1; }

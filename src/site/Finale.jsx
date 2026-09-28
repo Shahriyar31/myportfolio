@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Net } from "./BrainStage";
 import { Head } from "./Hero";
 import { Fade } from "./Motion";
 import { useProgress, mark } from "./progress";
@@ -10,14 +11,14 @@ import { NAME, EMAIL } from "../data/profile";
 export default function Finale({ onOpenCv, onQuick }) {
     const p = useProgress(), a = useAttack(), time = useHamburgTime();
     const [copied, setCopied] = useState(""), verified = p.verdict?.status === "solved";
+    useEffect(() => { Net.brain?.setMood(verified ? 1 : 0); }, [verified]);
     const done = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     const brag = a.tries ? `I tried ${a.tries} attack${a.tries === 1 ? "" : "s"} on ${NAME}'s AI and the secret never leaked. Can you break it?` : `${NAME} builds AI you can trust. Try to break it:`;
     const copy = async (text, what) => { try { if (what === "share" && navigator.share) { await navigator.share({ text, url: location.origin }); return; } await navigator.clipboard.writeText(text); setCopied(what); setTimeout(() => setCopied(""), 1800); } catch { /* cancelled */ } };
 
     return (
-        <section id="contact" className="v-sec v-finale">
+        <section id="contact" className="v-sec v-finale is-panel" data-cam="end">
             <div className="v-wrap">
-                <div className="v-glass-end" data-glass data-explode="0" data-mood={verified ? "ok" : ""} aria-hidden="true" />
                 <Head n="06" kicker="Your verdict" title={["So, can you trust", "this AI engineer?"]} />
                 <Fade className="v-verdict">
                     <div className="v-verdict-l">

@@ -5,7 +5,7 @@ import { EXPERIENCE } from "../data/constants";
 /* 03 · Experience — a plain, scannable timeline. */
 export default function Experience() {
     return (
-        <section id="experience" className="v-sec">
+        <section id="experience" className="v-sec is-panel" data-cam="wide">
             <div className="v-wrap">
                 <Head n="03" kicker="Experience" title="Where I do it for real." />
                 <ol className="v-timeline" data-draw>

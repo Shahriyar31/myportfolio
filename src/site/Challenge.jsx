@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Head } from "./Hero";
 import { attack, settle, useAttack, loadStats, LAYERS } from "./attack";
-import { Glass } from "./GlassStage";
+import { Net } from "./BrainStage";
 
 /*
  * 01 · The challenge — "Break my AI". The visitor's message travels along four gates;
@@ -35,7 +35,7 @@ export default function Challenge() {
         if (busy.current || !text.trim()) return;
         busy.current = true; setDraft(""); setMarks({}); setBurst(false); setPos(0);
         const p = attack(text);
-        Glass.box?.attack(p); // the glass box plays the same attack in 3D
+        Net.brain?.attack(p); // the network plays the same attack: a red signal climbs the layers
         await wait(700); // packet reaches the first gate
         const r = await p;
         for (let k = 0; k < LAYERS.length; k++) {
@@ -52,20 +52,11 @@ export default function Challenge() {
 
     const r = a.busy ? null : a.result, last = r?.layers?.find(l => l.status === "block");
     return (
-        <section id="challenge" className="v-sec">
+        <section id="challenge" className="v-sec is-side" data-cam="layers">
             <div className="v-wrap">
                 <Head n="01" kicker="The challenge" title={["Don't trust my CV.", <em>Try to break my AI.</em>]}
-                    sub="It guards a secret code. Make it leak, or make it break its rules. Watch your message climb the glass box: four real layers of defence, and you can see all of them." />
+                    sub="It guards a secret code. Make it leak, or make it break its rules. Your message becomes a red signal in the network on the right. Watch which layer stops it." />
                 <div className="v-console">
-                    <div className="v-glass-slot" data-glass data-explode="0.75">
-                        <ul className="v-stage-key mono" aria-hidden="true">
-                            <li><i style={{ background: "#3ee08f" }} />4 · Output scan</li>
-                            <li><i style={{ background: "#b69cff" }} />3 · My AI</li>
-                            <li><i style={{ background: "#ffc857" }} />2 · AI judge</li>
-                            <li><i style={{ background: "#73d4ff" }} />1 · Input shield</li>
-                        </ul>
-                        <span className="v-slot-hint mono">Your message enters at the bottom</span>
-                    </div>
                     <form className="fd-form" onSubmit={e => { e.preventDefault(); go(draft); }}>
                         <input value={draft} onChange={e => setDraft(e.target.value)} maxLength={600} placeholder="Type your attack…" aria-label="Your attack" disabled={a.busy} />
                         <button disabled={a.busy || !draft.trim()}>{a.busy ? "…" : "Send"}</button>

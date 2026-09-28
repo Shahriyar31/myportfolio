@@ -16,7 +16,7 @@ export default function Story() {
     const [idx, setIdx] = useState(-1);
     const strip = PHOTOS.slice(0, 10);
     return (
-        <section id="story" className="v-sec">
+        <section id="story" className="v-sec is-panel" data-cam="story">
             <div className="v-wrap">
                 <div className="v-person">
                     <Head n="05" kicker="The person" title="From one side of the world to the other." />
