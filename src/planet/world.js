@@ -35,6 +35,7 @@ export const SKIES = [
     S("#120a2c", "#3b2a6d", "#b8a8ff", 0.8, "#b6a8ff", "#1e2030", 1, 0, 1, 1),        // 8 photography, night
     S("#2b1e52", "#ff9b6c", "#ffb58a", 1.7, "#ffd2bf", "#3a3a2a", 0.3, 0, 0.3, 1),    // 9 my desk, sunset
 ];
+export const DAY = S("#6fb8f0", "#eef7ff", "#fff4dc", 2.6, "#f4f8ff", "#5a7a44", 0, 0, 0, 0);          // light theme leans towards this
 export const NIGHT = S("#03050d", "#101a3a", "#8fa8ff", 0.6, "#8fa0ff", "#10161e", 1, 0, 0, 0.6); // the flight
 
 /* five skills hidden around the planet: find them all */

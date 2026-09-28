@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { SKIES, NIGHT, ORBS, PLACES, CHAPTERS } from "./world";
+import { SKIES, NIGHT, DAY, ORBS, PLACES, CHAPTERS } from "./world";
+import { PROJECTS } from "../data/constants";
 import { scrollToId, reducedMotion } from "../site/hooks";
 
 /*
@@ -9,6 +10,14 @@ import { scrollToId, reducedMotion } from "../site/hooks";
  * ← / → walk to the previous / next chapter.
  */
 export const World = { scene: null };
+
+/* the project park: one stretch of scroll per project */
+export const PROJECT_ORDER = PLACES.projects.items.map(i => i.id);
+export function scrollToProject(k) {
+    const el = document.getElementById("projects"); if (!el) return;
+    const seg = (el.offsetHeight - innerHeight) / PROJECT_ORDER.length, y = el.getBoundingClientRect().top + scrollY + seg * (k + 0.5);
+    window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.1 }) : scrollTo({ top: y, behavior: "smooth" });
+}
 
 /* small shared store: what the page shows (floor lit, flight progress, orbs found, project) */
 const load = () => { try { return JSON.parse(localStorage.getItem("orbs") || "[]"); } catch { return []; } };
@@ -47,8 +56,11 @@ export default function Planet() {
                 if (el.dataset.journey !== undefined) {
                     const J = PLACES.journey, gold = SKIES[5], rain = SKIES[6];
                     out.push([top + h * 0.1, J.from, gold], [top + h * 0.28, J.from + 4, gold], [top + h * 0.42, (J.from + J.to) / 2, NIGHT], [top + h * 0.62, J.to - 6, NIGHT], [top + h * 0.8, PLACES.tuhh.theta, rain], [top + h * 0.95, PLACES.tuhh.theta, rain]);
+                } else if (el.id === "projects") {
+                    const seg = (h - innerHeight) / PROJECT_ORDER.length, sky = SKIES[4], base = top + innerHeight / 2;
+                    PLACES.projects.items.forEach((it, k) => out.push([base + seg * (k + 0.2), it.theta, sky], [base + seg * (k + 0.8), it.theta, sky]));
                 } else {
-                    let a = +el.dataset.angle; if (el.id === "projects") a = PLACES.projects.items[state.project]?.theta ?? a;
+                    const a = +el.dataset.angle;
                     const sky = SKIES[+el.dataset.sky || 0], span = Math.min(h, innerHeight);
                     out.push([top + span * 0.3, a, sky], [top + Math.max(span * 0.7, h - span * 0.3), a, sky]);
                 }
@@ -62,12 +74,21 @@ export default function Planet() {
             let i = k.findIndex(p => p[0] > y) - 1, angle, sky;
             if (i < 0) { angle = k[0][1]; sky = k[0][2]; } else if (i >= k.length - 1) { angle = k[k.length - 1][1]; sky = k[k.length - 1][2]; }
             else { const [ya, aa, sa] = k[i], [yb, ab, sb] = k[i + 1], t = smooth(Math.min(1, Math.max(0, (y - ya) / (yb - ya || 1)))); angle = aa + (ab - aa) * t; sky = mixSky(sa, sb, t); }
+            const light = document.documentElement.dataset.theme === "light";
+            if (light) sky = mixSky(sky, DAY, 0.68);
             scene.setAngle(angle); scene.setSky(state.neural ? mixSky(sky, NIGHT, 0.9) : sky);
             // chapter moments
             const J = document.getElementById("journey"), e = document.getElementById("experience"), c = document.getElementById("contact");
             if (J) { const r = J.getBoundingClientRect(), p = (innerHeight / 2 - r.top) / r.height, f = Math.min(1, Math.max(0, (p - 0.3) / 0.46)); scene.setFlight(p < 0.3 ? 0 : p > 0.78 ? 1 : f); if (Math.abs(f - state.flight) > 0.01) setUI({ flight: f, journey: p }); }
             if (e) { const r = e.getBoundingClientRect(), p = (innerHeight * 0.6 - r.top) / (r.height * 0.85), n = p <= 0.03 ? -1 : Math.min(3, Math.floor(p * 4.4)); scene.setFloor(n); if (n !== state.floor) setUI({ floor: n }); }
             if (c) { const r = c.getBoundingClientRect(); scene.setSit(r.top < innerHeight * 0.55 && r.bottom > innerHeight * 0.4); }
+            const pj = document.getElementById("projects");
+            if (pj) {
+                const r = pj.getBoundingClientRect(), inView = r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5, seg = (r.height - innerHeight) / PROJECT_ORDER.length;
+                const k = Math.min(PROJECT_ORDER.length - 1, Math.max(0, Math.floor(-r.top / seg)));
+                if (k !== state.project) setUI({ project: k });
+                scene.setCoding(inView); scene.setProject(inView ? k : -1, PROJECTS.find(x => x.id === PROJECT_ORDER[k])?.color);
+            }
             const cur = CHAPTERS.map(([id]) => document.getElementById(id)).filter(Boolean).reduce((best, el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5 ? el.id : best; }, state.chapter);
             if (cur !== state.chapter) setUI({ chapter: cur });
         };
@@ -117,6 +138,9 @@ function Hud({ ui }) {
             <button className={`pl-orbs ${ui.chapter === "lens" ? "is-hide" : ""}`} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label={`Skills found: ${ui.orbs.length} of ${ORBS.length}`}>
                 {ORBS.map(o => <i key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} />)}
                 <span className="mono">{ui.orbs.length}/{ORBS.length} skills found</span>
+            </button>
+            <button className={`pl-vision ${ui.neural ? "is-on" : ""} ${ui.chapter === "lens" ? "is-hide" : ""}`} onClick={() => setUI({ neural: !ui.neural })} aria-pressed={ui.neural} title="See my world the way my AI sees it">
+                <i aria-hidden="true" /><span>{ui.neural ? "Back to my world" : "AI vision"}</span>
             </button>
             {open && <div className="pl-orbs-tip pl-glass" role="status">Five glowing skill orbs are hidden on my planet. Click one when you see it. {ui.orbs.length === ORBS.length ? "You found them all: neural vision is yours." : "Find all five to unlock neural vision."}</div>}
             <div className={`pl-toast pl-glass ${ui.toast ? "is-on" : ""}`} role="status" aria-live="polite">{ui.toast}</div>

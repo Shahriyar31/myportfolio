@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { World, useUI, setUI, toast } from "./Planet";
+import { World, useUI, setUI, toast, PROJECT_ORDER, scrollToProject } from "./Planet";
 import { PLACES, ORBS } from "./world";
 import { NAME, TITLE, FOCUS, EMAIL } from "../data/profile";
 import { EXPERIENCE, PROJECTS, SKILLS, EDU_CHAPTERS } from "../data/constants";
 import { useChat, ask, openChat } from "../site/chat";
 import { attack, settle, useAttack, LAYERS } from "../site/attack";
 import { useProgress, mark } from "../site/progress";
-import { scrollToId } from "../site/hooks";
+import { scrollToId, reducedMotion } from "../site/hooks";
 import Preview from "../site/Previews";
 import BuildIt from "../site/BuildIt";
 import KeepLegal from "../site/KeepLegal";
@@ -69,6 +69,20 @@ function AskMe() {
         </div>
     );
 }
+/* what I build, one after another */
+const BUILDS = ["RAG assistants", "AI agents", "governed data platforms", "secure AI pipelines"];
+function Rotator({ words }) {
+    const [i, setI] = useState(0);
+    useEffect(() => { if (reducedMotion()) return; const id = setInterval(() => setI(v => (v + 1) % words.length), 2600); return () => clearInterval(id); }, [words.length]);
+    return <span className="pl-rot" aria-live="off"><span key={i} className="pl-rot-w">{[...words[i]].map((c, k) => <span key={k} style={{ "--i": k }}>{c === " " ? "\u00a0" : c}</span>)}</span></span>;
+}
+/* three facts a recruiter can check, each one walks you to its proof */
+const PROOF = [
+    { k: "Now", n: "Nordex Group", d: "AI & data engineering", go: "experience" },
+    { k: "Built", n: "Argus AI", d: "Live EU AI Act platform", go: "projects" },
+    { k: "Study", n: "M.Sc. Data Science", d: "TUHH, Hamburg", go: "journey" },
+];
+const STACK = ["Azure", "Databricks", "LangGraph", "RAG", "Python", "Spark", "Terraform", "EU AI Act", "GDPR", "OWASP LLM", "Docker", "Kafka", "GitHub Actions", "SQL"];
 export function Hero({ ready, onQuick, onCv }) {
     return (
         <section id="home" className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
@@ -76,12 +90,18 @@ export function Hero({ ready, onQuick, onCv }) {
                 <Card className="pl-hero-card">
                     <span className="pl-chip mono"><i className="pl-dot" />Open to roles · Hamburg, Germany</span>
                     <H as="h1" className="pl-h1" text={NAME} accent={[NAME.split(" ")[1]]} />
-                    <p className="pl-claim">{TITLE} who builds AI you can <b>trust</b>.</p>
-                    <p className="pl-lede">{FOCUS.replace(/\.$/, "")}: RAG, AI agents, and the guardrails that keep them safe and legal.</p>
+                    <p className="pl-claim">{TITLE}. I build <Rotator words={BUILDS} /><br /><span className="pl-claim-2">that are safe, legal and actually useful.</span></p>
+                    <div className="pl-proof">{PROOF.map((f, k) => (
+                        <button key={f.n} onClick={() => scrollToId(f.go)} style={{ "--d": `${0.5 + k * 0.12}s` }}>
+                            <span className="mono">{f.k}</span><b>{f.n}</b><small>{f.d}</small><i aria-hidden="true">→</i>
+                        </button>))}
+                    </div>
+                    <div className="pl-marquee" aria-label={`My stack: ${STACK.join(", ")}`}><div>{[...STACK, ...STACK].map((t, k) => <span key={k} aria-hidden="true">{t}</span>)}</div></div>
                     <AskMe />
                     <div className="pl-ctas">
                         <button className="pl-btn is-main" onClick={onQuick}>Quick read · 60 s</button>
                         <button className="pl-btn" onClick={onCv}>Résumé</button>
+                        <button className="pl-btn is-ghost" onClick={() => setUI({ neural: true })}>✦ AI vision</button>
                     </div>
                 </Card>
             </div>
@@ -187,25 +207,95 @@ export function Experience() {
     );
 }
 
-/* ── 5 · projects (the project park) ── */
-const ORDER = PLACES.projects.items.map(i => i.id);
-export function Projects() {
-    const ui = useUI(), i = ui.project, p = PROJECTS.find(x => x.id === ORDER[i]);
-    const go = d => setUI({ project: (i + d + ORDER.length) % ORDER.length });
+/* ── 5 · projects (the project park): one stretch of scroll per project; I sit and code ── */
+const EARLY = [4, 5, 3, 6];
+/* the old card turns to dust and blows away, left to right */
+function dust(el, color, dir) {
+    if (!el || reducedMotion()) return;
+    const r = el.getBoundingClientRect(), pad = 160, c = document.createElement("canvas"), dpr = Math.min(2, devicePixelRatio || 1);
+    c.className = "pl-dust"; c.width = (r.width + pad * 2) * dpr; c.height = (r.height + pad * 2) * dpr;
+    Object.assign(c.style, { left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + pad * 2}px`, height: `${r.height + pad * 2}px` });
+    document.body.appendChild(c); const x = c.getContext("2d"); x.scale(dpr, dpr);
+    const cols = [color, "#ffffff", "#5fd0ff", color], n = Math.min(1400, Math.round(r.width * r.height / 180));
+    const ps = Array.from({ length: n }, () => { const px = Math.random() * r.width, py = Math.random() * r.height; return { x: px + pad, y: py + pad, s: 1 + Math.random() * 2.6, vx: (1.5 + Math.random() * 3.5) * dir, vy: -0.6 - Math.random() * 2.2, d: (dir > 0 ? px / r.width : 1 - px / r.width) * 380 + Math.random() * 140, c: cols[Math.floor(Math.random() * cols.length)] }; });
+    const t0 = performance.now();
+    const f = now => {
+        const t = now - t0; x.clearRect(0, 0, r.width + pad * 2, r.height + pad * 2); let alive = 0;
+        ps.forEach(p => { const k = (t - p.d) / 700; if (k > 1) return; alive++; if (k < 0) { x.globalAlpha = 0.55; x.fillStyle = p.c; x.fillRect(p.x, p.y, p.s, p.s); return; } const e = k * k; x.globalAlpha = (1 - k) * 0.9; x.fillStyle = p.c; x.fillRect(p.x + p.vx * e * 40, p.y + p.vy * e * 40 + Math.sin(k * 6 + p.s) * 4, p.s, p.s); });
+        alive ? requestAnimationFrame(f) : c.remove();
+    };
+    requestAnimationFrame(f);
+}
+/* Argus AI, in miniature: pick an AI use case, see its EU AI Act risk tier */
+const CASES = [["CV screening", "High risk", "Needs risk management, human oversight and logging (Annex III).", "#ff8b3d"], ["Customer chatbot", "Limited risk", "Must tell people they're talking to an AI.", "#f2c14e"], ["Spam filter", "Minimal risk", "No extra duties. Good practice is enough.", "#3ee08f"], ["Social scoring", "Prohibited", "Banned in the EU since February 2025.", "#ff4d5e"]];
+function ArgusTry() {
+    const [c, setC] = useState(null), hit = CASES.find(x => x[0] === c);
     return (
-        <section id="projects" className="pl-sec" data-angle={PLACES.projects.theta} data-sky="4">
-            <div className="pl-in pl-left">
-                <Card className="pl-proj">
-                    <Kick>05 · The project park · {i + 1} / {ORDER.length}</Kick>
-                    <div className="pl-proj-head"><H text={p.title} key={p.id} /><span className="pl-badge mono">{p.badge}</span></div>
-                    <p className="pl-sub">{p.sub}</p>
-                    <p className="pl-p">{p.desc}</p>
-                    <div className="pl-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
-                    {p.id === 1 ? <div className="pl-facts"><div><b>4</b>EU AI Act risk tiers</div><div><b>10</b>OWASP LLM checks</div><div><b>1</b>human in the loop</div></div> : <Preview id={p.id} />}
+        <div className="pl-try-argus">
+            <span className="mono">Try it · classify an AI system</span>
+            <div className="pl-cases">{CASES.map(([n]) => <button key={n} className={c === n ? "is-on" : ""} onClick={() => setC(n)}>{n}</button>)}</div>
+            <p className={`pl-tier ${hit ? "is-in" : ""}`} style={{ "--t": hit?.[3] }} aria-live="polite">{hit ? <><b>{hit[1]}</b> {hit[2]}</> : "Argus does this for real systems, with the legal text as proof."}</p>
+        </div>
+    );
+}
+export function Projects() {
+    const ui = useUI(), i = ui.project, p = PROJECTS.find(x => x.id === PROJECT_ORDER[i]), box = useRef(null), prev = useRef(i);
+    useEffect(() => {
+        if (prev.current === i) return;
+        const old = PROJECTS.find(x => x.id === PROJECT_ORDER[prev.current]); dust(box.current, old.color, i > prev.current ? 1 : -1); prev.current = i;
+    }, [i]);
+    const early = EARLY.includes(p.id);
+    return (
+        <section id="projects" className="pl-sec pl-projects" data-angle={PLACES.projects.theta} data-sky="4">
+            <div className="pl-in pl-left pl-sticky" ref={box}>
+                <Card className="pl-proj" style={{ "--pc": p.color }}>
+                    <span className="pl-bignum" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                    <div className="pl-proj-top"><Kick>05 · The project park · {early ? "earlier work" : "main work"}</Kick><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(PROJECT_ORDER.length).padStart(2, "0")}</span></div>
+                    <div className="pl-proj-body" key={p.id}>
+                        <div className="pl-proj-head"><H text={p.title} /><span className="pl-badge mono">{p.badge}</span></div>
+                        <p className="pl-sub">{p.sub}</p>
+                        <p className="pl-p">{p.desc}</p>
+                        <div className="pl-tags">{p.tags.map((t, k) => <span key={t} style={{ "--d": `${0.25 + k * 0.05}s` }}>{t}</span>)}</div>
+                        {p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}
+                    </div>
                     <div className="pl-row">
-                        <div className="pl-arrows"><button onClick={() => go(-1)} aria-label="Previous project">←</button><button onClick={() => go(1)} aria-label="Next project">→</button></div>
-                        <div className="pl-dots">{ORDER.map((id, k) => <button key={id} className={k === i ? "is-on" : ""} onClick={() => setUI({ project: k })} aria-label={`Project ${k + 1}`} />)}</div>
+                        <div className="pl-arrows"><button onClick={() => scrollToProject(Math.max(0, i - 1))} disabled={i === 0} aria-label="Previous project">←</button><button onClick={() => scrollToProject(Math.min(PROJECT_ORDER.length - 1, i + 1))} disabled={i === PROJECT_ORDER.length - 1} aria-label="Next project">→</button></div>
+                        <div className="pl-dots">{PROJECT_ORDER.map((id, k) => <button key={id} className={k === i ? "is-on" : ""} onClick={() => scrollToProject(k)} aria-label={`Project ${k + 1}`} />)}</div>
                         {p.link && <a className="pl-btn is-main" href={p.link} target="_blank" rel="noreferrer">{p.id === 1 ? "Open Argus AI ↗" : "View code ↗"}</a>}
+                    </div>
+                    <p className="pl-note mono">Keep scrolling: I'm coding the next one.</p>
+                </Card>
+            </div>
+        </section>
+    );
+}
+
+/* ── 6 · my journey: a boarding pass from West Bengal to Hamburg ── */
+export function Journey() {
+    const ui = useUI(), p = ui.journey ?? 0, f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7500), research = EXPERIENCE[1], [bt, ms] = EDU_CHAPTERS;
+    const stage = p < 0.3 ? 0 : p < 0.78 ? 1 : 2;
+    const legs = [
+        { y: bt.year, t: "Where it started", h: bt.degree, d: bt.school, stats: bt.stats, pills: ["Teaching assistant", "Student council"] },
+        { y: "2023", t: "The leap", h: "Moved to Germany, alone, at 22", d: "A new country, a new language, new everything.", stats: [["7,500", "km"], ["22", "years old"], ["1", "new language"]] },
+        { y: ms.year, t: "Hamburg", h: ms.degree, d: `${ms.school}. Research: ${research.role.split("—")[1]?.trim() || research.role}. Plus a working-student job at Nordex.`, stats: ms.stats },
+    ];
+    return (
+        <section id="journey" className="pl-sec pl-journey" data-journey>
+            <div className="pl-in pl-left pl-sticky">
+                <Card className="pl-pass">
+                    <Kick>06 · My journey · boarding pass</Kick>
+                    <H text="From West Bengal to Hamburg." accent={["Hamburg."]} />
+                    <div className="pl-route">
+                        <div><b>CCB</b><small>Cooch Behar · West Bengal</small></div>
+                        <div className="pl-track" style={{ "--f": f }}><i /><span aria-hidden="true">✈</span></div>
+                        <div className="is-to"><b>HAM</b><small>Hamburg · Germany</small></div>
+                    </div>
+                    <div className="pl-pass-meta mono"><span>Passenger <b>{NAME}</b></span><span>Flown <b>{km.toLocaleString("en-GB")} km</b></span><span>Status <b className={stage === 2 ? "ok" : ""}>{["Boarding", "In the air", "Landed"][stage]}</b></span></div>
+                    <div className="pl-legs">{legs.map((l, k) => (
+                        <div key={k} className={`pl-leg ${k === stage ? "is-on" : k < stage ? "is-done" : ""}`}>
+                            <span className="mono">{l.y} · {l.t}</span><b>{l.h}</b><p>{l.d}</p>
+                            {k === stage && <div className="pl-legstats">{l.stats.map(([v, n]) => <span key={n}><b>{v}</b>{n}</span>)}</div>}
+                        </div>))}
                     </div>
                 </Card>
             </div>
@@ -213,45 +303,42 @@ export function Projects() {
     );
 }
 
-/* ── 6 · my journey: West Bengal → flight → Hamburg / TUHH ── */
-export function Journey() {
-    const ui = useUI(), p = ui.journey ?? 0, km = Math.round(Math.min(1, Math.max(0, ui.flight)) * 7500), research = EXPERIENCE[1];
-    const stage = p < 0.3 ? 0 : p < 0.78 ? 1 : 2;
-    const beats = [
-        { y: EDU_CHAPTERS[0].year, t: "Where it started", h: EDU_CHAPTERS[0].degree, d: `${EDU_CHAPTERS[0].school}. Top 10% with an 8.73 / 10 CGPA. Teaching assistant and student council member.` },
-        { y: "2023", t: "The leap", h: "Moved to Germany, alone, at 22", d: "West Bengal to Hamburg: 7,500 km, a new country, a new language, new everything." },
-        { y: EDU_CHAPTERS[1].year, t: "Hamburg", h: EDU_CHAPTERS[1].degree, d: `${EDU_CHAPTERS[1].school}. Research: ${research.role.split("—")[1]?.trim() || research.role}.` },
-    ];
-    return (
-        <section id="journey" className="pl-sec pl-journey" data-journey>
-            <div className="pl-in pl-left pl-sticky">
-                <Card>
-                    <Kick>06 · My journey</Kick>
-                    <H text="From West Bengal to Hamburg." accent={["Hamburg."]} />
-                    <p className="pl-km"><span>{km.toLocaleString("en-GB")}</span><small className="mono">km flown</small></p>
-                    <ol className="pl-beats">{beats.map((b, k) => <li key={k} className={k <= stage ? "is-on" : ""}><span className="mono">{b.y} · {b.t}</span><b>{b.h}</b><p>{b.d}</p></li>)}</ol>
-                    {stage === 2 && <p className="pl-note mono">{research.focus.map(f => f.k).join(" · ")} · {research.tech.slice(0, 4).join(" · ")}</p>}
-                </Card>
-            </div>
-        </section>
-    );
-}
-
-/* ── 7 · skills (the orb garden) ── */
+/* ── 7 · skills: pick the role you're hiring for; the skills and the proof light up ── */
+const ROLES = [
+    { id: "ai", name: "AI Engineer", color: "#5fd0ff", skills: ["RAG Pipelines", "LangGraph Agents", "LLM Evaluation", "MLflow", "Python", "Azure", "Docker"],
+        proof: [["Argus AI: RAG over the EU AI Act text, with a LangGraph agent", "projects"], ["Nordex: LLM and RAG prototypes, and how well they work", "experience"], ["TUHH: ML for anomaly detection and forecasting", "journey"]] },
+    { id: "agent", name: "Agentic AI", color: "#a58cff", skills: ["LangGraph Agents", "RAG Pipelines", "LLM Evaluation", "AI Governance", "Python", "PostgreSQL"],
+        proof: [["Argus AI: an agent with a human approving each step", "projects"], ["This site: an AI you can attack, guarded by four layers", "break"], ["Demo: make an AI agent stop guessing", "what"]] },
+    { id: "data", name: "Data Engineer", color: "#ff7a45", skills: ["Azure Databricks", "Apache Spark", "Apache Kafka", "Apache Flink", "ETL Pipelines", "Data Lineage", "SQL", "Python"],
+        proof: [["Nordex: data pipelines on Azure Databricks", "experience"], ["StockFlow and Radiation Tracker: real-time streaming", "projects"], ["TUHH: a live dashboard for a digital twin", "journey"]] },
+    { id: "gov", name: "AI & Data Governance", color: "#f2c14e", skills: ["AI Governance", "Data Lineage", "LLM Evaluation", "Azure Databricks", "Python", "SQL"],
+        proof: [["Nordex: mapping AI use cases to the EU AI Act and GDPR", "experience"], ["Argus AI: compliance checks as code", "projects"], ["Break my AI: defences from the OWASP LLM Top 10", "break"]] },
+    { id: "ops", name: "DevSecOps & Cloud", color: "#3ee08f", skills: ["Azure", "Terraform", "Docker", "Kubernetes", "GitHub Actions", "AWS", "GCP", "Bash"],
+        proof: [["Argus AI: on Azure Container Apps, built with Terraform", "projects"], ["TUHH: CI/CD with GitHub Actions and Docker", "journey"], ["Demo: catch 3 problems before go-live", "what"]] },
+];
 export function Skills() {
-    const ui = useUI(), [hint, setHint] = useState(false);
+    const ui = useUI(), [hint, setHint] = useState(false), [role, setRole] = useState(ROLES[0]), sec = useRef(null);
     const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "near the photographer's tripod" };
+    const pick = r => { setRole(r); World.scene?.setRole(r.color); World.scene?.once("emote-yes"); };
+    useEffect(() => { const el = sec.current; const io = new IntersectionObserver(([e]) => World.scene?.setRole(e.isIntersecting ? role.color : null), { threshold: 0.3 }); io.observe(el); return () => io.disconnect(); }, [role]);
+    let n = 0;
     return (
-        <section id="skills" className="pl-sec" data-angle={PLACES.skills.theta} data-sky="7">
+        <section id="skills" ref={sec} className="pl-sec" data-angle={PLACES.skills.theta} data-sky="7">
             <div className="pl-in pl-right">
-                <Card>
-                    <Kick>07 · My toolkit · the orb garden</Kick>
-                    <H text="Skills I actually use." />
-                    <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }}><i />{o.name}</span>)}</div>
-                    <p className="pl-p">{ui.orbs.length === ORBS.length ? "You found all five skill orbs. They now glow on their pedestals behind me." : `You've found ${ui.orbs.length} of ${ORBS.length} skill orbs. They're hidden along my path; click one when you see it.`}</p>
-                    {ui.orbs.length < ORBS.length && <button className="pl-link" onClick={() => setHint(h => !h)}>{hint ? "Hide hints" : "Give me a hint"}</button>}
+                <Card className="pl-skillcard" style={{ "--rc": role.color }}>
+                    <Kick>07 · My toolkit · the skill garden</Kick>
+                    <H text="What are you hiring for?" accent={["hiring"]} />
+                    <div className="pl-roles" role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} className={r.id === role.id ? "is-on" : ""} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}</div>
+                    <div className="pl-board" key={role.id}>{Object.entries(SKILLS).map(([g, list]) => (
+                        <div key={g}><span className="mono">{g}</span><p>{list.map(t => { const on = role.skills.includes(t); return <span key={t} className={on ? "is-on" : ""} style={on ? { "--d": `${(n++) * 0.045}s` } : undefined}>{t}</span>; })}</p></div>))}
+                    </div>
+                    <div className="pl-proofs" key={role.id + "p"}><span className="mono">Where I've used it · {role.skills.length} skills</span>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.3 + k * 0.1}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
+                    <div className="pl-orbline">
+                        <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} title={o.name}><i /></span>)}</div>
+                        <span className="pl-p">{ui.orbs.length === ORBS.length ? "All 5 skill orbs found ✦" : `${ui.orbs.length}/${ORBS.length} skill orbs found on my planet.`}</span>
+                        {ui.orbs.length < ORBS.length && <button className="pl-link" onClick={() => setHint(h => !h)}>{hint ? "Hide hints" : "Hints"}</button>}
+                    </div>
                     {hint && <ul className="pl-hints">{ORBS.filter(o => !ui.orbs.includes(o.id)).map(o => <li key={o.id}><b style={{ color: o.color }}>{o.name}</b> is {where[o.id]}</li>)}</ul>}
-                    <div className="pl-skills">{Object.entries(SKILLS).map(([g, list]) => <div key={g}><span className="mono">{g}</span><p>{list.join(" · ")}</p></div>)}</div>
                 </Card>
             </div>
         </section>
