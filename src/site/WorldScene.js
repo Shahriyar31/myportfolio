@@ -62,8 +62,9 @@ export default class WorldScene {
             const L = new GLTFLoader();
             const files = { tree1: "nature/tree_detailed", tree2: "nature/tree_oak", tree3: "nature/tree_pineRoundA", tree4: "nature/tree_pineTallA_detailed", tree5: "nature/tree_default",
                 palm1: "nature/tree_palmDetailedTall", palm2: "nature/tree_palmBend", bush: "nature/plant_bushDetailed", rock: "nature/rock_largeA", rock2: "nature/rock_smallA", fl1: "nature/flower_redA", fl2: "nature/flower_yellowA",
-                sky: "city/building-skyscraper-a", libb: "city/building-d", h1: "sub/building-type-a", h2: "sub/building-type-c", h3: "sub/building-type-e", h4: "sub/building-type-g", h5: "sub/building-type-k", h6: "sub/building-type-o" };
-            const got = await Promise.all(Object.entries(files).map(([k, f]) => L.loadAsync(`/models/${f}.glb`).then(g => [k, g.scene])));
+                sky: "city/building-skyscraper-a", libb: "city/building-d", me: "chars/character-male-d", glasses: "chars/aid-glasses",
+                desk: "furn/desk", chair: "furn/chairDesk", screen: "furn/computerScreen", keys: "furn/computerKeyboard", lamp: "furn/lampRoundTable", plant: "furn/pottedPlant", shelf: "furn/bookcaseOpen", books: "furn/books", h1: "sub/building-type-a", h2: "sub/building-type-c", h3: "sub/building-type-e", h4: "sub/building-type-g", h5: "sub/building-type-k", h6: "sub/building-type-o" };
+            const got = await Promise.all(Object.entries(files).map(([k, f]) => L.loadAsync(`/models/${f}.glb`).then(g => { g.scene.userData.clips = g.animations; return [k, g.scene]; })));
             if (this.disposed) return;
             lib = Object.fromEntries(got);
         } catch { fallback(); return; }
@@ -76,6 +77,8 @@ export default class WorldScene {
             const g = new THREE.Group(); g.add(m); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g); return g;
         };
         const trees = ["tree1", "tree2", "tree3", "tree4", "tree5"];
+        const busy = [[1.5, 14.8], [-12.5, 4.5], [-12.5, 4.5]]; // library & desk spots stay clear
+        this.treeSpots = this.treeSpots.filter(([x, z]) => busy.every(([bx, bz]) => Math.hypot(x - bx, z - bz) > 3.2));
         this.treeSpots.forEach(([x, z, k], i) => put(trees[i % trees.length], this.main, x, z, 1.1 + k * 0.85, rnd() * 6));
         for (let i = 0; i < (this.mobile ? 14 : 30); i++) { // undergrowth: bushes, rocks, flowers
             const a = rnd() * Math.PI * 2, r = 7 + rnd() * 10, x = Math.cos(a) * r, z = Math.sin(a) * r;
@@ -89,7 +92,48 @@ export default class WorldScene {
         this.lib.children.forEach(c => { c.visible = false; }); put("libb", this.lib, 0, 0, 2.6, Math.PI / 4);
         this.homeHouse.visible = false; put("h5", this.home, 3, 2, 1.8, -0.6);
         this.palmSpots.forEach(([x, z], i) => put(i % 2 ? "palm2" : "palm1", this.home, x, z, 2.4 + (i % 3) * 0.3, rnd() * 6));
+        this.deskScene(lib);
         this.applyPalette();
+    }
+
+    /* Farhan's desk: a little me, coding. "Ask my AI" flies here. */
+    async deskScene(lib) {
+        const { clone } = await import("three/examples/jsm/utils/SkeletonUtils.js");
+        const D = this.desk = this.group(-12.5, 4.5, "desk", "Farhan's desk · Ask my AI", 0, this.main);
+        D.rotation.y = 1.4; D.scale.setScalar(1.35); // three-quarter view of his face and the screen at the desk stop
+        this.box(3.4, 0.1, 2.8, this.M.path, 0, 0, 0, D, 0.04);
+        const k = 0.72 / new THREE.Box3().setFromObject(lib.desk).getSize(new THREE.Vector3()).y; // one scale for all furniture
+        // add a model with its bottom-centre at (x, y, z); returns its size
+        const add = (obj, x, y, z, ry = 0, scale = k) => {
+            const m = obj.clone(true);
+            m.scale.setScalar(scale); m.rotation.y = ry; m.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(m), c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+            const w = new THREE.Group(); m.position.set(-c.x, -box.min.y, -c.z); w.add(m); w.position.set(x, y + 0.1, z); D.add(w);
+            m.traverse(o => { if (o.isMesh) { o.castShadow = !this.mobile; o.receiveShadow = true; } });
+            return size;
+        };
+        const desk = add(lib.desk, 0, 0, 0), top = desk.y;
+        add(lib.screen, 0, top, -0.12); add(lib.keys, 0, top, 0.16); add(lib.lamp, desk.x * 0.36, top, -0.05); add(lib.books, -desk.x * 0.38, top, 0);
+        add(lib.chair, 0, 0, 0.62, Math.PI); add(lib.plant, 1.3, 0, -0.9); add(lib.shelf, -1.45, 0, -0.6, Math.PI / 2);
+        // the character: sitting on the chair, facing the screen
+        const me = clone(lib.me); me.userData.clips = lib.me.userData.clips;
+        const mh = new THREE.Box3().setFromObject(lib.me).getSize(new THREE.Vector3()).y;
+        const holder = new THREE.Group(); me.scale.setScalar(1.25 / mh); holder.add(me); holder.position.set(0, 0.1, 0.6); holder.rotation.y = Math.PI; D.add(holder);
+        me.traverse(o => { if (o.isMesh) o.castShadow = !this.mobile; });
+        const head = me.getObjectByName("head"); if (head) head.add(lib.glasses.clone(true));
+        this.mixer = new THREE.AnimationMixer(me);
+        const sit = (lib.me.userData.clips || []).find(c => c.name === "sit"); if (sit) this.mixer.clipAction(sit).play();
+        this.meHolder = holder;
+        // glowing code on the monitor
+        const cv = document.createElement("canvas"); cv.width = 256; cv.height = 160; const x = cv.getContext("2d");
+        x.fillStyle = "#0e1622"; x.fillRect(0, 0, 256, 160);
+        const cols = ["#73d4ff", "#b69cff", "#3ee08f", "#ffc46b", "#e9eef3"];
+        for (let i = 0; i < 14; i++) { let px = 10 + (i % 4) * 12; for (let j = 0; j < 3; j++) { const w = 18 + ((i * 7 + j * 13) % 50); x.fillStyle = cols[(i + j) % 5]; x.fillRect(px, 10 + i * 10.5, w, 5); px += w + 6; } }
+        this.codeTex = new THREE.CanvasTexture(cv); this.codeTex.colorSpace = THREE.SRGBColorSpace; this.codeTex.wrapT = THREE.RepeatWrapping;
+        this.deskInfo = { top, desk };
+        this.codeScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.28), new THREE.MeshBasicMaterial({ map: this.codeTex, toneMapped: false, side: THREE.DoubleSide }));
+        this.codeScreen.position.set(0, top + 0.1 + 0.2, -0.08); D.add(this.codeScreen);
+        this.pick(D);
     }
 
     /* ── materials & helpers ───────────────────────────────────────── */
@@ -278,7 +322,7 @@ export default class WorldScene {
         this.box(1.2, 3, 1.2, M.cream, -0.9, 0, 0, twin);
         const wire = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3, 1.2), new THREE.MeshBasicMaterial({ color: 0x73d4ff, wireframe: true, transparent: true, opacity: 0.7 })); wire.position.set(0.9, 1.5, 0); twin.add(wire); this.twinWire = wire;
 
-        const lib = this.lib = this.pick(this.group(-16, -6, "p-books", "Book Analysis", 0, W));
+        const lib = this.lib = this.pick(this.group(1.5, 14.8, "p-books", "Library · Book Analysis", 0, W)); // campus, next to the university
         this.box(2, 1.6, 1.4, M.cream, 0, 0, 0, lib); const lr = this.mesh(new THREE.ConeGeometry(1.5, 0.8, 4), M.roof2, 0, 2, 0, lib); lr.rotation.y = Math.PI / 4;
         [M.red, M.gold, M.accent, M.accent2, M.ok].forEach((m, i) => this.box(0.18, 0.55, 0.4, m, -0.6 + i * 0.28, 0, 0.9, lib, 0.03));
 
@@ -415,6 +459,8 @@ export default class WorldScene {
 
     tick() {
         const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+        this.mixer?.update(dt);
+        if (this.codeTex) this.codeTex.offset.y = -Math.floor(t * 3) / 16; // lines scroll like typing
         this.skyU.time.value = t;
         // camera glides; pointer adds a small parallax orbit
         this.camPos.lerp(this.goalPos, 1 - Math.pow(0.001, dt));
@@ -467,6 +513,12 @@ export default class WorldScene {
         this.trail.material.opacity = f > 0 && f < 1 ? 0.8 : 0.25;
 
         if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera);
+        this.afterTick?.();
+    }
+    /** screen position of a world point: [x, y, inFront] */
+    project(x, y, z) {
+        const v = (this._pv ||= new THREE.Vector3()).set(x, y, z).project(this.camera), r = this.canvas.getBoundingClientRect();
+        return [(v.x + 1) / 2 * r.width, (1 - v.y) / 2 * r.height, v.z < 1];
     }
     zap() {
         const m = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.32, 24), new THREE.MeshBasicMaterial({ color: 0xff5d5d, transparent: true, side: THREE.DoubleSide, depthWrite: false }));

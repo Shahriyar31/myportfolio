@@ -87,7 +87,7 @@ export function AgentSection() {
         return () => window.removeEventListener("focus-chat", focus);
     }, []);
     return (
-        <section id="agent" className="act wrap" ref={ref} data-station="chat">
+        <section id="agent" className="act wrap" ref={ref} data-station="sky">
             <SectionHead n="06" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
             <div className="agent-grid">
                 <div className="device neu-lg">

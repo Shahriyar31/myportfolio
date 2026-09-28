@@ -34,7 +34,7 @@ export default function Bring() {
             <Opener station="overview" n="01" kicker="What I do" title="A valley where data becomes trustworthy AI"
                 sub="Follow the data: it flows in from the hills, is refined in the lake, checked at the gate, and powers the AI tower. Three stops — three things I do." />
             {STOPS.map((s, i) => (
-                <Stop key={s.n} station={s.station} side={i % 2 ? "right" : "left"}>
+                <Stop key={s.n} id={`do-${s.station}`} station={s.station} side={i % 2 ? "right" : "left"}>
                     <div className="pane-kicker"><span className="scene-n">{s.n}</span><span className="mono">{s.kicker}</span><span className="pane-where mono">📍 {s.where}</span></div>
                     <h3 className="pane-title">{s.title}</h3>
                     <p className="pane-lede">{s.promise}</p>

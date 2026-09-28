@@ -7,6 +7,8 @@ import { scrollToId, reducedMotion, finePointer } from "./hooks";
 
 const ROLES = ["trustworthy AI agents", "governed data platforms", "EU AI Act-ready systems", "secure LLM apps"];
 const NAME = ["Farhan", "Shahriyar"];
+// the picker flies straight to the matching stop in the valley
+const PICKS = [["🤖", "AI agents & RAG", "do-tower"], ["⚖️", "AI governance & security", "do-gate"], ["🗄️", "Data platforms", "do-lake"]];
 
 function RoleTicker() {
     const [i, setI] = useState(0);
@@ -81,6 +83,15 @@ export default function Hero({ ready }) {
                 </h1>
                 <div className="hx-fade"><Fade play={ready} delay={900} className="hx-sub">
                     <p>AI & Data Engineer. I build <RoleTicker /></p>
+                </Fade>
+                <Fade play={ready} delay={1100} className="hx-hire">
+                    <span className="mono">What are you hiring for?</span>
+                    <div className="hx-picks">
+                        {PICKS.map(([icon, label, id]) => (
+                            <button key={id} className="key hx-pick" onClick={() => scrollToId(id)}><span aria-hidden="true">{icon}</span>{label}<i aria-hidden="true">→</i></button>
+                        ))}
+                    </div>
+                    <p className="hx-proof mono">Now: AI & Data Engineering at Nordex · Argus AI live · M.Sc. Data Science, TUHH</p>
                 </Fade></div>
                 <button className="hx-cue" onClick={() => scrollToId("bring")} aria-label="Scroll to enter the valley">
                     <span className="hx-cue-ring neu-sm"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" /></svg><i /></span>

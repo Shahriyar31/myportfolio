@@ -859,3 +859,38 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 .hud.is-on .hud-next { pointer-events: auto; }
 .hud:not(.is-on) .hud-next { pointer-events: none; }
 @media (max-width: 860px) { .hud-next { align-self: center; } }
+
+/* ════ Labels in the world: what the card is about, and where things are ═══ */
+.world-pin, .world-tags { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+.world-pin { opacity: 0; transition: opacity 0.4s; will-change: transform; }
+.world-pin.is-on { opacity: 1; }
+.world-pin-card { position: absolute; left: 0; bottom: 44px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 2px; padding: 8px 14px; border-radius: 14px; white-space: nowrap; max-width: 320px;
+  background: color-mix(in oklab, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.world-pin-card .mono { font-size: 9.5px; color: var(--accent); letter-spacing: 0.08em; }
+.world-pin-card b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.world-pin::before { content: ""; position: absolute; left: -1px; bottom: 6px; width: 2px; height: 38px; background: linear-gradient(var(--accent), transparent); }
+.world-pin::after { content: ""; position: absolute; left: -6px; bottom: -6px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 25%, transparent); animation: pinPulse 1.8s ease-out infinite; }
+@keyframes pinPulse { 50% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--accent) 0%, transparent); } }
+.world-tags { opacity: 0; transition: opacity 0.5s; }
+.world-tags.is-on { opacity: 1; }
+.world-tag { position: absolute; left: 0; top: 0; translate: -50% -100%; padding: 5px 10px; border-radius: 99px; font-size: 10px; white-space: nowrap; color: var(--fg);
+  background: color-mix(in oklab, var(--bg) 80%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: var(--raise-sm); transition: opacity 0.3s; }
+@media (max-width: 860px) { .world-pin-card { max-width: 230px; } .world-pin-card b { font-size: 12.5px; } .world-tag { font-size: 9px; } }
+
+/* ════ Hero name: an elegant italic first name over a heavy poster surname ═══ */
+.hx-name { font-size: clamp(58px, 11.5vw, 206px); }
+.hx-word.w0 { font-family: "Boska", Georgia, serif; font-style: italic; font-weight: 500; font-size: 0.56em; letter-spacing: -0.01em; line-height: 1.05; margin-bottom: -0.02em; }
+.hx-word.w1 { font-family: "Tanker", "Clash Display", sans-serif; font-weight: 400; text-transform: uppercase; font-size: 1.32em; letter-spacing: 0.015em; line-height: 0.84; }
+.hx-hire { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: clamp(16px, 2.6svh, 26px); }
+.hx-hire > .mono { font-size: 10.5px; letter-spacing: 0.14em; color: var(--accent); padding: 4px 12px; border-radius: 99px; background: color-mix(in oklab, var(--bg) 80%, transparent); }
+.hx-picks { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.hx-pick { height: 46px; padding: 0 18px; gap: 9px; font-weight: 600; font-size: 14.5px; background: color-mix(in oklab, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.hx-pick i { font-style: normal; opacity: 0.45; transition: transform 0.3s var(--ease), opacity 0.3s; }
+.hx-pick:hover i { transform: translateX(4px); opacity: 1; color: var(--accent); }
+.hx-proof { font-size: 10.5px; color: var(--mute); padding: 4px 12px; border-radius: 99px; background: color-mix(in oklab, var(--bg) 70%, transparent); }
+@media (max-width: 860px) {
+  .hx-name { font-size: clamp(54px, 19vw, 120px); }
+  .hx-stick { padding-top: 16svh; }
+  .hx-pick { height: 40px; font-size: 13px; padding: 0 14px; }
+  .hx-proof { font-size: 9px; text-align: center; }
+}

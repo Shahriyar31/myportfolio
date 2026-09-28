@@ -9,10 +9,15 @@ import { scrollToId, reducedMotion } from "./hooks";
  * glides to that station. data-flight on an element maps its scroll progress
  * to the plane's flight.
  */
-const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "tuhh", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built" };
+const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "tuhh", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
+
+// district tags shown on the wide shots, so visitors learn the map
+const DISTRICTS = [["Data valley", -8, 5, -6], ["Governance gate", 3, 5.2, -1], ["AI tower", 9.5, 10.5, -4], ["Nordex HQ", -3, 11.4, 10], ["Campus · TUHH", 3.5, 4.4, 13.5],
+    ["Argus lab", 13.5, 4, -11], ["Radar", 16, 5.5, 0], ["StockFlow", 11.5, 4.5, 12.5], ["Digital twin", -9.5, 4.8, 13.5], ["Poultry barn", -15, 3.6, 10], ["My desk", -12.5, 3, 4.5], ["Home · West Bengal", -78, 4, -60]];
+const WIDE = new Set(["overview", "finale", "photos"]);
 
 // top-down points of interest for the mini-map (x, z)
-const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [-16, -6], [-79.5, -61], [-75, -58]];
+const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [1.5, 14.8], [-12.5, 4.5], [-79.5, -61], [-75, -58]];
 
 function Hud({ hudRef, meRef, placeRef, chapRef, barRef, exploredRef, nextRef }) {
     return (
@@ -42,6 +47,7 @@ export default function World() {
     const [tip, setTip] = useState(null);
     const tipRef = useRef(null);
     const tipVal = useRef(null);
+    const pinRef = useRef(null), tagsRef = useRef(null), view = useRef({ pin: null, wide: false });
     const nextRef = useRef(null), exploredRef = useRef(null), seen = useRef(new Set()), hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
 
     useEffect(() => {
@@ -95,9 +101,17 @@ export default function World() {
             scene.setOrbit(A.dataset.station === "hero" ? 1 - t : 0);
             const cur = t < 0.5 ? A : B;
             scene.setFocus((t < 0.5 ? a : b).focus || null);
+            // what the pin points at: the subject of the card on screen
+            {
+                const st = t < 0.5 ? a : b, el = t < 0.5 ? A : B, title = el.querySelector(".pane-title")?.textContent;
+                view.current.wide = WIDE.has(el.dataset.station);
+                view.current.pin = el.classList.contains("stop") && title && !st.follow ? { at: st.l, name: st.name, title } : null;
+                const pe = pinRef.current;
+                if (pe && view.current.pin && pe.dataset.k !== title) { pe.dataset.k = title; pe.querySelector("span").textContent = st.name; pe.querySelector("b").textContent = title; }
+            }
             // tour HUD: which chapter, which place, where on the map
             const ch = CHAPTERS.findIndex(([id]) => id === cur.closest("section[id]")?.id);
-            hudRef.current?.classList.toggle("is-on", ch >= 0 && !cur.closest("section.act")); // big cards need the corner
+            hudRef.current?.classList.toggle("is-on", ch >= 0 && !cur.closest("section.act") && !cur.classList.contains("opener")); // big cards need the corner
             if (ch >= 0) {
                 const name = (t < 0.5 ? a : b).name || "";
                 chapRef.current.textContent = `${String(ch + 1).padStart(2, "0")} / ${String(CHAPTERS.length).padStart(2, "0")} · ${CHAPTERS[ch][1]}`;
@@ -137,6 +151,19 @@ export default function World() {
         import("./WorldScene").then(({ default: WorldScene }) => {
             if (!alive) return;
             try { scene = new WorldScene(ref.current, { mobile }); } catch { return; }
+            // labels follow the camera every frame
+            scene.afterTick = () => {
+                const v = view.current, pe = pinRef.current, tg = tagsRef.current;
+                if (pe) {
+                    const p = v.pin && scene.project(v.pin.at[0], v.pin.at[1] + 1.3, v.pin.at[2]);
+                    pe.classList.toggle("is-on", !!(p && p[2]));
+                    if (p) pe.style.transform = `translate3d(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px, 0)`;
+                }
+                if (tg) {
+                    tg.classList.toggle("is-on", v.wide);
+                    if (v.wide) [...tg.children].forEach((el, i) => { const [, x, y, z] = DISTRICTS[i], p = scene.project(x, y, z); el.style.transform = `translate3d(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px, 0)`; el.style.opacity = p[2] ? "" : "0"; });
+                }
+            };
             if (import.meta.env.DEV) window.__world = scene;
             update();
             scene.jumpView(scene.goalPos.toArray(), scene.goalLook.toArray());
@@ -159,6 +186,8 @@ export default function World() {
     return (
         <>
             <canvas ref={ref} className="world" aria-hidden="true" />
+            <div ref={pinRef} className="world-pin" aria-hidden="true"><div className="world-pin-card neu"><span className="mono" /><b /></div></div>
+            <div ref={tagsRef} className="world-tags" aria-hidden="true">{DISTRICTS.map(([n]) => <span key={n} className="world-tag mono">{n}</span>)}</div>
             <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} exploredRef={exploredRef} nextRef={nextRef} />
             <div ref={tipRef} className={`world-tip neu ${tip ? "is-on" : ""}`} aria-hidden="true">{tip?.label}{tip && SECTION_FOR[tip.id] && <span className="mono">click to visit</span>}</div>
         </>

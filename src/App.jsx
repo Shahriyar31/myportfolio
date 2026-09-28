@@ -14,6 +14,8 @@ import Built from "./site/Built";
 import Lens from "./site/Lens";
 import Hello from "./site/Hello";
 import { reducedMotion } from "./site/hooks";
+import Stop from "./site/Stop";
+import { openChat, ask } from "./site/chat";
 
 export default function App() {
     const [ready, setReady] = useState(false);
@@ -53,6 +55,14 @@ export default function App() {
                 <Built />
                 <Journey />
                 <Skills />
+                <Stop id="desk" station="chat" side="left">
+                    <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Online</span><span className="pane-where mono">📍 My desk</span></div>
+                    <h3 className="pane-title">This is where I build</h3>
+                    <p className="pane-lede">Most days: an AI agent in one window, a data pipeline in the other. I built an AI that answers questions about my work — ask it anything.</p>
+                    <div className="hx-picks" style={{ justifyContent: "flex-start" }}>
+                        {["What does Farhan do?", "Is he open to work?"].map(q => <button key={q} className="key key-sm" onClick={() => { openChat(true); ask(q); }}>{q}</button>)}
+                    </div>
+                </Stop>
                 <AgentSection />
                 <Lens />
                 <Hello onOpenCv={openCv} />
