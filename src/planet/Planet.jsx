@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { SKIES, NIGHT, DAY, ORBS, PLACES, CHAPTERS } from "./world";
+import { SKIES, NIGHT, DAY, WB, ORBS, PLACES, CHAPTERS } from "./world";
 import { PROJECTS } from "../data/constants";
 import { scrollToId, reducedMotion } from "../site/hooks";
 
@@ -11,11 +11,14 @@ import { scrollToId, reducedMotion } from "../site/hooks";
  */
 export const World = { scene: null };
 
+/* the education story, in slots of scroll: college → getting ready → the flight → Hamburg */
+export const JOURNEY = { spans: [1, 1, 1.4, 1], prep: [0.75, 1.85], takeoff: 2.05, land: 3.15 };
+
 /* the project park: one stretch of scroll per project */
 export const PROJECT_ORDER = PLACES.projects.items.map(i => i.id);
 export function scrollToProject(k) {
     const el = document.getElementById("projects"); if (!el) return;
-    const seg = (el.offsetHeight - innerHeight) / PROJECT_ORDER.length, y = el.getBoundingClientRect().top + scrollY + seg * (k + 0.5);
+    const y = el.getBoundingClientRect().top + scrollY + innerHeight * (+el.dataset.slot || 1) * (k + 0.15);
     window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.1 }) : scrollTo({ top: y, behavior: "smooth" });
 }
 
@@ -40,6 +43,9 @@ const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const toHex = a => "#" + a.map(v => Math.round(v).toString(16).padStart(2, "0")).join("");
 const mixSky = (a, b, t) => { const o = {}; Object.keys(a).forEach(k => { o[k] = typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : toHex(hex(a[k]).map((v, i) => v + (hex(b[k])[i] - v) * t)); }); return o; };
 const smooth = x => x * x * (3 - 2 * x);
+const SKY = v => (v === "N" ? NIGHT : v === "WB" ? WB : SKIES[v] || SKIES[0]);
+/** how many slots of scroll we are into a deck section */
+export const slotsInto = el => { const r = el.getBoundingClientRect(); return -r.top / (innerHeight * (+el.dataset.slot || 1)); };
 
 export default function Planet() {
     const ref = useRef(null);
@@ -51,14 +57,11 @@ export default function Planet() {
         // keyframes along the page: [page y, planet angle, sky]
         const keys = () => {
             const out = [], sy = scrollY;
-            document.querySelectorAll("[data-angle], [data-journey]").forEach(el => {
+            document.querySelectorAll("[data-angle], [data-keys]").forEach(el => {
                 const r = el.getBoundingClientRect(), top = r.top + sy, h = r.height;
-                if (el.dataset.journey !== undefined) {
-                    const J = PLACES.journey, gold = SKIES[5], rain = SKIES[6];
-                    out.push([top + h * 0.1, J.from, gold], [top + h * 0.28, J.from + 4, gold], [top + h * 0.42, (J.from + J.to) / 2, NIGHT], [top + h * 0.62, J.to - 6, NIGHT], [top + h * 0.8, PLACES.tuhh.theta, rain], [top + h * 0.95, PLACES.tuhh.theta, rain]);
-                } else if (el.id === "projects") {
-                    const seg = (h - innerHeight) / PROJECT_ORDER.length, sky = SKIES[4], base = top + innerHeight / 2;
-                    PLACES.projects.items.forEach((it, k) => out.push([base + seg * (k + 0.2), it.theta, sky], [base + seg * (k + 0.8), it.theta, sky]));
+                if (el.dataset.keys) {
+                    const slot = innerHeight * (+el.dataset.slot || 1), base = top + innerHeight / 2;
+                    JSON.parse(el.dataset.keys).forEach(([p, a, sk]) => out.push([base + slot * p, a, SKY(sk)]));
                 } else {
                     const a = +el.dataset.angle;
                     const sky = SKIES[+el.dataset.sky || 0], span = Math.min(h, innerHeight);
@@ -78,14 +81,13 @@ export default function Planet() {
             if (light) sky = mixSky(sky, DAY, 0.68);
             scene.setAngle(angle); scene.setSky(state.neural ? mixSky(sky, NIGHT, 0.9) : sky);
             // chapter moments
-            const J = document.getElementById("journey"), e = document.getElementById("experience"), c = document.getElementById("contact");
-            if (J) { const r = J.getBoundingClientRect(), p = (innerHeight / 2 - r.top) / r.height, f = Math.min(1, Math.max(0, (p - 0.3) / 0.46)); scene.setFlight(p < 0.3 ? 0 : p > 0.78 ? 1 : f); if (Math.abs(f - state.flight) > 0.01) setUI({ flight: f, journey: p }); }
-            if (e) { const r = e.getBoundingClientRect(), p = (innerHeight * 0.6 - r.top) / (r.height * 0.85), n = p <= 0.03 ? -1 : Math.min(3, Math.floor(p * 4.4)); scene.setFloor(n); if (n !== state.floor) setUI({ floor: n }); }
+            const J = document.getElementById("journey"), c = document.getElementById("contact");
+            if (J) { const p = slotsInto(J), f = Math.min(1, Math.max(0, (p - JOURNEY.takeoff) / (JOURNEY.land - JOURNEY.takeoff))); scene.setFlight(p < JOURNEY.takeoff ? 0 : f); scene.setPrep(p > JOURNEY.prep[0] && p < JOURNEY.prep[1]); if (Math.abs(f - state.flight) > 0.004 || Math.abs(p - (state.journey ?? 0)) > 0.02) setUI({ flight: f, journey: p }); }
             if (c) { const r = c.getBoundingClientRect(); scene.setSit(r.top < innerHeight * 0.55 && r.bottom > innerHeight * 0.4); }
             const pj = document.getElementById("projects");
             if (pj) {
-                const r = pj.getBoundingClientRect(), inView = r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5, seg = (r.height - innerHeight) / PROJECT_ORDER.length;
-                const k = Math.min(PROJECT_ORDER.length - 1, Math.max(0, Math.floor(-r.top / seg)));
+                const r = pj.getBoundingClientRect(), inView = r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5;
+                const k = Math.min(PROJECT_ORDER.length - 1, Math.max(0, Math.floor(slotsInto(pj) + 0.45)));
                 if (k !== state.project) setUI({ project: k });
                 scene.setCoding(inView); scene.setProject(inView ? k : -1, PROJECTS.find(x => x.id === PROJECT_ORDER[k])?.color);
             }
@@ -94,7 +96,7 @@ export default function Planet() {
         };
         const loop = () => { direct(); raf = requestAnimationFrame(loop); };
         const move = e => scene?.setPointer(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-        const onDown = e => { down = e.target === ref.current || e.target.closest?.(".pl-sec") === e.target ? [e.clientX, e.clientY] : null; };
+        const onDown = e => { down = e.target === ref.current || e.target.closest?.(".pl-sec, .pl-stage, .pl-deck") === e.target ? [e.clientX, e.clientY] : null; };
         const onUp = e => {
             if (!down || !scene || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;
             const r = scene.click(e.clientX, e.clientY); if (!r) return;

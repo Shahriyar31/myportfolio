@@ -152,16 +152,17 @@ export default class PlanetScene {
                 const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 7, 40, 1, true), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, alphaMap: this.fadeTex(), transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); beam.position.y = 3.5; g.add(beam);
                 return { ring, beam, k: 0 }; });
             this.coder(); }
-        // journey: home in West Bengal, college, runway; ocean; TUHH campus in Hamburg
-        { const home = this.homeSpot = this.spot(P.journey.from, 8); this.box(1.8, 1.3, 1.6, M.cream, home, 0, 0, 0); const roof = this.mesh(new THREE.ConeGeometry(1.5, 0.9, 4), M.red, home, 0, 1.75, 0); roof.rotation.y = Math.PI / 4;
-            const college = this.spot(P.journey.from - 8, 11); this.box(3.4, 1.6, 1.4, M.brick, college, 0, 0, 0); this.box(1, 2.4, 1, M.brick, college, 0, 0, 0.1);
-            for (let i = 0; i < 5; i++) this.box(0.3, 0.32, 0.04, M.window, college, -1.3 + i * 0.65, 0.7, 0.72, 0.02);
-            this.palmSpots = [[P.journey.from - 4, -3], [P.journey.from + 4, 13], [P.journey.from + 6, -4], [P.journey.from - 12, 4]];
-            const run = this.spot(P.journey.from + 9, 0, 0.01); const strip = this.mesh(new THREE.BoxGeometry(3.4, 0.04, 1.4), M.dark, run); strip.receiveShadow = true;
-            const uni = this.uni = this.spot(P.tuhh.theta, 8); this.box(3.8, 0.3, 2.2, M.white, uni, 0, 0, 0); this.box(3.4, 1.8, 1.3, M.cream, uni, 0, 0.3, -0.4);
-            for (let i = 0; i < 6; i++) this.cyl(0.11, 0.11, 1.8, M.white, uni, -1.4 + i * 0.56, 0.3, 0.5, 10);
-            const ped = this.mesh(new THREE.CylinderGeometry(0, 2, 0.8, 3), M.white, uni, 0, 2.5, 0.1); ped.rotation.y = Math.PI / 2; ped.scale.set(1, 0.4, 1);
-            this.rain = this.makeRain(); }
+        // journey: my college in Cooch Behar, home (getting ready), the runway; ocean; TUHH in Hamburg
+        { const J = P.journey;
+            this.cgec(this.spot(J.cgec, 7.5));
+            const home = this.homeSpot = this.spot(J.home, 8); this.box(1.8, 1.3, 1.6, M.cream, home, 0, 0, 0); const roof = this.mesh(new THREE.ConeGeometry(1.5, 0.9, 4), M.red, home, 0, 1.75, 0); roof.rotation.y = Math.PI / 4;
+            this.palmSpots = [[J.cgec - 6, -3], [J.cgec + 5, 13], [J.home + 5, 13], [J.cgec - 11, 5], [J.home - 3, 12]];
+            const run = this.spot(J.runway, 0, 0.01); const strip = this.mesh(new THREE.BoxGeometry(3.4, 0.04, 1.4), M.dark, run); strip.receiveShadow = true;
+            for (let i = 0; i < 5; i++) this.box(0.4, 0.01, 0.08, M.white, run, -1.4 + i * 0.7, 0.04, 0, 0.005);
+            const uni = this.uni = this.spot(P.tuhh.theta, 8); this.tuhh(uni);
+            this.rain = this.makeRain();
+            this.lab(this.spot(P.lab.theta, 6));
+            this.bags(); }
         // skills: a garden of five pedestals
         { const g = this.garden = this.spot(P.skills.theta, 6); this.pedMat = M.white.clone(); this.pedMat.emissive = new THREE.Color(0); this.roleCol = new THREE.Color(0x5fd0ff); this.roleK = 0;
             this.roleBeams = [];
@@ -205,6 +206,78 @@ export default class PlanetScene {
         if (Math.floor(performance.now() / 400) % 2) { const last = L[L.length - 1]; x.fillStyle = "#fff"; x.fillRect(14 + last.ind * 14 + last.parts.reduce((a, p) => a + p[0] + 6, 0), 19 + (L.length - 1) * 15, 3, 9); }
         this.codeTex.needsUpdate = true;
     }
+    /** a flat sign with text (canvas texture) */
+    sign(lines, w, h, { bg = "#f7f1e6", fg = "#1a2230", band, font = "'Clash Display', Arial Black, sans-serif" } = {}) {
+        const cv = document.createElement("canvas"), W = 1024, H = Math.round(1024 * h / w); cv.width = W; cv.height = H; const x = cv.getContext("2d");
+        x.fillStyle = bg; x.fillRect(0, 0, W, H); if (band) { x.fillStyle = band; x.fillRect(0, H - H * 0.14, W, H * 0.14); }
+        x.fillStyle = fg; x.textAlign = "center"; x.textBaseline = "middle";
+        lines.forEach(([t, size, y, weight = 700]) => { x.font = `${weight} ${size}px ${font}`; x.fillText(t, W / 2, H * y, W * 0.94); });
+        const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+        return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+    }
+    /** Cooch Behar Government Engineering College, as I remember it: a long cream block with red bands, a tall entrance, the flag */
+    cgec(g) {
+        const m = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }), wall = m(0xf1e8d6), band = m(0xb5523b), glass = m(0x5d8fb8);
+        this.box(6.4, 0.2, 2, this.M.path, g, 0, 0, 0.1, 0.04);
+        this.box(5.6, 2.5, 1.3, wall, g, 0, 0.2, -0.2, 0.05);
+        for (let f = 0; f < 3; f++) { this.box(5.68, 0.1, 1.38, band, g, 0, 0.2 + 0.78 * (f + 1) - 0.05, -0.2, 0.02);
+            for (let i = 0; i < 10; i++) { if (i === 4 || i === 5) continue; this.box(0.34, 0.36, 0.04, glass, g, -2.45 + i * 0.545, 0.42 + f * 0.78, 0.46, 0.02); } }
+        this.box(1.5, 3.3, 1.7, band, g, 0, 0.2, 0, 0.06); this.box(1.8, 0.12, 0.8, wall, g, 0, 1.25, 0.9, 0.03);
+        this.cyl(0.07, 0.07, 1.05, wall, g, -0.75, 0.2, 1.22, 8); this.cyl(0.07, 0.07, 1.05, wall, g, 0.75, 0.2, 1.22, 8);
+        this.box(0.7, 0.9, 0.04, glass, g, 0, 0.2, 0.86, 0.02);
+        const s = this.sign([["COOCH BEHAR GOVT.", 150, 0.36], ["ENGINEERING COLLEGE", 132, 0.72]], 1.7, 0.5, { bg: "#f7f1e6", fg: "#7a2a1c" }); s.position.set(0, 2.3, 0.87); g.add(s);
+        // the flag
+        const pole = this.cyl(0.035, 0.045, 3.6, this.M.white, g, 2.6, 0.2, 1.1, 8);
+        const fc = document.createElement("canvas"); fc.width = 150; fc.height = 100; const x = fc.getContext("2d");
+        [["#ff9933", 0], ["#ffffff", 1], ["#138808", 2]].forEach(([c, i]) => { x.fillStyle = c; x.fillRect(0, i * 33.4, 150, 33.4); });
+        x.strokeStyle = "#000080"; x.lineWidth = 3; x.beginPath(); x.arc(75, 50, 13, 0, 7); x.stroke();
+        const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace;
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6, 10, 1), new THREE.MeshStandardMaterial({ map: ft, side: THREE.DoubleSide, roughness: 0.9 })); flag.position.set(3.05, 3.45, 1.1); g.add(flag);
+        const fp = flag.geometry.attributes.position, base = fp.array.slice();
+        this.anim.push(t => { for (let i = 0; i < fp.count; i++) { const px = base[i * 3]; fp.array[i * 3 + 2] = Math.sin(t * 4 + px * 5) * 0.06 * (px + 0.45); } fp.needsUpdate = true; });
+        pole.castShadow = false;
+    }
+    /** TUHH, Hamburg: red-brick main building, white windows, dark roof, and the modern turquoise wing */
+    tuhh(g) {
+        const m = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true }), brick = m(0x9c3b2b), frame = m(0xf4f1ea), roofM = m(0x4a4f58), glass = m(0x7fb8d8), tq = m(0x00c1d4);
+        this.box(6.2, 0.18, 2.2, this.M.path, g, 0, 0, 0.1, 0.04);
+        this.box(4.4, 2.5, 1.5, brick, g, -0.7, 0.18, -0.2, 0.04);
+        for (let f = 0; f < 3; f++) for (let i = 0; i < 8; i++) { this.box(0.34, 0.46, 0.05, frame, g, -2.55 + i * 0.53, 0.34 + f * 0.78, 0.56, 0.02); this.box(0.26, 0.38, 0.06, glass, g, -2.55 + i * 0.53, 0.38 + f * 0.78, 0.57, 0.02); }
+        const tri = new THREE.Shape(); tri.moveTo(-0.85, 0); tri.lineTo(0.85, 0); tri.lineTo(0, 1.05); tri.closePath();
+        const roof = this.mesh(new THREE.ExtrudeGeometry(tri, { depth: 4.5, bevelEnabled: false }), roofM, g, 1.55, 2.68, -0.2); roof.rotation.y = -Math.PI / 2;
+        for (let i = 0; i < 3; i++) this.box(0.35, 0.35, 0.3, roofM, g, -2.1 + i * 1.4, 2.95, 0.35, 0.03);
+        // modern wing
+        this.box(1.7, 3.2, 1.6, glass, g, 2.35, 0.18, -0.1, 0.04); this.box(1.8, 0.35, 1.7, tq, g, 2.35, 3.38, -0.1, 0.04);
+        for (let f = 0; f < 4; f++) this.box(1.74, 0.05, 1.64, frame, g, 2.35, 0.18 + 0.8 * (f + 1), -0.1, 0.01);
+        const s = this.sign([["TUHH", 330, 0.5, 800]], 1.4, 0.36, { bg: "#00c1d4", fg: "#ffffff" }); s.position.set(2.35, 3.555, 0.76); g.add(s);
+        const s2 = this.sign([["HAMBURG UNIVERSITY", 120, 0.36], ["OF TECHNOLOGY", 120, 0.72]], 1.9, 0.44, { bg: "#f4f1ea", fg: "#1c2a36" }); s2.position.set(-0.7, 0.22 + 0.22, 1.25); g.add(s2);
+        this.box(0.08, 0.5, 0.08, this.M.dark, g, -1.6, 0.18, 1.25, 0.01); this.box(0.08, 0.5, 0.08, this.M.dark, g, 0.2, 0.18, 1.25, 0.01); s2.position.y = 0.85;
+    }
+    /** my research lab next to Nordex: a digital twin turning above it */
+    lab(g) {
+        this.box(2, 1.2, 1.4, this.M.white, g, 0, 0, 0, 0.1); this.box(2.1, 0.12, 1.5, this.M.accent, g, 0, 1.2, 0, 0.04);
+        const s = this.sign([["TUHH RESEARCH", 120, 0.5]], 1.6, 0.26, { bg: "#00c1d4", fg: "#fff" }); s.position.set(0, 0.8, 0.71); g.add(s);
+        const holo = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color: 0x00c1d4, wireframe: true, transparent: true, opacity: 0.8 })); holo.position.y = 2.3; g.add(holo);
+        const dots = new THREE.Points(new THREE.IcosahedronGeometry(0.7, 1), new THREE.PointsMaterial({ color: 0xffffff, size: 0.07 })); holo.add(dots);
+        this.anim.push(t => { holo.rotation.y = t * 0.6; holo.rotation.x = Math.sin(t * 0.5) * 0.3; holo.position.y = 2.3 + Math.sin(t * 1.4) * 0.1; });
+        this.labHolo = holo;
+    }
+    /** getting ready for Germany: a suitcase and a stack of papers appear next to me */
+    bags() {
+        const g = this.bag = new THREE.Group(); g.position.set(-0.62, R + 0.06, 0.3); g.scale.setScalar(0.001); g.visible = false; this.scene.add(g); this.bagK = 0;
+        const blue = new THREE.MeshStandardMaterial({ color: 0x2b6cb0, roughness: 0.6, flatShading: true });
+        this.box(0.46, 0.6, 0.22, blue, g, 0, 0.05, 0, 0.06); this.box(0.2, 0.05, 0.05, this.M.dark, g, 0, 0.66, 0, 0.02); this.box(0.04, 0.28, 0.04, this.M.dark, g, -0.08, 0.66, 0, 0.01); this.box(0.04, 0.28, 0.04, this.M.dark, g, 0.08, 0.66, 0, 0.01);
+        [[-0.12, 0], [0.12, 0]].forEach(([x]) => this.cyl(0.04, 0.04, 0.05, this.M.dark, g, x, 0, 0.06, 8));
+        const papers = new THREE.Group(); papers.position.set(0.5, 0, 0.1); g.add(papers);
+        for (let i = 0; i < 4; i++) { const p = this.box(0.34, 0.02, 0.44, i === 3 ? new THREE.MeshStandardMaterial({ color: 0x7a1f2b }) : this.M.white, papers, 0, i * 0.025, 0, 0.005); p.rotation.y = (i - 1.5) * 0.12; }
+    }
+    setPrep(v) { this.prep = v; }
+    /** where a floor of the Nordex tower (or the AI core) is on screen, for cards popping out of it */
+    screenOf(what, i = 0) {
+        const o = what === "floor" ? this.floors?.[i] : what === "core" ? this.core : what === "lab" ? this.labHolo : what === "mail" ? this.mailBox : null; if (!o) return null;
+        const v = o.getWorldPosition(V(0, 0, 0)).project(this.camera), r = this.canvas.getBoundingClientRect();
+        return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
+    }
     signpost(g, title, sub) {
         const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 360; const x = cv.getContext("2d");
         x.fillStyle = "#f7f1e6"; x.beginPath(); x.roundRect(8, 8, 1008, 344, 40); x.fill(); x.fillStyle = "#5fd0ff"; x.fillRect(8, 300, 1008, 52);
@@ -231,7 +304,7 @@ export default class PlanetScene {
     scatter() {
         const busy = [];
         Object.values(PLACES).forEach(p => { if (p.theta !== undefined) busy.push(p.theta); if (p.items) p.items.forEach(i => busy.push(i.theta)); });
-        busy.push(PLACES.journey.from, PLACES.journey.from - 8, PLACES.contact.theta + 6);
+        busy.push(PLACES.journey.cgec, PLACES.journey.home, PLACES.journey.runway, PLACES.lab.theta, PLACES.contact.theta + 6);
         this.treeDirs = []; const n = this.mobile ? 70 : 150;
         for (let t = 0; t < n * 6 && this.treeDirs.length < n; t++) {
             const d = V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(), theta = ((Math.atan2(d.x, d.y) / D2R) + 360) % 360;
@@ -248,7 +321,7 @@ export default class PlanetScene {
         const body = this.mesh(new THREE.CapsuleGeometry(0.32, 2, 6, 14), M.white, p); body.rotation.z = Math.PI / 2;
         this.box(0.55, 0.05, 2.8, M.white, p, 0.1, -0.05, 0, 0.03); this.box(0.35, 0.6, 0.06, M.accent, p, -1.15, 0.05, 0, 0.03); this.box(0.28, 0.05, 1, M.white, p, -1.1, 0, 0, 0.02);
         for (let i = 0; i < 4; i++) this.box(0.11, 0.11, 0.03, M.window, p, 0.55 - i * 0.32, 0.03, 0.31, 0.02);
-        this.planeParked = this.spot(PLACES.journey.from + 9, 0); this.planeParked.add(p); p.position.set(0, 0.45, 0);
+        this.planeParked = this.spot(PLACES.journey.runway, 0); this.planeParked.add(p); p.position.set(0, 0.45, 0);
         const tp = new Float32Array(90 * 3), tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(tp, 3));
         this.trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })); this.trail.frustumCulled = false; this.scene.add(this.trail); this.trailPts = [];
     }
@@ -455,6 +528,7 @@ export default class PlanetScene {
                 this.glyphs.forEach((s, i) => { const k = (t * 0.28 + s.userData.o) % 1; s.position.set(Math.sin(i * 2.3) * 0.35 + Math.sin(t + i) * 0.06, 0.95 + k * 1.5, 0.66 + Math.cos(i * 1.7) * 0.2); s.material.opacity = Math.sin(k * Math.PI) * 0.95 * this.rigK; s.material.color.set(col); });
             }
         }
+        if (this.bag) { this.bagK += ((this.prep && this.me?.visible ? 1 : 0) - this.bagK) * 0.1; this.bag.visible = this.bagK > 0.01; this.bag.scale.setScalar(Math.max(0.001, this.bagK)); this.bag.rotation.y = Math.sin(t * 0.8) * 0.05; }
         // project beacons and the skills garden
         (this.beacons || []).forEach((b, k) => { b.k += ((k === this.projOn ? 1 : 0) - b.k) * 0.08; b.ring.material.opacity = b.k * 0.9; b.beam.material.opacity = b.k * 0.32; b.ring.material.color.copy(this.projCol); b.beam.material.color.copy(this.projCol); b.ring.scale.setScalar(1 + Math.sin(t * 2.2) * 0.05); });
         this.roleK += ((this.roleOn ? 1 : 0) - this.roleK) * 0.08; this.pedMat.emissive.copy(this.roleCol).multiplyScalar(this.roleK * 0.9);

@@ -13,12 +13,13 @@ export const PLACES = {
     projects: { theta: 140, items: [
         { id: 1, theta: 128 }, { id: 2, theta: 134 }, { id: 4, theta: 140 }, { id: 5, theta: 146 }, { id: 3, theta: 152 }, { id: 6, theta: 158 },
     ] },
-    journey: { from: 186, to: 262 },   // West Bengal → (plane over the ocean) → Hamburg
+    lab: { theta: 116 },               // my TUHH research, next to Nordex
+    journey: { from: 176, cgec: 176, home: 192, runway: 199, to: 262 },   // college → home, getting ready → take-off → ocean → Hamburg
     tuhh: { theta: 272 },
     skills: { theta: 300 },
     lens: { theta: 324 },
     contact: { theta: 346 },
-    oceanFrom: 203, oceanTo: 256,
+    oceanFrom: 204, oceanTo: 256,
 };
 
 /* the sky for each chapter, in page order (colours are the look of that moment) */
@@ -35,6 +36,7 @@ export const SKIES = [
     S("#120a2c", "#3b2a6d", "#b8a8ff", 0.8, "#b6a8ff", "#1e2030", 1, 0, 1, 1),        // 8 photography, night
     S("#2b1e52", "#ff9b6c", "#ffb58a", 1.7, "#ffd2bf", "#3a3a2a", 0.3, 0, 0.3, 1),    // 9 my desk, sunset
 ];
+export const WB = S("#5aa9e6", "#fff0d2", "#fff1cf", 2.5, "#fff3e0", "#5f7a3a", 0, 0, 0, 0);             // a bright day in West Bengal
 export const DAY = S("#6fb8f0", "#eef7ff", "#fff4dc", 2.6, "#f4f8ff", "#5a7a44", 0, 0, 0, 0);          // light theme leans towards this
 export const NIGHT = S("#03050d", "#101a3a", "#8fa8ff", 0.6, "#8fa0ff", "#10161e", 1, 0, 0, 0.6); // the flight
 
