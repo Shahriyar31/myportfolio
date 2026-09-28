@@ -14,7 +14,7 @@ const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bri
 // top-down points of interest for the mini-map (x, z)
 const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [-16, -6], [-79.5, -61], [-75, -58]];
 
-function Hud({ hudRef, meRef, placeRef, chapRef, barRef, exploredRef }) {
+function Hud({ hudRef, meRef, placeRef, chapRef, barRef, exploredRef, nextRef }) {
     return (
         <div ref={hudRef} className="hud neu" aria-hidden="true">
             <div className="hud-map neu-in-sm">
@@ -30,6 +30,7 @@ function Hud({ hudRef, meRef, placeRef, chapRef, barRef, exploredRef }) {
                 <span ref={chapRef} className="mono" />
                 <b ref={placeRef} />
                 <span ref={exploredRef} className="hud-found mono" />
+                <button ref={nextRef} className="hud-next mono" onClick={e => { const t = e.currentTarget.target; if (t) window.scrollTo({ top: t.getBoundingClientRect().top + scrollY + Math.min(t.offsetHeight, innerHeight) / 2 - innerHeight / 2, behavior: "smooth" }); }} />
                 <span ref={barRef} className="hud-bar">{CHAPTERS.map(([id]) => <i key={id} />)}</span>
             </div>
         </div>
@@ -41,7 +42,7 @@ export default function World() {
     const [tip, setTip] = useState(null);
     const tipRef = useRef(null);
     const tipVal = useRef(null);
-    const exploredRef = useRef(null), seen = useRef(new Set()), hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
+    const nextRef = useRef(null), exploredRef = useRef(null), seen = useRef(new Set()), hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
 
     useEffect(() => {
         let scene, alive = true, raf = 0;
@@ -109,6 +110,9 @@ export default function World() {
                     exploredRef.current.textContent = n >= all.size ? `All ${all.size} places explored ★` : `Explored ${n} / ${all.size} places`;
                 }
                 [...barRef.current.children].forEach((b, k) => { b.className = k < ch ? "is-done" : k === ch ? "is-cur" : ""; });
+                // next stop: one click takes you to the next place in the story
+                const ks = keys.filter(e => e.closest("main")), nx = ks[ks.indexOf(cur) + 1];
+                if (nextRef.current.target !== nx) { nextRef.current.target = nx; nextRef.current.textContent = nx ? `Next: ${STATIONS[nx.dataset.station]?.name || "keep scrolling"} ↓` : "The end ★"; }
                 meRef.current.setAttribute("transform", `translate(${look[0].toFixed(1)} ${look[2].toFixed(1)})`);
                 // zoom the map to the island you are on; show both while travelling between them
                 const far = look[0] < -24, vb = far ? "-92 -74 122 100" : "-24 -22 48 42";
@@ -155,7 +159,7 @@ export default function World() {
     return (
         <>
             <canvas ref={ref} className="world" aria-hidden="true" />
-            <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} exploredRef={exploredRef} />
+            <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} exploredRef={exploredRef} nextRef={nextRef} />
             <div ref={tipRef} className={`world-tip neu ${tip ? "is-on" : ""}`} aria-hidden="true">{tip?.label}{tip && SECTION_FOR[tip.id] && <span className="mono">click to visit</span>}</div>
         </>
     );

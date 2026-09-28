@@ -1,5 +1,9 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { getPalette, onPalette, getMode } from "./theme";
 
 /*
@@ -36,10 +40,56 @@ export default class WorldScene {
         this.M = this.materials();
         this.sky(); this.lights();
         this.mainIsland(); this.homeIsland(); this.streams(); this.plane(); this.clouds();
+        this.loadModels();
+        if (!mobile) { // film look: soft bloom on lit windows, data streams and the AI core
+            this.composer = new EffectComposer(this.renderer);
+            this.composer.addPass(new RenderPass(this.scene, this.camera));
+            this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.6, 0.82); this.composer.addPass(this.bloom);
+            this.composer.addPass(new OutputPass());
+        }
         this.applyPalette(); this.off = onPalette(() => this.applyPalette());
         this.ray = new THREE.Raycaster();
         this.resize = this.resize.bind(this); this.tick = this.tick.bind(this);
         this.ro = new ResizeObserver(this.resize); this.ro.observe(canvas); this.resize();
+    }
+
+    /* ── Kenney models (CC0): real buildings, trees and rocks ─────────── */
+    async loadModels() {
+        const fallback = () => { this.treeSpots.forEach(([x, z, k]) => this.tree(this.main, x, z, k)); this.palmSpots.forEach(([x, z]) => this.palm(this.home, x, z)); };
+        let lib;
+        try {
+            const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+            const L = new GLTFLoader();
+            const files = { tree1: "nature/tree_detailed", tree2: "nature/tree_oak", tree3: "nature/tree_pineRoundA", tree4: "nature/tree_pineTallA_detailed", tree5: "nature/tree_default",
+                palm1: "nature/tree_palmDetailedTall", palm2: "nature/tree_palmBend", bush: "nature/plant_bushDetailed", rock: "nature/rock_largeA", rock2: "nature/rock_smallA", fl1: "nature/flower_redA", fl2: "nature/flower_yellowA",
+                sky: "city/building-skyscraper-a", libb: "city/building-d", h1: "sub/building-type-a", h2: "sub/building-type-c", h3: "sub/building-type-e", h4: "sub/building-type-g", h5: "sub/building-type-k", h6: "sub/building-type-o" };
+            const got = await Promise.all(Object.entries(files).map(([k, f]) => L.loadAsync(`/models/${f}.glb`).then(g => [k, g.scene])));
+            if (this.disposed) return;
+            lib = Object.fromEntries(got);
+        } catch { fallback(); return; }
+        const shadow = !this.mobile;
+        // place a model with its base on the ground, centred, scaled to a height
+        const put = (key, parent, x, z, h, ry = 0) => {
+            const m = lib[key].clone(true), box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), k = h / size.y;
+            m.scale.setScalar(k); m.position.set(-c.x * k, -box.min.y * k, -c.z * k);
+            m.traverse(o => { if (o.isMesh) { o.castShadow = shadow; o.receiveShadow = true; if (o.material) { o.material = o.material.clone(); o.material.roughness = 0.85; o.material.metalness = 0; } } });
+            const g = new THREE.Group(); g.add(m); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g); return g;
+        };
+        const trees = ["tree1", "tree2", "tree3", "tree4", "tree5"];
+        this.treeSpots.forEach(([x, z, k], i) => put(trees[i % trees.length], this.main, x, z, 1.1 + k * 0.85, rnd() * 6));
+        for (let i = 0; i < (this.mobile ? 14 : 30); i++) { // undergrowth: bushes, rocks, flowers
+            const a = rnd() * Math.PI * 2, r = 7 + rnd() * 10, x = Math.cos(a) * r, z = Math.sin(a) * r;
+            if (Math.abs(r - 8.3) < 0.8) continue; // keep the ring path clear
+            put(["bush", "rock", "rock2", "fl1", "fl2", "bush"][i % 6], this.main, x, z, [0.6, 0.7, 0.35, 0.35, 0.35, 0.5][i % 6], rnd() * 6);
+        }
+        this.townHouses.forEach(h => { h.visible = false; });
+        this.townSpots.forEach(([x, z], i) => put(["h1", "h2", "h3", "h4", "h5", "h6"][i], this.town, x, z, 1.5 + (i % 3) * 0.2, (i * 1.3) % 6));
+        this.hqGlass.visible = false; put("sky", this.hq, 0, 0, 9.6).position.y = 0.4;
+        this.floors.forEach(f => f.scale.set(1.12, 1, 1.12));
+        this.lib.children.forEach(c => { c.visible = false; }); put("libb", this.lib, 0, 0, 2.6, Math.PI / 4);
+        this.homeHouse.visible = false; put("h5", this.home, 3, 2, 1.8, -0.6);
+        this.palmSpots.forEach(([x, z], i) => put(i % 2 ? "palm2" : "palm1", this.home, x, z, 2.4 + (i % 3) * 0.3, rnd() * 6));
+        this.applyPalette();
     }
 
     /* ── materials & helpers ───────────────────────────────────────── */
@@ -183,12 +233,13 @@ export default class WorldScene {
 
         // Town — where trusted answers arrive
         const town = this.pick(this.group(12, 5, "town", "People & teams", 0, W));
-        [[0, 0], [1.7, -0.6], [-1.5, 1.2], [0.6, 1.9], [2.2, 1.4], [-0.4, -1.8]].forEach(([x, z], i) => this.house(town, x, z, 0.9 + (i % 3) * 0.12, i % 2 ? this.M.roof : this.M.roof2));
+        this.townSpots = [[0, 0], [1.7, -0.6], [-1.5, 1.2], [0.6, 1.9], [2.2, 1.4], [-0.4, -1.8]]; this.town = town;
+        this.townHouses = this.townSpots.map(([x, z], i) => this.house(town, x, z, 0.9 + (i % 3) * 0.12, i % 2 ? this.M.roof : this.M.roof2));
 
         // Office tower — experience, one lit floor per role
         const hq = this.hq = this.pick(this.group(-3, 10, "hq", "Office tower · Experience", 0, W));
         this.box(3.2, 0.4, 3.2, M.white, 0, 0, 0, hq, 0.1);
-        this.box(2.4, 9, 2.4, M.glass, 0, 0.4, 0, hq, 0.12);
+        this.hqGlass = this.box(2.4, 9, 2.4, M.glass, 0, 0.4, 0, hq, 0.12);
         this.floors = [];
         for (let i = 0; i < 9; i++) { const f = this.box(2.5, 0.08, 2.5, M.white, 0, 0.4 + i * 1, 0, hq, 0.02); if (i === 2 || i === 5 || i === 8) { const band = this.box(2.52, 0.55, 2.52, new THREE.MeshStandardMaterial({ color: 0x2d3a4a, emissive: 0x73d4ff, emissiveIntensity: 0.15, transparent: true, opacity: 0.55 }), 0, 0.55 + i * 1 - (i === 8 ? 0.2 : 0), 0, hq, 0.04); this.floors.push(band); } }
         this.box(0.08, 1.2, 0.08, M.dark, 0.6, 9.4, 0.6, hq, 0.02);
@@ -227,16 +278,17 @@ export default class WorldScene {
         this.box(1.2, 3, 1.2, M.cream, -0.9, 0, 0, twin);
         const wire = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3, 1.2), new THREE.MeshBasicMaterial({ color: 0x73d4ff, wireframe: true, transparent: true, opacity: 0.7 })); wire.position.set(0.9, 1.5, 0); twin.add(wire); this.twinWire = wire;
 
-        const lib = this.pick(this.group(-16, -6, "p-books", "Book Analysis", 0, W));
+        const lib = this.lib = this.pick(this.group(-16, -6, "p-books", "Book Analysis", 0, W));
         this.box(2, 1.6, 1.4, M.cream, 0, 0, 0, lib); const lr = this.mesh(new THREE.ConeGeometry(1.5, 0.8, 4), M.roof2, 0, 2, 0, lib); lr.rotation.y = Math.PI / 4;
         [M.red, M.gold, M.accent, M.accent2, M.ok].forEach((m, i) => this.box(0.18, 0.55, 0.4, m, -0.6 + i * 0.28, 0, 0.9, lib, 0.03));
 
-        // trees & rocks
+        // trees & rocks (Kenney models load later; procedural trees are the fallback)
+        this.treeSpots = [];
         for (let i = 0; i < (this.mobile ? 26 : 48); i++) {
             const a = rnd() * Math.PI * 2, rr = 9 + rnd() * 8;
             const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
             if (Math.hypot(x + 3, z - 10) < 3 || Math.hypot(x - 5, z - 11) < 3.2 || Math.hypot(x - 12, z - 5) < 3 || Math.hypot(x - 13.5, z + 11) < 2.8 || Math.hypot(x + 15, z - 10) < 2.5 || Math.hypot(x - 16, z) < 1.8 || Math.hypot(x - 8, z - 14.5) < 2.4 || Math.hypot(x + 9.5, z - 13.5) < 2.2 || Math.hypot(x + 16, z + 6) < 2.2 || Math.hypot(x + 14, z - 3.5) < 2.6) continue;
-            this.tree(W, x, z, 0.8 + rnd() * 0.6);
+            this.treeSpots.push([x, z, 0.8 + rnd() * 0.6]);
         }
         // street lamps along the path (glow at night)
         this.lamps = [];
@@ -250,7 +302,7 @@ export default class WorldScene {
         this.box(3.6, 1.6, 1.8, M.brick, 0, 0, 0, college); this.box(1.2, 2.4, 1.2, M.brick, 0, 0, 0.1, college);
         for (let i = 0; i < 5; i++) { const w = this.box(0.3, 0.35, 0.04, M.window, -1.4 + i * 0.7, 0.8, 0.92, college, 0.02); this.windows.push(w); }
         this.homeHouse = this.house(H, 3, 2, 1.2);
-        [[4.5, -2], [-4.5, 2.5], [1, 4.5], [-3.5, -4], [5, 3.5], [-5.5, -1]].forEach(([x, z]) => this.palm(H, x, z));
+        this.palmSpots = [[4.5, -2], [-4.5, 2.5], [1, 4.5], [-3.5, -4], [5, 3.5], [-5.5, -1]];
         const pond = new THREE.Mesh(new THREE.CircleGeometry(1.4, 24), new THREE.MeshStandardMaterial({ color: 0x3aa7d8, roughness: 0.1 })); pond.rotation.x = -Math.PI / 2; pond.position.set(-1, 0.03, 3.5); H.add(pond);
     }
 
@@ -318,6 +370,7 @@ export default class WorldScene {
     /* ── theme: day / night (+ warm sky over Bengal) ───────────────── */
     applyPalette() {
         const p = getPalette(), night = getMode() === "dark";
+        if (this.bloom) { this.bloom.strength = night ? 0.85 : 0.08; this.bloom.threshold = night ? 0.6 : 0.97; }
         const sky = new THREE.Color(p.sky), hor = new THREE.Color(p.horizon), acc = new THREE.Color(p.accent);
         if (night) {
             this.skyU.top.value.copy(sky).multiplyScalar(0.8); this.skyU.mid.value.copy(hor); this.skyU.bot.value.copy(sky).multiplyScalar(0.6); this.skyU.stars.value = 1;
@@ -350,6 +403,7 @@ export default class WorldScene {
         this.camera.aspect = w / h;
         this.camera.fov = w / h < 0.8 ? 52 : w / h < 1.3 ? 42 : 36;
         this.camera.updateProjectionMatrix();
+        this.composer?.setSize(w, h); this.composer?.setPixelRatio(this.renderer.getPixelRatio());
     }
 
     hover(cx, cy) {
@@ -412,7 +466,7 @@ export default class WorldScene {
         this.planeG.rotateY(-Math.PI / 2);
         this.trail.material.opacity = f > 0 && f < 1 ? 0.8 : 0.25;
 
-        this.renderer.render(this.scene, this.camera);
+        if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera);
     }
     zap() {
         const m = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.32, 24), new THREE.MeshBasicMaterial({ color: 0xff5d5d, transparent: true, side: THREE.DoubleSide, depthWrite: false }));
@@ -422,7 +476,7 @@ export default class WorldScene {
     start() { if (!this.running) { this.running = true; this.clock.getDelta(); this.renderer.setAnimationLoop(this.tick); } }
     stop() { this.running = false; this.renderer.setAnimationLoop(null); }
     dispose() {
-        this.stop(); this.off?.(); this.ro.disconnect();
+        this.disposed = true; this.stop(); this.off?.(); this.ro.disconnect(); this.composer?.dispose();
         this.scene.traverse(o => { o.geometry?.dispose(); });
         this.renderer.dispose();
     }

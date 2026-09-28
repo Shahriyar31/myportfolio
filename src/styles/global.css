@@ -854,3 +854,8 @@ section.act { width: min(1180px, calc(100% - 2 * var(--gutter) - var(--rail) - 2
 @media (max-width: 860px) {
   section.act { width: calc(100% - 2 * var(--gutter)); margin: 18svh auto; padding: 22px 16px; border-radius: 26px; }
 }
+.hud-next { pointer-events: auto; align-self: flex-start; margin-top: 2px; padding: 5px 10px; border-radius: 9px; font-size: 10px; color: var(--accent); box-shadow: var(--raise-sm), var(--rim); transition: transform 0.3s var(--ease), color 0.3s; }
+.hud-next:hover { transform: translateY(-1px); color: var(--fg); }
+.hud.is-on .hud-next { pointer-events: auto; }
+.hud:not(.is-on) .hud-next { pointer-events: none; }
+@media (max-width: 860px) { .hud-next { align-self: center; } }
