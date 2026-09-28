@@ -65,6 +65,18 @@ function Lifecycle() {
     );
 }
 
+function Series() {
+    const pts = Array.from({ length: 40 }, (_, i) => [20 + i * 10.5, 110 + Math.sin(i * 0.55) * 26 + Math.cos(i * 1.7) * 8]);
+    pts[27][1] = 36; pts[12][1] = 176;
+    return (
+        <svg viewBox="0 0 460 200" className="dia">
+            <path className="dia-line" d={"M" + pts.map(p => p.join(" ")).join(" L")} />
+            {[12, 27].map(i => <circle key={i} className="dia-anom" cx={pts[i][0]} cy={pts[i][1]} r="9" />)}
+            <text className="dia-lbl" x="20" y="24">anomaly detection · forecasting</text>
+        </svg>
+    );
+}
+
 const CARDS = [
     {
         station: "floor-1", floor: "Floor 1", type: "Current", when: "Aug 2025 — now", org: "Nordex Group · Hamburg", role: "AI & Data Engineering",
@@ -96,13 +108,22 @@ const CARDS = [
         ],
         tags: ["AI governance", "Responsible AI", "EU AI Act", "GDPR", "Data governance", "Risk classification", "Architecture design"], Dia: Lifecycle,
     },
+    {
+        station: "uni", floor: "TUHH", type: "Research", when: "Mar 2025 — now", org: "TUHH · Hamburg", role: "Digital Twin Dashboard & MLOps",
+        bullets: [
+            "Built a live monitoring dashboard for a digital-twin simulation.",
+            "Added machine learning for anomaly detection and forecasting.",
+            "Automated testing and deployment with GitHub Actions, fully containerised with Docker.",
+        ],
+        tags: ["Python", "Dash", "Plotly", "Scikit-learn", "Docker", "GitHub Actions"], Dia: Series,
+    },
 ];
 
 export default function Work() {
     return (
         <section id="work" aria-label="Experience">
             <Opener station="nordex" n="02" kicker="Experience" title="Nordex HQ — one floor per role"
-                sub="Three roles at Nordex Group, Hamburg: engineering, project leadership and governance. Scroll to climb the building." />
+                sub="Three roles at Nordex Group — engineering, project leadership and governance — plus research at TUHH. Scroll to climb the building." />
             {CARDS.map((c, i) => (
                 <Stop key={c.role} station={c.station} side={i % 2 ? "left" : "right"} wide>
                     <div className="pane-kicker">

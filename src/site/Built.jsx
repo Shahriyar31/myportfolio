@@ -44,17 +44,16 @@ function Classifier() {
 }
 
 const STATION = { 2: "p-twin", 3: "p-poultry", 4: "p-radiation", 5: "p-stock", 6: "p-books" };
-const PLACE = { 2: "The twin buildings", 3: "The barn", 4: "The radar", 5: "The ticker tower", 6: "The library" };
 
 export default function Built() {
     // walking order: a loop around the island that ends at the library, next to the education chapter
     const others = [4, 5, 2, 3, 6].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean);
     return (
         <section id="built" aria-label="Projects">
-            <Opener station="overview" n="03" kicker="Projects" title="Walk the project district"
-                sub="Every project is a building in the valley. Scroll to walk from one to the next — or click a building in the world." />
+            <Opener station="district" n="03" kicker="Projects" title="Six things I built"
+                sub="Scroll through them — each one takes shape as you arrive." />
             <Stop station="p-argus" side="left" wide>
-                <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Live · free beta</span><span className="pane-where mono">🧪 The Argus lab</span></div>
+                <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Live · free beta</span></div>
                 <h3 className="pane-title">Argus AI</h3>
                 <p className="argus-sub">EU AI Act compliance, as an agent.</p>
                 <div className="pane-split">
@@ -68,7 +67,7 @@ export default function Built() {
             </Stop>
             {others.map((p, i) => (
                 <Stop key={p.id} station={STATION[p.id]} side={i % 2 ? "left" : "right"}>
-                    <div className="pane-kicker"><span className="chip mono">{p.badge}</span><span className="pane-where mono">📍 {PLACE[p.id]}</span></div>
+                    <div className="pane-kicker"><span className="chip mono">{p.badge}</span></div>
                     <h3 className="pane-title">{p.title}</h3>
                     <p className="stack-org">{p.sub}</p>
                     <p className="pane-lede sm">{p.desc}</p>

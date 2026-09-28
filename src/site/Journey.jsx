@@ -86,8 +86,8 @@ function BoardingPass() {
 export default function Journey() {
     return (
         <section id="story" aria-label="My story and education">
-            <Opener station="photos" n="04" kicker="Education" title="From one island to another"
-                sub="That small island in the sky is where I started — West Bengal. Scroll to visit my college, then fly with me to Hamburg." />
+            <Opener station="photos" n="04" kicker="Education" title="From West Bengal to Hamburg"
+                sub="Scroll to visit where I started, then fly with me to Hamburg." />
 
             <Stop id="education" station="home-college" side="left">
                 <div className="pane-kicker"><span className="chip mono">Education · 01</span><span className="mono">2018 — 2022</span></div>
@@ -119,11 +119,6 @@ export default function Journey() {
                 <p className="stack-org">Hamburg University of Technology (TUHH)</p>
                 <div className="pane-stack">
                     <Bars items={[["Machine learning", "tensorflow", 90], ["Big data", "spark", 85], ["MLOps", "mlflow", 85], ["Data engineering", "databricks", 90]]} />
-                    <div className="research neu-in-sm">
-                        <span className="mono">Research · Mar 2025 — now</span>
-                        <b>Digital Twin Dashboard & MLOps</b>
-                        <p>A live monitoring dashboard for a digital-twin simulation, with anomaly detection and forecasting. Tested and deployed automatically with GitHub Actions and Docker.</p>
-                    </div>
                 </div>
                 <div className="pane-end">
                     <p className="pane-lede sm">Studying by day, building AI at Nordex, shipping Argus AI on the side. Next level: <b>your team?</b></p>
