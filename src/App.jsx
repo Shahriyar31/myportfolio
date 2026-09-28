@@ -5,6 +5,9 @@ import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
 import DataJourney from "./site/DataJourney";
 import BuildIt from "./site/BuildIt";
+import KeepLegal from "./site/KeepLegal";
+import ShipSafe from "./site/ShipSafe";
+import Verdict from "./site/Verdict";
 import World from "./site/World";
 import Journey from "./site/Journey";
 import Work from "./site/Work";
@@ -49,6 +52,9 @@ export default function App() {
             <main>
                 <DataJourney ready={ready} onOpenCv={openCv} />
                 <BuildIt />
+                <KeepLegal />
+                <ShipSafe />
+                <Verdict onOpenCv={openCv} />
                 <Work />
                 <Built />
                 <Journey />

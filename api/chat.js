@@ -1,10 +1,21 @@
 import { SYSTEM_PROMPT } from "./_prompt.js";
 
+// Best-effort limit per server instance (serverless instances are short-lived).
+const hits = new Map();
+const limited = ip => {
+    const now = Date.now(), h = hits.get(ip) || { n: 0, t: now };
+    if (now - h.t > 10 * 60_000) { h.n = 0; h.t = now; }
+    h.n++; hits.set(ip, h);
+    if (hits.size > 5000) hits.clear();
+    return h.n > 30;
+};
+
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
+    if (limited(String(req.headers["x-forwarded-for"] || "").split(",")[0] || "?")) return res.status(429).json({ error: "Too many requests" });
     const { messages } = req.body ?? {};
 
     if (!Array.isArray(messages) || messages.length === 0) {

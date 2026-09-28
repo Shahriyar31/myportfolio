@@ -52,8 +52,8 @@ export default function Built() {
     const earlier = [4, 5, 3, 6].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean); // earlier work, different directions
     return (
         <section id="built" aria-label="Projects">
-            <Opener station="overview" n="03" kicker="Projects" title="Walk the project district"
-                sub="Every project is a building in the valley. Scroll to walk from one to the next — or click a building in the world." />
+            <Opener station="overview" n="02" kicker="The evidence room" title="Everything the report claims, here's the proof"
+                sub="Each project is a building in the valley. Argus AI first, then research, then where I started." />
             <Stop station="p-argus" side="left" wide>
                 <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Live · free beta</span><span className="pane-where mono">🧪 The Argus lab</span></div>
                 <h3 className="pane-title">Argus AI</h3>

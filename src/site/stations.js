@@ -27,6 +27,8 @@ export const STATIONS = {
     now: { name: "The Argus lab", p: [21, 6, -4], l: [13.5, 1.5, -11], focus: "p-argus" },
     chat: { name: "My desk", p: [-6.5, 4.4, 10.5], l: [-12.5, 1.2, 4.5] },
     photos: { name: "Home island", p: [-56, 10, -34], l: [-78, -2, -60], warm: 0.7 },
+    dawn: { name: "Sunrise over the valley", p: [4, 20, 44], l: [2, 5, 0], warm: 0.65 },
+    ops: { name: "The release pipeline", p: [-2, 16, 30], l: [-2, 4, 6] },
     finale: { name: "Both islands", p: [-22, 40, 44], l: [-34, -2, -26] },
 };
 

@@ -122,7 +122,7 @@ const CARDS = [
 export default function Work() {
     return (
         <section id="work" aria-label="Experience">
-            <Opener station="nordex" n="02" kicker="Experience" title="Nordex HQ — one floor per role"
+            <Opener station="nordex" n="01" kicker="The full file · experience" title="Nordex HQ — one floor per role"
                 sub="Three roles at Nordex Group — engineering, project leadership and governance — plus research at TUHH. Scroll to climb the building." />
             {CARDS.map((c, i) => (
                 <Stop key={c.role} station={c.station} side={i % 2 ? "left" : "right"} wide>

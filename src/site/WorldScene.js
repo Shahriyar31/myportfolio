@@ -445,6 +445,8 @@ export default class WorldScene {
         this.pkU = 0; this.pkGoalU = 0; this.pkColor = new THREE.Color(0xff8a4c); this.pkGoalColor = this.pkColor.clone(); this.pkScanK = -1; this.pkOn = 1; this.pkGoalOn = 1;
         this.packetPos = V(...ROUTE[0]);
     }
+    /** brief colour pulse on the governance gate (legal incident feedback) */
+    gateFlash(hex) { const m = this.beam.material, was = m.color.getHex(); m.color.set(hex); m.opacity = 0.7; clearTimeout(this._gf); this._gf = setTimeout(() => m.color.setHex(was), 900); }
     routePoint(u) { return this.route.getPointAt(Math.min(1, Math.max(0, u))).toArray(); }
     setPacket(u, color, scan = -1, on = 1) { this.pkGoalU = u; this.pkGoalColor.set(color); this.pkScanK = scan; this.pkGoalOn = on; }
     packetTick(dt, t) {

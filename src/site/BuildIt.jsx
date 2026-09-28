@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Stop from "./Stop";
 import { J } from "./journey";
 import { scrollToId } from "./hooks";
+import { mark } from "./progress";
 
 /*
  * Incident 1 — "Build it". A new AI agent knows nothing. The visitor connects documents
@@ -43,6 +44,7 @@ export default function BuildIt() {
     const [on, setOn] = useState([]), [filter, setFilter] = useState(false);
     const [res, setRes] = useState(null), [busy, setBusy] = useState(false), [tries, setTries] = useState(0), [skip, setSkip] = useState(false);
     const solved = res?.kind === "right" || skip;
+    useEffect(() => { if (res?.kind === "right") mark("build", "solved", { score: `${tries} ${tries === 1 ? "try" : "tries"}` }); else if (skip) mark("build", "skipped"); }, [res, skip, tries]);
 
     // connected sources light up the data streams from the lake to the AI tower
     useEffect(() => { if (J.scene) J.scene.ragGlow = on.filter(id => id !== "hr").length; }, [on]);

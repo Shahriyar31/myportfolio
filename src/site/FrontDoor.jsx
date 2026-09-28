@@ -3,6 +3,7 @@ import { Fade } from "./Motion";
 import { J } from "./journey";
 import { attack, settle, useAttack, LAYERS } from "./attack";
 import { NAME, TITLE, FOCUS, EMAIL, AUDIT, CLASSIFICATION } from "../data/profile";
+import { useProgress } from "./progress";
 
 /*
  * The front door. Left: an "audit report" on me — everything a recruiter needs in 30 seconds.
@@ -35,6 +36,7 @@ async function play(promise, onPhase) {
 }
 
 function Audit({ ready, onOpenCv }) {
+    const verified = useProgress().verdict?.status === "solved";
     return (
         <Fade play={ready} delay={250} className="fd-audit">
             <div className="fd-audit-head mono"><span>Candidate assessment</span><span>Ref FS-2026</span></div>
@@ -43,7 +45,7 @@ function Audit({ ready, onOpenCv }) {
             <p className="fd-focus">{FOCUS}</p>
             <dl className="fd-rows">{AUDIT.map(([k, v]) => <div key={k}><dt className="mono">{k}</dt><dd>{v}</dd></div>)}</dl>
             <div className="fd-class"><span className="mono">Classification</span><b>{CLASSIFICATION[0]}</b><i>·</i><b className="ok">{CLASSIFICATION[1]}</b></div>
-            <div className="fd-stamp mono" aria-hidden="true">Preliminary<br /><small>verify it yourself →</small></div>
+            {verified ? <div className="fd-stamp is-ok mono">Verified<br /><small>by you ✓</small></div> : <div className="fd-stamp mono" aria-hidden="true">Preliminary<br /><small>verify it yourself →</small></div>}
             <div className="fd-actions">
                 <button className="fd-btn is-main" onClick={onOpenCv}>Résumé</button>
                 <a className="fd-btn" href={`mailto:${EMAIL}`}>Email me</a>

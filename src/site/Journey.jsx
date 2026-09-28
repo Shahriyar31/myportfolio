@@ -86,7 +86,7 @@ function BoardingPass() {
 export default function Journey() {
     return (
         <section id="story" aria-label="My story and education">
-            <Opener station="photos" n="04" kicker="Education" title="From one island to another"
+            <Opener station="photos" n="03" kicker="Education" title="From one island to another"
                 sub="That small island in the sky is where I started — West Bengal. Scroll to visit my college, then fly with me to Hamburg." />
 
             <Stop id="education" station="home-college" side="left">
