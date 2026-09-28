@@ -71,7 +71,7 @@ export function Preloader({ onReveal }) {
 }
 
 /* ── Top bar ── */
-export function TopBar({ onOpenCv, onMenu, menu }) {
+export function TopBar({ onOpenCv, onQuick, onMenu, menu }) {
     const { dark, setDark } = useTheme();
     const [hidden, setHidden] = useState(false);
     const [solid, setSolid] = useState(false);
@@ -91,6 +91,7 @@ export function TopBar({ onOpenCv, onMenu, menu }) {
                 <button className={`toggle ${dark ? "" : "is-on"}`} onClick={() => setDark(!dark)} aria-label={`Switch to ${dark ? "light" : "dark"} mode`} role="switch" aria-checked={!dark}>
                     <span className="toggle-knob"><Icon n={dark ? "moon" : "sun"} size={14} /></span>
                 </button>
+                <button className="key key-sm top-quick" onClick={onQuick}>Quick read</button>
                 <button className="key key-sm top-cv" onClick={onOpenCv}><Icon n="doc" size={16} />Résumé</button>
                 <button className="key key-sm top-menu" onClick={onMenu} aria-expanded={menu}>{menu ? "Close" : "Menu"}</button>
             </div>
@@ -127,7 +128,7 @@ export function Rail() {
 }
 
 /* ── Mobile menu ── */
-export function Menu({ open, onClose, onOpenCv }) {
+export function Menu({ open, onClose, onOpenCv, onQuick }) {
     useEffect(() => {
         document.body.classList.toggle("is-locked", open);
         if (open) window.__lenis?.stop(); else window.__lenis?.start();
@@ -141,6 +142,7 @@ export function Menu({ open, onClose, onOpenCv }) {
                     </button>
                 ))}
             </nav>
+            <button className="key" onClick={() => { onClose(); onQuick(); }}>Quick read · 60 s</button>
             <button className="key key-accent" onClick={() => { onClose(); onOpenCv(); }}><Icon n="doc" size={16} />Résumé</button>
         </div>
     );

@@ -4,6 +4,7 @@ import { Lines } from "./Motion";
 import { Icon } from "./Chrome";
 import { finePointer } from "./hooks";
 import { PROJECTS } from "../data/constants";
+import Preview from "./Previews";
 
 /* Simplified EU AI Act risk tiers — an illustration of what Argus automates, not legal advice. */
 const TIERS = ["Minimal", "Limited", "High", "Unacceptable"];
@@ -46,6 +47,18 @@ function Classifier() {
 const STATION = { 2: "p-twin", 3: "p-poultry", 4: "p-radiation", 5: "p-stock", 6: "p-books" };
 const PLACE = { 2: "The twin buildings", 3: "The barn", 4: "The radar", 5: "The ticker tower", 6: "The library" };
 
+function EarlyItem({ p }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <li className={`early-i ${open ? "is-open" : ""}`}>
+            <span className="mono">{p.badge}</span><b>{p.title}</b><small>{p.sub}</small>
+            <span className="early-t">{p.tags.slice(0, 3).join(" · ")}</span>
+            <span className="early-act"><button onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? "Hide preview" : "Try it ▸"}</button>{p.link && <a href={p.link} target="_blank" rel="noreferrer">Code →</a>}</span>
+            {open && <Preview id={p.id} />}
+        </li>
+    );
+}
+
 export default function Built() {
     // walking order: a loop around the island that ends at the library, next to the education chapter
     const main = [2].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean); // current direction
@@ -74,6 +87,7 @@ export default function Built() {
                     <p className="stack-org">{p.sub}</p>
                     <p className="pane-lede sm">{p.desc}</p>
                     <ul className="stack-tags">{p.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>
+                    <Preview id={p.id} />
                     {p.link && <a className="key" href={p.link} target="_blank" rel="noreferrer" style={{ marginTop: 14 }}>View code<Icon n="arrow" size={16} /></a>}
                 </Stop>
             ))}
@@ -81,13 +95,7 @@ export default function Built() {
                 <div className="pane-kicker"><span className="chip mono">Earlier work</span><span className="pane-where mono">📍 The project park</span></div>
                 <h3 className="pane-title">Where I learned the basics</h3>
                 <p className="pane-lede sm">Before focusing on AI engineering I built across streaming data, computer vision and NLP. Different directions — same habit of shipping things end to end.</p>
-                <ul className="early">{earlier.map(p => (
-                    <li key={p.id} className="early-i">
-                        <span className="mono">{p.badge}</span><b>{p.title}</b><small>{p.sub}</small>
-                        <span className="early-t">{p.tags.slice(0, 3).join(" · ")}</span>
-                        {p.link && <a href={p.link} target="_blank" rel="noreferrer">Code →</a>}
-                    </li>
-                ))}</ul>
+                <ul className="early">{earlier.map(p => <EarlyItem key={p.id} p={p} />)}</ul>
                 <p className="pane-next mono">Next — where it all started ↓</p>
             </Stop>
         </section>

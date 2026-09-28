@@ -18,14 +18,18 @@ import Hello from "./site/Hello";
 import { reducedMotion } from "./site/hooks";
 import Stop from "./site/Stop";
 import { openChat, ask } from "./site/chat";
+import QuickRead from "./site/QuickRead";
 
 export default function App() {
     const [ready, setReady] = useState(false);
-    const [cvOpen, setCvOpen] = useState(false);
+    const [cvOpen, setCvOpen] = useState(false), [quick, setQuick] = useState(false);
+    const openQuick = useCallback(() => setQuick(true), []), closeQuick = useCallback(() => setQuick(false), []);
     const [menu, setMenu] = useState(false);
     const reveal = useCallback(() => setReady(true), []);
     const openCv = useCallback(() => setCvOpen(true), []);
     const closeCv = useCallback(() => setCvOpen(false), []);
+
+    useEffect(() => { window.addEventListener("quick-read", openQuick); return () => window.removeEventListener("quick-read", openQuick); }, [openQuick]);
 
     // Smooth scrolling (skipped for reduced-motion users)
     useEffect(() => {
@@ -46,9 +50,9 @@ export default function App() {
             <a href="#work" className="sr-only">Skip to content</a>
             <World />
             <Preloader onReveal={reveal} />
-            <TopBar onOpenCv={openCv} onMenu={() => setMenu(m => !m)} menu={menu} />
+            <TopBar onOpenCv={openCv} onQuick={openQuick} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
-            <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} />
+            <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} onQuick={openQuick} />
             <main>
                 <DataJourney ready={ready} onOpenCv={openCv} />
                 <BuildIt />
@@ -73,6 +77,7 @@ export default function App() {
             </main>
             <ChatDock />
             <CvModal open={cvOpen} onClose={closeCv} />
+            <QuickRead open={quick} onClose={closeQuick} onOpenCv={openCv} />
         </>
     );
 }

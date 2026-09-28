@@ -39,9 +39,14 @@ export async function attack(text) {
     if (!r) r = await offline(text);
     return r;
 }
+/** Everyone's totals (needs the Redis store on Vercel; silently absent otherwise). */
+export async function loadStats() {
+    try { const j = await (await fetch("/api/stats")).json(); if (j?.available) set({ global: j }); } catch { /* no stats */ }
+}
 /** Called when the animation has shown the outcome. */
 export function settle(r) {
     const tries = state.tries + 1, blocked = state.blocked + (r.verdict === "blocked" ? 1 : 0);
     try { localStorage.setItem("bma", JSON.stringify({ tries, blocked })); } catch { /* private mode */ }
     set({ busy: false, result: r, tries, blocked });
+    if (!r.offline) setTimeout(loadStats, 1500);
 }

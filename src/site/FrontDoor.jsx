@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Fade } from "./Motion";
 import { J } from "./journey";
-import { attack, settle, useAttack, LAYERS } from "./attack";
+import { attack, settle, useAttack, loadStats, LAYERS } from "./attack";
 import { NAME, TITLE, FOCUS, EMAIL, AUDIT, CLASSIFICATION } from "../data/profile";
 import { useProgress } from "./progress";
 
@@ -49,6 +49,7 @@ function Audit({ ready, onOpenCv }) {
             <div className="fd-actions">
                 <button className="fd-btn is-main" onClick={onOpenCv}>Résumé</button>
                 <a className="fd-btn" href={`mailto:${EMAIL}`}>Email me</a>
+                <button className="fd-btn" onClick={() => window.dispatchEvent(new Event("quick-read"))}>Quick read</button>
             </div>
         </Fade>
     );
@@ -59,6 +60,7 @@ function Console({ ready }) {
     const [draft, setDraft] = useState("");
     const [phase, setPhase] = useState(null), [seen, setSeen] = useState([]), [open, setOpen] = useState(false);
     const res = useRef(null), input = useRef(null);
+    useEffect(() => { loadStats(); }, []);
 
     const go = async text => {
         if (a.busy || !text.trim()) return;
@@ -120,6 +122,8 @@ function Console({ ready }) {
                     </div>
                 )}
                 <p className="fd-tally mono">Your attempts <b>{a.tries}</b> · blocked <b>{a.blocked}</b> · secret leaked <b className="ok">never</b></p>
+                {a.global && <p className="fd-tally mono">Everyone <b>{a.global.tries.toLocaleString()}</b> attacks · <b>{a.global.blocked.toLocaleString()}</b> blocked · leaked <b className="ok">never</b></p>}
+                {done && <p className={`fd-mode mono ${r.offline ? "is-off" : ""}`}>{r.offline ? "Offline mode · rule layer only (live AI unreachable)" : "Live AI · all four layers ran on the server"}</p>}
             </Fade>
         </div>
     );

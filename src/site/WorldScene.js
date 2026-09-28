@@ -53,6 +53,9 @@ export default class WorldScene {
         this.ray = new THREE.Raycaster();
         this.resize = this.resize.bind(this); this.tick = this.tick.bind(this);
         this.ro = new ResizeObserver(this.resize); this.ro.observe(canvas); this.resize();
+        // weak devices start light; everyone else is measured in the first seconds (see perfCheck)
+        this.frames = []; this.level = 0;
+        if (navigator.connection?.saveData || (navigator.deviceMemory && navigator.deviceMemory <= 2)) this.degrade(1);
     }
 
     /* ── Districts: coloured ground plots with a glowing edge and a signpost ── */
@@ -604,8 +607,29 @@ export default class WorldScene {
         return hit ? hit.object.userData.pick.userData : null;
     }
 
+    /** Quality steps: 1 = no bloom/shadows, pixel ratio 1; 2 = also render every other frame. */
+    degrade(level) {
+        if (level <= this.level) return;
+        this.level = level;
+        this.composer?.dispose(); this.composer = null;
+        this.renderer.shadowMap.enabled = false; this.renderer.setPixelRatio(1); this.resize();
+        document.documentElement.dataset.lite = String(level);
+    }
+    perfCheck(raw) {
+        if (this.level >= 2 || this.frames === null) return;
+        this.frames.push(raw);
+        if (this.frames.length < 90) return;
+        const f = [...this.frames].sort((a, b) => a - b), med = f[f.length >> 1];
+        this.frames = med > 1 / 28 ? [] : null; // keep measuring after a downgrade, stop when smooth
+        if (med > 1 / 20) this.degrade(Math.min(2, this.level + (this.level ? 1 : 2)));
+        else if (med > 1 / 28) this.degrade(this.level + 1);
+    }
     tick() {
-        const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+        const raw = this.clock.getDelta(), t = this.clock.elapsedTime;
+        if (this.running && raw > 0) this.perfCheck(raw);
+        // lowest quality: draw every other frame, carrying the skipped time into the next one
+        if (this.level >= 2 && (this._skip = !this._skip)) { this._acc = (this._acc || 0) + raw; return; }
+        const dt = Math.min(raw + (this._acc || 0), 0.1); this._acc = 0;
         this.mixer?.update(dt);
         this.signs?.forEach(s => { s.getWorldPosition(this._sp ||= new THREE.Vector3()); s.visible = s.userData.zone === this.zone || this._sp.distanceTo(this.camera.position) > 13; s.rotation.y = Math.atan2(this.camera.position.x - this._sp.x, this.camera.position.z - this._sp.z) - (s.parent.rotation?.y || 0); });
         this.plots?.forEach(p => { const on = p.zone === this.zone; p.ring.material.emissiveIntensity += ((on ? 2.2 + Math.sin(t * 3) * 0.6 : 0.45) - p.ring.material.emissiveIntensity) * 0.1; });

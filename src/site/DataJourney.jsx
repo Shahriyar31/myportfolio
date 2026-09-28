@@ -49,6 +49,7 @@ const REC = [
     [["source", '"turbine_07"'], ["layer", '"gold"'], ["pii", '"masked"', 1], ["risk_tier", '"limited"', 1], ["injection", '"blocked"', 1], ["audit", '"sha256:9f3c…"', 1]],
     [["question", '"Is turbine 07 healthy?"', 1], ["answer", '"Yes — bearing temp normal"', 1], ["confidence", "0.98", 1], ["sources", "3 cited", 1], ["human", '"not needed"', 1]],
 ];
+const DO = [null, ["Do it yourself at 06:00", "incident-build"], ["Do it yourself at 06:00", "incident-build"], ["Do it yourself at 07:00", "incident-legal"], ["Try to break it", "home"]];
 const STATE = ["UNTRUSTED", "RAW", "REFINED", "GOVERNED", "ANSWERED"];
 
 export default function DataJourney({ ready, onOpenCv }) {
@@ -94,10 +95,9 @@ export default function DataJourney({ ready, onOpenCv }) {
                     <article key={c.n} ref={el => { panels.current[i] = el; }} className={`dj-pane ${STAGES[i].side > 0 ? "is-left" : "is-right"} ${shown === i ? "is-on" : ""}`} aria-hidden={shown !== i}>
                         <div className="dj-kick mono"><span className="dj-n">{c.n}</span><span>{c.verb}</span><span className="dj-rolech">{c.role}</span></div>
                         <h2 className="dj-title">{c.title}</h2>
-                        <p className="dj-lede">{c.lede}</p>
                         <ul className="dj-tools">{c.tools.map(([l, t]) => <li key={t}><Logo n={l} size={15} /><span>{t}</span></li>)}</ul>
-                        <div className="dj-proof"><span className="mono">Proof</span>{c.proof.map(([t, id]) => <button key={t} onClick={() => scrollToId(id)} tabIndex={shown === i ? 0 : -1}>{t}</button>)}</div>
-                        {c.cta && <button className="dj-cta" onClick={c.cta[1]} tabIndex={shown === i ? 0 : -1}>{c.cta[0]} <i aria-hidden="true">→</i></button>}
+                        {/* the tour only names the skill; the incident is where you actually do it */}
+                        <button className="dj-do mono" onClick={() => scrollToId(DO[i][1])} tabIndex={shown === i ? 0 : -1}>{DO[i][0]} →</button>
                     </article>
                 ))}
 
