@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { STATIONS } from "./stations";
+import { STATIONS, CHAPTERS } from "./stations";
 import { setWarmth } from "./theme";
 import { scrollToId, reducedMotion } from "./hooks";
 
@@ -9,13 +9,38 @@ import { scrollToId, reducedMotion } from "./hooks";
  * glides to that station. data-flight on an element maps its scroll progress
  * to the plane's flight.
  */
-const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "education", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built" };
+const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "tuhh", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built" };
+
+// top-down points of interest for the mini-map (x, z)
+const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [-16, -6], [-79.5, -61], [-75, -58]];
+
+function Hud({ hudRef, meRef, placeRef, chapRef, barRef }) {
+    return (
+        <div ref={hudRef} className="hud neu" aria-hidden="true">
+            <div className="hud-map neu-in-sm">
+                <svg viewBox="-24 -22 48 42">
+                    <circle className="isl" cx="0" cy="0" r="19" />
+                    <circle className="isl" cx="-78" cy="-60" r="9" />
+                    <path className="route" d="M-71.5 -55 Q-50 -10 -8.5 4.5" />
+                    {POI.map(([x, z]) => <circle key={x + "," + z} className="poi" cx={x} cy={z} r="1.8" />)}
+                    <g ref={meRef}><circle className="me-ring" r="2.4" /><circle className="me" r="2.2" /></g>
+                </svg>
+            </div>
+            <div className="hud-txt">
+                <span ref={chapRef} className="mono" />
+                <b ref={placeRef} />
+                <span ref={barRef} className="hud-bar">{CHAPTERS.map(([id]) => <i key={id} />)}</span>
+            </div>
+        </div>
+    );
+}
 
 export default function World() {
     const ref = useRef(null);
     const [tip, setTip] = useState(null);
     const tipRef = useRef(null);
     const tipVal = useRef(null);
+    const hudRef = useRef(null), meRef = useRef(null), placeRef = useRef(null), chapRef = useRef(null), barRef = useRef(null);
 
     useEffect(() => {
         let scene, alive = true, raf = 0;
@@ -35,6 +60,8 @@ export default function World() {
                 A = keys[i]; B = keys[i + 1];
                 t = Math.min(1, Math.max(0, ((mid - c[i]) / (c[i + 1] - c[i]) - 0.25) / 0.5));
                 t = t * t * (3 - 2 * t);
+                // the hero is a tall sticky runway: dive in step with its scroll progress
+                if (A.dataset.station === "hero") { const r = A.getBoundingClientRect(); const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight || 1))); t = p * p * (3 - 2 * p); }
             }
             // the flight stop follows the plane: camera trails behind and beside it
             const fl = document.querySelector("[data-flight]");
@@ -62,14 +89,31 @@ export default function World() {
                 const k = dist * 0.2; pos = [pos[0], pos[1] - k, pos[2]]; look = [look[0], look[1] - k, look[2]];
             }
             scene.setView(pos, look);
+            // the hero sways slowly around the valley, and stops as you dive in
+            scene.setOrbit(A.dataset.station === "hero" ? 1 - t : 0);
+            const cur = t < 0.5 ? A : B;
             scene.setFocus((t < 0.5 ? a : b).focus || null);
+            // tour HUD: which chapter, which place, where on the map
+            const ch = CHAPTERS.findIndex(([id]) => id === cur.closest("section[id]")?.id);
+            hudRef.current?.classList.toggle("is-on", ch >= 0);
+            if (ch >= 0) {
+                const name = (t < 0.5 ? a : b).name || "";
+                chapRef.current.textContent = `${String(ch + 1).padStart(2, "0")} / ${String(CHAPTERS.length).padStart(2, "0")} · ${CHAPTERS[ch][1]}`;
+                if (placeRef.current.textContent !== name) placeRef.current.textContent = name;
+                [...barRef.current.children].forEach((b, k) => { b.className = k < ch ? "is-done" : k === ch ? "is-cur" : ""; });
+                meRef.current.setAttribute("transform", `translate(${look[0].toFixed(1)} ${look[2].toFixed(1)})`);
+                // zoom the map to the island you are on; show both while travelling between them
+                const far = look[0] < -24, vb = far ? "-92 -74 122 100" : "-24 -22 48 42";
+                const svg = meRef.current.ownerSVGElement;
+                if (svg.getAttribute("viewBox") !== vb) { svg.setAttribute("viewBox", vb); svg.classList.toggle("is-far", far); }
+            }
             setWarmth((a.warm || 0) + ((b.warm || 0) - (a.warm || 0)) * t);
         };
         const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
         const move = e => {
             scene?.setPointer(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
             // hover names only where the world is the main thing on screen (hero)
-            if (!scene || scrollY > innerHeight * 0.6 || e.target.closest("main .hero-copy, button, a, input, .top, .rail, .dock, .dock-wrap")) { if (tipVal.current) { tipVal.current = null; setTip(null); } return; }
+            if (!scene || scrollY > innerHeight * 0.6 || e.target.closest(".hx-name, .hx-sub, button, a, input, .top, .rail, .dock, .dock-wrap")) { if (tipVal.current) { tipVal.current = null; setTip(null); } return; }
             const hit = scene.hover(e.clientX, e.clientY);
             const nt = hit ? { label: hit.label, id: hit.id } : null;
             if (nt?.id !== tipVal.current?.id) { tipVal.current = nt; setTip(nt); }
@@ -83,8 +127,7 @@ export default function World() {
             try { scene = new WorldScene(ref.current, { mobile }); } catch { return; }
             if (import.meta.env.DEV) window.__world = scene;
             update();
-            const s = pose(document.querySelector("[data-station]")?.dataset.station);
-            scene.jumpView(s.p, s.l);
+            scene.jumpView(scene.goalPos.toArray(), scene.goalLook.toArray());
             if (reducedMotion()) { scene.tick(); window.addEventListener("scroll", () => requestAnimationFrame(() => { update(); scene.jumpView([...scene.goalPos.toArray()], [...scene.goalLook.toArray()]); scene.tick(); }), { passive: true }); }
             else scene.start();
             ref.current.classList.add("is-ready");
@@ -104,6 +147,7 @@ export default function World() {
     return (
         <>
             <canvas ref={ref} className="world" aria-hidden="true" />
+            <Hud hudRef={hudRef} meRef={meRef} placeRef={placeRef} chapRef={chapRef} barRef={barRef} />
             <div ref={tipRef} className={`world-tip neu ${tip ? "is-on" : ""}`} aria-hidden="true">{tip?.label}{tip && SECTION_FOR[tip.id] && <span className="mono">click to visit</span>}</div>
         </>
     );

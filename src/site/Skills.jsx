@@ -103,7 +103,7 @@ export default function Skills() {
 
     return (
         <section id="skills" className="act wrap" data-station="sky">
-            <SectionHead n="04" kicker="Skills" title="My toolkit" sub="Drag the sphere to spin it. Hover a logo to see where I used it — or type a letter to find a tool." />
+            <SectionHead n="05" kicker="Skills" title="My toolkit" sub="Drag the sphere to spin it. Hover a logo to see where I used it — or type a letter to find a tool." />
             <div className="sph">
                 <div className="sph-side">
                     <div className="sph-tabs" role="tablist">

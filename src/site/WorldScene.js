@@ -341,6 +341,7 @@ export default class WorldScene {
     setFlight(t) { this.flight = t; }
     flightPoint(t) { return this.flightCurve.getPoint(t).toArray(); }
     setPointer(x, y) { this.pointer.set(x, y); }
+    setOrbit(w) { this.orbitW = w; }
 
     resize() {
         const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
@@ -367,6 +368,10 @@ export default class WorldScene {
         this.smooth.lerp(this.pointer, 0.05);
         const off = V(this.smooth.x * 1.6, this.smooth.y * 0.9, 0);
         this.camera.position.copy(this.camPos).add(off);
+        if (this.orbitW > 0.001) { // slow sway around the look point (hero only); fades out with the weight
+            const a = Math.sin(t * 0.13) * 0.42 * this.orbitW;
+            this.camera.position.sub(this.camLook).applyAxisAngle(V(0, 1, 0), a).add(this.camLook);
+        }
         this.camera.lookAt(this.camLook);
 
         this.spin.forEach(s => { s.o.rotation[s.axis] += s.speed * dt; });

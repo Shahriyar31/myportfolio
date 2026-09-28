@@ -86,8 +86,8 @@ function BoardingPass() {
 export default function Journey() {
     return (
         <section id="story" aria-label="My story and education">
-            <Opener station="photos" n="06" kicker="Story & education" title="From one island to another"
-                sub="Far off in the sky is where I started — West Bengal. Keep scrolling and fly with me to Hamburg." />
+            <Opener station="photos" n="04" kicker="Education" title="From one island to another"
+                sub="That small island in the sky is where I started — West Bengal. Scroll to visit my college, then fly with me to Hamburg." />
 
             <Stop id="education" station="home-college" side="left">
                 <div className="pane-kicker"><span className="chip mono">Education · 01</span><span className="mono">2018 — 2022</span></div>
@@ -113,26 +113,22 @@ export default function Journey() {
                 <BoardingPass />
             </Stop>
 
-            <Stop station="tuhh" side="right">
-                <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Education · 02 · in progress</span><span className="mono">2023 — now</span></div>
-                <h3 className="pane-title">M.Sc. Data Science</h3>
+            <Stop id="tuhh" station="tuhh" side="right">
+                <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Education · 02 · now</span><span className="mono">2023 — now</span><span className="pane-where mono">📍 TUHH campus</span></div>
+                <h3 className="pane-title">M.Sc. Data Science — where I am today</h3>
                 <p className="stack-org">Hamburg University of Technology (TUHH)</p>
-                <Bars items={[["Machine learning", "tensorflow", 90], ["Big data", "spark", 85], ["Statistics", "eval", 80], ["MLOps", "mlflow", 85], ["Digital twins (research)", "plotly", 75], ["Data engineering", "databricks", 90]]} />
-            </Stop>
-
-            <Stop station="nordex" side="left">
-                <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />2025 — now</span><span className="mono">Nordex Group, Hamburg</span></div>
-                <h3 className="pane-title">Three roles unlocked</h3>
-                <Badges items={[["🤖", "AI & Data Engineering", "built an internal AI assistant"], ["🧭", "Project Manager", "led an AI project to its deadline"], ["⚖️", "AI Governance & Architecture", "designed the governance lifecycle"]]} />
-                <button className="proof" onClick={() => scrollToId("work")} style={{ marginTop: 12 }}>See the details in Experience ↗</button>
-            </Stop>
-
-            <Stop station="now" side="right">
-                <div className="pane-kicker"><span className="chip mono">Now</span><span className="mono">Building on the side</span></div>
-                <h3 className="pane-title">Argus AI is live</h3>
-                <dl className="stats3">{[["41", "live compliance rules"], ["665+", "regulation chunks in RAG"], ["0.75", "RAGAS answer relevancy"]].map(([v, k]) => <div key={k} className="neu-in-sm"><dd>{v}</dd><dt className="mono">{k}</dt></div>)}</dl>
-                <p className="pane-lede sm">Next level: <b>your team?</b></p>
-                <button className="key key-accent" onClick={() => scrollToId("hello")} style={{ marginTop: 6 }}>Let's talk</button>
+                <div className="pane-stack">
+                    <Bars items={[["Machine learning", "tensorflow", 90], ["Big data", "spark", 85], ["MLOps", "mlflow", 85], ["Data engineering", "databricks", 90]]} />
+                    <div className="research neu-in-sm">
+                        <span className="mono">Research · Mar 2025 — now</span>
+                        <b>Digital Twin Dashboard & MLOps</b>
+                        <p>A live monitoring dashboard for a digital-twin simulation, with anomaly detection and forecasting. Tested and deployed automatically with GitHub Actions and Docker.</p>
+                    </div>
+                </div>
+                <div className="pane-end">
+                    <p className="pane-lede sm">Studying by day, building AI at Nordex, shipping Argus AI on the side. Next level: <b>your team?</b></p>
+                    <button className="key key-accent" onClick={() => scrollToId("hello")}>Let's talk</button>
+                </div>
             </Stop>
         </section>
     );

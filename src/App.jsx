@@ -50,9 +50,9 @@ export default function App() {
                 <Bring />
                 <AttackGame />
                 <Work />
-                <Skills />
                 <Built />
                 <Journey />
+                <Skills />
                 <AgentSection />
                 <Lens />
                 <Hello onOpenCv={openCv} />

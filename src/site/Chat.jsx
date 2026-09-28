@@ -88,7 +88,7 @@ export function AgentSection() {
     }, []);
     return (
         <section id="agent" className="act wrap" ref={ref} data-station="chat">
-            <SectionHead n="07" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
+            <SectionHead n="06" kicker="AI assistant" title="Ask my AI — and see how it thinks" sub="Every answer is checked against a policy and written to a tamper-proof log — the same way I build AI for companies." />
             <div className="agent-grid">
                 <div className="device neu-lg">
                     <div className="device-head">

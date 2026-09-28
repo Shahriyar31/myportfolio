@@ -22,7 +22,7 @@ export default function Hello({ onOpenCv }) {
     };
     return (
         <section id="hello" className="act hello wrap" data-station="finale">
-            <SectionHead n="09" kicker="Contact" title="Let's work together" sub="Open to roles in AI engineering, AI & data governance, AI security and agentic development." />
+            <SectionHead n="08" kicker="Contact" title="Let's work together" sub="Open to roles in AI engineering, AI & data governance, AI security and agentic development." />
 
             <div className="hello-grid">
                 <button className={`big-btn ${pressed ? "is-pressed" : ""}`} onClick={press} aria-label={`Email ${EMAIL}`}>
