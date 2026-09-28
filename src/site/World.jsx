@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { STATIONS, CHAPTERS, ZONES, zoneOf } from "./stations";
 import { setWarmth } from "./theme";
 import { scrollToId, reducedMotion } from "./hooks";
+import { J, pose as journeyPose, frame as journeyFrame, packetU } from "./journey";
 
 /*
  * Fixed 3D world behind the page. Every element with data-station="id" is a
@@ -9,7 +10,7 @@ import { scrollToId, reducedMotion } from "./hooks";
  * glides to that station. data-flight on an element maps its scroll progress
  * to the plane's flight.
  */
-const SECTION_FOR = { lake: "bring", tower: "bring", gate: "game", sources: "bring", hq: "work", uni: "tuhh", town: "bring", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
+const SECTION_FOR = { lake: "home", tower: "home", gate: "game", sources: "home", hq: "work", uni: "tuhh", town: "home", college: "education", "p-argus": "built", "p-poultry": "built", "p-radiation": "built", "p-stock": "built", "p-twin": "built", "p-books": "built", desk: "agent" };
 
 // top-down points of interest for the mini-map (x, z)
 const POI = [[-4, 1], [3, -1], [9.5, -4], [-3, 10], [5, 11], [13.5, -11], [16, 0], [11.5, 12.5], [-9.5, 13.5], [-15, 10], [1.5, 14.8], [-12.5, 4.5], [-79.5, -61], [-75, -58]];
@@ -56,7 +57,14 @@ export default function World() {
             const keys = [...document.querySelectorAll("[data-station]")];
             if (!keys.length) return;
             const mid = innerHeight / 2;
-            const c = keys.map(el => { const r = el.getBoundingClientRect(); return r.top + Math.min(r.height, innerHeight) / 2; });
+            // the journey runway counts as "centred" until its end scrolls past the middle
+            const c = keys.map(el => { const r = el.getBoundingClientRect(); return el.dataset.station === "route" ? r.bottom - innerHeight / 2 : r.top + Math.min(r.height, innerHeight) / 2; });
+            const routeEl = keys.find(el => el.dataset.station === "route");
+            let jp = null, jf = null;
+            if (routeEl) {
+                const r = routeEl.getBoundingClientRect(), p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight || 1)));
+                J.p = p; jf = journeyFrame(p); jp = journeyPose(p, scene.routePoint?.(packetU(p)));
+            }
             let i = c.findIndex(v => v > mid) - 1;
             let A, B, t = 0;
             if (i < 0) { A = B = keys[0]; } else if (i >= keys.length - 1) { A = B = keys[keys.length - 1]; } else {
@@ -71,6 +79,7 @@ export default function World() {
             let flightT = 0;
             if (fl) { const r = fl.getBoundingClientRect(); flightT = (mid - r.top) / r.height; scene.setFlight(flightT); }
             const poseOf = el => {
+                if (el.dataset.station === "route") return { name: "", ...jp };
                 const st = pose(el.dataset.station);
                 if (!st.follow) return st;
                 const pt = scene.flightPoint(Math.min(1, Math.max(0, flightT)));
@@ -81,19 +90,22 @@ export default function World() {
             let look = mix(a.l, b.l, t);
             let pos = look.map((v, k) => v + (mix(a.p, b.p, t)[k] - v) * far);
             // keep the subject clear of the text pane: pane on the left → subject on the right
-            const side = el => (el.classList.contains("is-left") ? 1 : el.classList.contains("is-right") ? -1 : 0);
+            const side = el => (el.dataset.station === "route" ? jp.side : el.classList.contains("is-left") ? 1 : el.classList.contains("is-right") ? -1 : 0);
             const sh = side(A) + (side(B) - side(A)) * t;
             const dx = look[0] - pos[0], dy = look[1] - pos[1], dz = look[2] - pos[2], dist = Math.hypot(dx, dy, dz);
             if (!narrow && sh) {
                 const rl = Math.hypot(dx, dz) || 1, rx = -dz / rl, rz = dx / rl; // camera's right vector (horizontal)
                 const k = -sh * dist * 0.24;
                 pos = [pos[0] + rx * k, pos[1], pos[2] + rz * k]; look = [look[0] + rx * k, look[1], look[2] + rz * k];
-            } else if (narrow && (A.classList.contains("stop") || B.classList.contains("stop"))) {
+            } else if (narrow && (A.classList.contains("stop") || B.classList.contains("stop") || (A === routeEl && t < 0.5))) {
                 const k = dist * 0.2; pos = [pos[0], pos[1] - k, pos[2]]; look = [look[0], look[1] - k, look[2]];
             }
             scene.setView(pos, look);
             // the hero sways slowly around the valley, and stops as you dive in
-            scene.setOrbit(A.dataset.station === "hero" ? 1 - t : 0);
+            scene.setOrbit(A.dataset.station === "hero" ? 1 - t : A === routeEl ? jp.orbit * (1 - t) : 0);
+            // the visitor's packet: rides the route while the journey is on screen
+            J.active = A === routeEl && t < 0.6;
+            if (jf) scene.setPacket(packetU(J.p), jf.color, jf.i === 3 && jf.dwell > 0 ? jf.dwell : -1, J.active ? 1 : 0);
             const cur = t < 0.5 ? A : B;
             scene.setFocus((t < 0.5 ? a : b).focus || null);
             // what the pin points at: the subject of the card on screen
@@ -133,7 +145,7 @@ export default function World() {
         const move = e => {
             scene?.setPointer(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
             // hover names only where the world is the main thing on screen (hero)
-            if (!scene || scrollY > innerHeight * 0.6 || e.target.closest(".hx-name, .hx-sub, button, a, input, .top, .rail, .dock, .dock-wrap")) { if (tipVal.current) { tipVal.current = null; setTip(null); } return; }
+            if (!scene || scrollY > innerHeight * 0.6 || e.target.closest(".dj-name, .dj-claim, .dj-pane, .dj-rec, button, a, input, .top, .rail, .dock, .dock-wrap")) { if (tipVal.current) { tipVal.current = null; setTip(null); } return; }
             const hit = scene.hover(e.clientX, e.clientY);
             const nt = hit ? { label: hit.label, id: hit.id } : null;
             if (nt?.id !== tipVal.current?.id) { tipVal.current = nt; setTip(nt); }
@@ -145,6 +157,7 @@ export default function World() {
         import("./WorldScene").then(({ default: WorldScene }) => {
             if (!alive) return;
             try { scene = new WorldScene(ref.current, { mobile }); } catch { return; }
+            J.scene = scene;
             // labels follow the camera every frame
             scene.afterTick = () => {
                 const v = view.current, pe = pinRef.current;
@@ -178,7 +191,7 @@ export default function World() {
         document.addEventListener("visibilitychange", vis);
         window.addEventListener("click", click);
         return () => {
-            alive = false; cancelAnimationFrame(raf); scene?.dispose(); setWarmth(0);
+            alive = false; cancelAnimationFrame(raf); scene?.dispose(); J.scene = null; setWarmth(0);
             window.removeEventListener("scroll", on); window.removeEventListener("resize", on);
             window.removeEventListener("pointermove", move); window.removeEventListener("click", click); document.removeEventListener("visibilitychange", vis);
         };

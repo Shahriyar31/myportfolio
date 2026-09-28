@@ -3,11 +3,10 @@ import Lenis from "lenis";
 import "./styles/global.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock, AgentSection } from "./site/Chat";
-import Hero from "./site/Hero";
+import DataJourney from "./site/DataJourney";
 import World from "./site/World";
 import AttackGame from "./site/AttackGame";
 import Journey from "./site/Journey";
-import Bring from "./site/Bring";
 import Work from "./site/Work";
 import Skills from "./site/Skills";
 import Built from "./site/Built";
@@ -41,15 +40,14 @@ export default function App() {
 
     return (
         <>
-            <a href="#bring" className="sr-only">Skip to content</a>
+            <a href="#game" className="sr-only">Skip to content</a>
             <World />
             <Preloader onReveal={reveal} />
             <TopBar onOpenCv={openCv} onMenu={() => setMenu(m => !m)} menu={menu} />
             <Rail />
             <Menu open={menu} onClose={() => setMenu(false)} onOpenCv={openCv} />
             <main>
-                <Hero ready={ready} onOpenCv={openCv} />
-                <Bring />
+                <DataJourney ready={ready} />
                 <AttackGame />
                 <Work />
                 <Built />

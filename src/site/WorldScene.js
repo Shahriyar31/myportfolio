@@ -6,6 +6,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { getPalette, onPalette, getMode } from "./theme";
 import { ZONES } from "./stations";
+import { ROUTE, STAGES, STOP_U } from "./journey";
 
 /*
  * The world behind the whole site.
@@ -40,7 +41,7 @@ export default class WorldScene {
 
         this.M = this.materials();
         this.sky(); this.lights();
-        this.mainIsland(); this.homeIsland(); this.districts(); this.streams(); this.plane(); this.clouds();
+        this.mainIsland(); this.homeIsland(); this.districts(); this.streams(); this.journeyPacket(); this.plane(); this.clouds();
         this.loadModels();
         if (!mobile) { // film look: soft bloom on lit windows, data streams and the AI core
             this.composer = new EffectComposer(this.renderer);
@@ -424,6 +425,52 @@ export default class WorldScene {
         this.zaps = [];
     }
 
+    /* ── the visitor's own data packet, riding one route through the valley (see journey.js) ── */
+    journeyPacket() {
+        const route = this.route = new THREE.CatmullRomCurve3(ROUTE.map(v => V(...v)), false, "centripetal");
+        const pts = route.getSpacedPoints(600);
+        STOP_U.length = 0;
+        STAGES.forEach(s => { const t = V(...s.at); let k = 0, best = 1e9; pts.forEach((q, j) => { const d = q.distanceToSquared(t); if (d < best) { best = d; k = j; } }); STOP_U.push(k / 600); });
+        const g = this.pk = new THREE.Group(); this.scene.add(g);
+        const add = m => { m.material.transparent = true; m.material.depthWrite = false; m.material.blending = THREE.AdditiveBlending; g.add(m); return m; };
+        this.pkCore = add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 2), new THREE.MeshBasicMaterial({ color: 0xffffff })));
+        this.pkShell = add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.46, 1), new THREE.MeshBasicMaterial({ color: 0xff8a4c, wireframe: true, opacity: 0.8 })));
+        this.pkGlow = add(new THREE.Mesh(new THREE.SphereGeometry(0.7, 20, 14), new THREE.MeshBasicMaterial({ color: 0xff8a4c, opacity: 0.16 })));
+        this.pkScan = add(new THREE.Mesh(new THREE.TorusGeometry(1, 0.035, 8, 48), new THREE.MeshBasicMaterial({ color: 0x3ee08f, opacity: 0 })));
+        // trail: a fading string of beads behind the packet
+        const N = this.pkN = 28;
+        this.pkTrail = new THREE.InstancedMesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff8a4c, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }), N);
+        this.pkTrail.frustumCulled = false; this.scene.add(this.pkTrail);
+        this.pkHist = Array.from({ length: N }, () => V(...ROUTE[0]));
+        this.pkU = 0; this.pkGoalU = 0; this.pkColor = new THREE.Color(0xff8a4c); this.pkGoalColor = this.pkColor.clone(); this.pkScanK = -1; this.pkOn = 1; this.pkGoalOn = 1;
+        this.packetPos = V(...ROUTE[0]);
+    }
+    routePoint(u) { return this.route.getPointAt(Math.min(1, Math.max(0, u))).toArray(); }
+    setPacket(u, color, scan = -1, on = 1) { this.pkGoalU = u; this.pkGoalColor.set(color); this.pkScanK = scan; this.pkGoalOn = on; }
+    packetTick(dt, t) {
+        if (!this.pk) return;
+        this.pkU += (this.pkGoalU - this.pkU) * (1 - Math.pow(0.00002, dt));
+        this.pkOn += (this.pkGoalOn - this.pkOn) * (1 - Math.pow(0.01, dt));
+        this.pkColor.lerp(this.pkGoalColor, 1 - Math.pow(0.02, dt));
+        const pos = this.route.getPointAt(Math.min(1, Math.max(0, this.pkU)));
+        pos.y += Math.sin(t * 2.2) * 0.08;
+        this.packetPos.copy(pos); this.pk.position.copy(pos);
+        const s = this.pkOn; this.pk.scale.setScalar(Math.max(0.001, s) * (1 + Math.sin(t * 3.1) * 0.06));
+        this.pkShell.rotation.x += dt * 0.9; this.pkShell.rotation.y += dt * 1.3;
+        [this.pkShell, this.pkGlow].forEach(m => m.material.color.copy(this.pkColor)); this.pkTrail.material.color.copy(this.pkColor);
+        this.pkShell.material.opacity = 0.8 * s; this.pkGlow.material.opacity = 0.16 * s; this.pkTrail.material.opacity = 0.55 * s;
+        // gate scan: a ring sweeps down over the packet while it is checked
+        const k = this.pkScanK;
+        this.pkScan.material.opacity = k >= 0 ? 0.9 * Math.sin(Math.PI * ((k * 2.2) % 1)) : 0;
+        this.pkScan.position.y = k >= 0 ? 0.9 - ((k * 2.2) % 1) * 1.8 : 0; this.pkScan.rotation.x = Math.PI / 2;
+        // trail follows with lag
+        this.pkHist[0].copy(pos);
+        for (let i = 1; i < this.pkN; i++) this.pkHist[i].lerp(this.pkHist[i - 1], 1 - Math.pow(0.00001, dt));
+        const d = this.dummy;
+        this.pkHist.forEach((h, i) => { d.position.copy(h); d.scale.setScalar(s * (1 - i / this.pkN) * 1.2); d.updateMatrix(); this.pkTrail.setMatrixAt(i, d.matrix); });
+        this.pkTrail.instanceMatrix.needsUpdate = true;
+    }
+
     plane() {
         const p = this.planeG = new THREE.Group(); this.scene.add(p); const M = this.M; p.scale.setScalar(1.25);
         const body = this.mesh(new THREE.CapsuleGeometry(0.35, 2.2, 6, 14), M.white, 0, 0, 0, p); body.rotation.z = Math.PI / 2;
@@ -554,6 +601,7 @@ export default class WorldScene {
         this.planeG.rotateY(-Math.PI / 2);
         this.trail.material.opacity = f > 0 && f < 1 ? 0.8 : 0.25;
 
+        this.packetTick(dt, t);
         if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera);
         this.afterTick?.();
     }
