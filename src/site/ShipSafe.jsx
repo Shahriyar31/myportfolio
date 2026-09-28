@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { goTo } from "./hooks";
+import Stop from "./Stop";
+import { scrollToId } from "./hooks";
 import { mark } from "./progress";
 
 /*
@@ -60,8 +61,9 @@ export default function ShipSafe() {
     };
 
     return (
-        <div className="demo-body">
-                <div className="inc-kick mono"><span className="inc-clock">Demo 3</span><span>Ship it safely</span><span className="inc-tag">DevSecOps · Azure</span></div>
+        <section id="incident-ship" aria-label="Incident 3: ship it safely">
+            <Stop station="ops" side="right" wide>
+                <div className="inc-kick mono"><span className="inc-clock">07:30</span><span>Incident 3 / 3 · Ship it safely</span><span className="inc-tag">DevSecOps · Azure</span></div>
                 <h3 className="pane-title">The agent goes live at 08:00. Its release has 3 hidden problems.</h3>
                 <p className="pane-lede sm">Review the code and click any line that looks risky to fix it. Then run the pipeline, and its security gates will catch anything you missed.</p>
 
@@ -97,9 +99,10 @@ export default function ShipSafe() {
                         <b>✓ Shipped to production{shipped ? `: ${byYou.current.size} found by you, ${byPipe.current.size} caught by the pipeline` : ""}.</b>
                         <p><span className="mono">In plain words</span>I make sure AI goes live safely: no leaked passwords, no vulnerable parts, no data left open, checked automatically on every release.</p>
                         <p><span className="mono">Under the hood</span>CI/CD on Azure DevOps and GitHub Actions, secrets in Azure Key Vault, dependency and container scanning, Terraform with policy checks (Checkov), least-privilege access and reproducible Docker builds.</p>
-                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => goTo("work")}>Argus AI · Terraform on Azure Container Apps</button><button onClick={() => goTo("work")}>Digital Twin · CI/CD with GitHub Actions</button></div>
+                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => scrollToId("built")}>Argus AI · Terraform on Azure Container Apps</button><button onClick={() => scrollToId("built")}>Digital Twin · CI/CD with GitHub Actions</button></div>
                     </div>
                 )}
-        </div>
+            </Stop>
+        </section>
     );
 }

@@ -6,9 +6,8 @@ import PHOTOS from "../data/photos.json";
 
 const CATS = ["All", "Street", "Mountains", "Wildlife", "Light", "Close-up"];
 const src = (n, big) => `/photos/${n}${big ? "" : "-sm"}.webp`;
-export const photoSrc = n => src(n);
 
-export function Lightbox({ list, idx, setIdx }) {
+function Lightbox({ list, idx, setIdx }) {
     const n = list.length;
     const prev = useCallback(() => setIdx(i => (i - 1 + n) % n), [n, setIdx]);
     const next = useCallback(() => setIdx(i => (i + 1) % n), [n, setIdx]);
