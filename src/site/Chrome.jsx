@@ -27,18 +27,13 @@ export const Icon = ({ n, size = 20 }) => (
 );
 
 export const SECTIONS = [
-    ["home", "Home · break my AI", "home"],
-    ["incident-build", "06:00 · Build it", "layers"],
-    ["incident-legal", "07:00 · Keep it legal", "doc"],
-    ["incident-ship", "07:30 · Ship it safely", "shield"],
-    ["verdict", "08:00 · Verdict", "bring"],
-    ["work", "Experience", "work"],
-    ["built", "Evidence · projects", "built"],
-    ["story", "Education", "grad"],
-    ["skills", "Skills", "keys"],
-    ["agent", "Ask my AI", "agent"],
-    ["lens", "Photography", "lens"],
-    ["hello", "Contact", "hello"],
+    ["home", "Home", "home"],
+    ["challenge", "Break my AI", "shield"],
+    ["what", "What I do", "layers"],
+    ["experience", "Experience", "work"],
+    ["work", "Work", "built"],
+    ["story", "Story", "grad"],
+    ["contact", "Contact", "hello"],
 ];
 
 /* ── Preloader: the FS monogram, once per session ── */
@@ -87,6 +82,7 @@ export function TopBar({ onOpenCv, onQuick, onMenu, menu }) {
                 <span className="brand-mark neu-sm" aria-hidden="true">FS</span>
                 <span className="brand-name">{NAME}<small className="mono">{TITLE}</small></span>
             </a>
+            <nav className="top-nav" aria-label="Sections">{SECTIONS.slice(1).map(([id, label]) => <button key={id} onClick={() => scrollToId(id)}>{label}</button>)}</nav>
             <div className="top-right">
                 <button className={`toggle ${dark ? "" : "is-on"}`} onClick={() => setDark(!dark)} aria-label={`Switch to ${dark ? "light" : "dark"} mode`} role="switch" aria-checked={!dark}>
                     <span className="toggle-knob"><Icon n={dark ? "moon" : "sun"} size={14} /></span>

@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import Stop from "./Stop";
-import { J } from "./journey";
-import { scrollToId } from "./hooks";
+import { goTo } from "./hooks";
 import { mark } from "./progress";
 
 /*
@@ -46,17 +44,13 @@ export default function BuildIt() {
     const solved = res?.kind === "right" || skip;
     useEffect(() => { if (res?.kind === "right") mark("build", "solved", { score: `${tries} ${tries === 1 ? "try" : "tries"}` }); else if (skip) mark("build", "skipped"); }, [res, skip, tries]);
 
-    // connected sources light up the data streams from the lake to the AI tower
-    useEffect(() => { if (J.scene) J.scene.ragGlow = on.filter(id => id !== "hr").length; }, [on]);
-    useEffect(() => () => { if (J.scene) J.scene.ragGlow = 0; }, []);
 
     const toggle = id => { setOn(o => (o.includes(id) ? o.filter(x => x !== id) : [...o, id])); setRes(null); };
     const ask = () => { if (busy) return; setBusy(true); setRes(null); setTimeout(() => { setRes(answer(on, filter)); setBusy(false); setTries(t => t + 1); }, 900); };
 
     return (
-        <section id="incident-build" aria-label="Incident 1: build it">
-            <Stop station="tower" side="left" wide>
-                <div className="inc-kick mono"><span className="inc-clock">06:00</span><span>Incident 1 / 3 · Build it</span><span className="inc-tag">RAG · Databricks · governance</span></div>
+        <div className="demo-body">
+                <div className="inc-kick mono"><span className="inc-clock">Demo 1</span><span>Build it</span><span className="inc-tag">RAG · Databricks · governance</span></div>
                 <h3 className="pane-title">The company's new AI agent knows nothing.</h3>
                 <p className="pane-lede sm">A technician asks it a question. Give it the right documents from the data lake, then ask again, and watch it stop guessing.</p>
 
@@ -103,10 +97,9 @@ export default function BuildIt() {
                         <b>✓ Incident resolved{res?.kind === "right" ? ` in ${tries} ${tries === 1 ? "try" : "tries"}` : ""}.</b>
                         <p><span className="mono">In plain words</span>I build AI assistants that answer from your own documents, only the approved ones, and show sources you can check.</p>
                         <p><span className="mono">Under the hood</span>RAG: chunking and embeddings on Databricks, vector search, catalogue metadata filters (approved / deprecated), top-k retrieval with citations, and answer quality measured with evals (RAGAS).</p>
-                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => scrollToId("built")}>Argus AI · RAG over the EU AI Act</button><button onClick={() => scrollToId("work")}>RAG prototypes at Nordex</button></div>
+                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => goTo("work")}>Argus AI · RAG over the EU AI Act</button><button onClick={() => goTo("experience")}>RAG prototypes at Nordex</button></div>
                     </div>
                 )}
-            </Stop>
-        </section>
+        </div>
     );
 }
