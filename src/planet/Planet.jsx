@@ -17,7 +17,7 @@ let sayTimer = 0;
 export function say(text, ms = 3200) { clearTimeout(sayTimer); setUI({ say: text }); sayTimer = setTimeout(() => setUI({ say: null }), ms); }
 
 /* the education story, in slots of scroll: college → getting ready → the flight → Hamburg */
-export const JOURNEY = { spans: [1, 2.3, 1.4, 1], prep: [0.75, 3.15], takeoff: 3.35, land: 4.45 };
+export const JOURNEY = { spans: [1, 2.9, 1.4, 1], prep: [0.75, 3.75], takeoff: 3.95, land: 5.05 };
 
 /* the project park: one stretch of scroll per project */
 export const PROJECT_ORDER = PLACES.projects.items.map(i => i.id);

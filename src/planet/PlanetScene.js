@@ -345,7 +345,7 @@ export default class PlanetScene {
     }
     clouds() { this.cloudG = new THREE.Group(); this.planet.add(this.cloudG); this.cloudList = [];
         for (let i = 0; i < (this.mobile ? 9 : 16); i++) { const c = new THREE.Group(); [[0, 0, 0, 0.9], [0.8, 0.1, 0, 0.65], [-0.8, 0, 0.1, 0.65], [0.2, 0.45, 0, 0.55]].forEach(([x, y, z, s]) => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 1), this.M.cloud); m.position.set(x, y, z); c.add(m); });
-            const th = rnd() * 360, d = dirAt(th, 10 + rnd() * 55); c.position.copy(d).multiplyScalar(R + 7 + rnd() * 3); c.quaternion.setFromUnitVectors(UP, d); c.scale.setScalar(0.8 + rnd() * 0.8); this.cloudG.add(c); this.cloudList.push(c); } }
+            const th = rnd() * 360, d = dirAt(th, 10 + rnd() * 55); c.position.copy(d).multiplyScalar(R + 7 + rnd() * 3); c.quaternion.setFromUnitVectors(UP, d); c.scale.setScalar(0.8 + rnd() * 0.8); c.userData.s0 = c.scale.x; c.userData.k = 1; this.cloudG.add(c); this.cloudList.push(c); } }
 
     /* ── skill orbs (collectibles) ── */
     makeOrbs() {
@@ -594,6 +594,8 @@ export default class PlanetScene {
         this.floors.forEach((f, i) => { const on = this.floorOn !== undefined && i <= this.floorOn; f.material.emissiveIntensity += ((on ? 1.5 + Math.sin(t * 3 + i) * 0.2 : 0.1) - f.material.emissiveIntensity) * 0.08; });
         this.orbs.forEach((o, i) => { if (!o.g.visible) return; o.core.rotation.y = t * 1.5 + i; o.core.position.y = Math.sin(t * 2 + i) * 0.15; o.halo.scale.setScalar(1 + Math.sin(t * 3 + i) * 0.12); });
         this.cloudG.rotation.y = t * 0.01;
+        // a cloud that drifts close to the camera would fill the screen as a big blurry blob: shrink it away
+        if (this.cloudList) for (const c of this.cloudList) { const d = c.getWorldPosition(this._cw ||= V(0, 0, 0)).distanceTo(this.camera.position), frac = (c.userData.s0 * 1.9) / (2 * d * Math.tan((this.camera.fov * Math.PI) / 360)), g = Math.min(1, Math.max(0, (0.24 - frac) / 0.08)), u = c.userData; u.k += (g * g * (3 - 2 * g) - u.k) * 0.08; c.scale.setScalar(u.s0 * Math.max(0.001, u.k)); c.visible = u.k > 0.01; }
         const st = this.skyState; this.rain.material.opacity = st.rain * 0.8; if (st.rain > 0.01) { const a = this.rain.geometry.attributes.position.array; for (let i = 1; i < a.length; i += 3) { a[i] -= dt * 9; if (a[i] < 0) a[i] += 8; } this.rain.geometry.attributes.position.needsUpdate = true; }
         this.fireflies.userData.U.uOp.value = st.fire; (this.lamps || []).forEach(l => { l.material.emissiveIntensity = 0.2 + st.lamp * 1.6; });
         // neural vision

@@ -170,20 +170,47 @@ export function What() {
     useEffect(() => { const mq = matchMedia(COMPACT), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
     // one card per stretch of scroll: it pops out of the tower's core and stays put
     useSlots(sec, q => { const k = q < -0.7 ? 0 : Math.min(3, Math.floor(q + 1.5)); if (k !== cur.current) { cur.current = k; setN(k); } });
+    // a card is born: a stream of light leaves the tower's core, draws the card's outline, then the card materialises (a hologram scan)
+    const cv = useRef(null), fx = useRef({ burst: [], pk: [], hover: -1, last: [] });
     useEffect(() => {
         if (n <= 0) return; World.scene?.setWhat(n - 1);
-        const el = sats.current[n - 1], core = World.scene?.screenOf("core");
-        if (el && core && !small && !reducedMotion()) { const r = el.getBoundingClientRect(); el.animate([{ transform: `translate(${core.x - r.left - r.width / 2}px, ${core.y - r.top - r.height / 2}px) scale(.08)`, opacity: 0, filter: "blur(6px) brightness(1.8)" }, { opacity: 1, offset: 0.4 }, { transform: "none", opacity: 1, filter: "none" }], { duration: 1000, easing: "cubic-bezier(.2,.9,.25,1.1)" }); }
-        const t = setTimeout(() => World.scene?.setWhat(-1), 1600); return () => clearTimeout(t);
+        const el = sats.current[n - 1], core = World.scene?.screenOf("core"), st = stage.current;
+        if (el && core && st && !small && !reducedMotion()) {
+            const r = el.getBoundingClientRect(), top = st.getBoundingClientRect().top, now = performance.now(), cols = ["#88c0d0", "#b48ead", "#a3be8c", "#eceff4"];
+            for (let k = 0; k < 170; k++) {
+                const edge = k % 10 < 7, u = Math.random(), side = Math.floor(Math.random() * 4);
+                const [x1, y1] = edge ? [[r.left + u * r.width, r.top], [r.right, r.top + u * r.height], [r.left + u * r.width, r.bottom], [r.left, r.top + u * r.height]][side] : [r.left + Math.random() * r.width, r.top + Math.random() * r.height];
+                const x0 = core.x + (Math.random() - 0.5) * 16, y0 = core.y - top + (Math.random() - 0.5) * 16, mx = (x0 + x1) / 2 + (Math.random() - 0.5) * 220, my = Math.min(y0, y1 - top) - 60 - Math.random() * 140;
+                fx.current.burst.push({ x0, y0, mx, my, x1, y1: y1 - top, t0: now + Math.random() * 380, d: 700 + Math.random() * 500, s: 1 + Math.random() * 2.2, c: cols[k % 4] });
+            }
+            el.animate([{ clipPath: "inset(0 0 100% 0 round 18px)", opacity: 0.2, filter: "brightness(1.8) saturate(.4)" }, { clipPath: "inset(0 0 0% 0 round 18px)", opacity: 1, filter: "brightness(1.25)", offset: 0.7 }, { clipPath: "inset(0 0 0% 0 round 18px)", opacity: 1, filter: "none" }], { duration: 1100, delay: 650, easing: "cubic-bezier(.3,.7,.2,1)", fill: "backwards" });
+            el.querySelector(".pl-sat-scan")?.animate([{ top: "0%", opacity: 1 }, { top: "100%", opacity: 1, offset: 0.7 }, { top: "100%", opacity: 0 }], { duration: 1100, delay: 650, easing: "cubic-bezier(.3,.7,.2,1)", fill: "both" });
+        }
+        const t = setTimeout(() => World.scene?.setWhat(-1), 1800); return () => clearTimeout(t);
     }, [n, small]);
-    // light beams from the core to each card that is out
+    // every frame: faint guide beams core → card, data packets flowing along them (faster to the card you hover), and the burst particles
     useEffect(() => {
-        let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const st = stage.current, S = World.scene; if (!st || !S || small) return; const top = st.getBoundingClientRect().top, core = S.screenOf("core"); if (!core) return;
-            WHAT.forEach((w, i) => { const ln = beams.current[i], el = sats.current[i]; if (!ln || !el) return; const r = el.getBoundingClientRect(), x2 = r.left + r.width / 2 < core.x ? r.right : r.left, y2 = r.top + Math.min(40, r.height / 2);
-                ln.setAttribute("d", `M${core.x} ${core.y - top} Q${(core.x + x2) / 2} ${Math.min(core.y, y2) - top - 40} ${x2} ${y2 - top}`); }); };
+        let raf = 0, dpr = Math.min(2, devicePixelRatio || 1);
+        const loop = now => {
+            raf = requestAnimationFrame(loop); const st = stage.current, S = World.scene, c = cv.current; if (!st || !S || small || !c) return;
+            const W = st.clientWidth, H = st.clientHeight; if (c.width !== W * dpr || c.height !== H * dpr) { c.width = W * dpr; c.height = H * dpr; }
+            const g = c.getContext("2d"), top = st.getBoundingClientRect().top, core = S.screenOf("core"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); if (!core) return;
+            const cy = core.y - top, F = fx.current, ends = [];
+            WHAT.forEach((w, i) => {
+                const ln = beams.current[i], el = sats.current[i]; if (!el) return; const r = el.getBoundingClientRect(), x2 = r.left + r.width / 2 < core.x ? r.right : r.left, y2 = r.top + Math.min(40, r.height / 2) - top, qx = (core.x + x2) / 2, qy = Math.min(cy, y2) - 40;
+                ln?.setAttribute("d", `M${core.x} ${cy} Q${qx} ${qy} ${x2} ${y2}`); ends[i] = [qx, qy, x2, y2];
+                if (i < cur.current) { const gap = F.hover === i ? 70 : 420; if (!F.last[i] || now - F.last[i] > gap) { F.last[i] = now; F.pk.push({ i, t0: now, d: F.hover === i ? 700 : 1300 }); } }
+            });
+            g.globalCompositeOperation = "lighter";
+            const dot = (x, y, rad, col, a) => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, rad, 0, 6.283); g.fill(); g.globalAlpha = a * 0.25; g.beginPath(); g.arc(x, y, rad * 3, 0, 6.283); g.fill(); };
+            const bez = (x0, y0, mx, my, x1, y1, t) => [(1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * mx + t * t * x1, (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * my + t * t * y1];
+            F.pk = F.pk.filter(p => { const t = (now - p.t0) / p.d, e = ends[p.i]; if (t >= 1 || !e) return false; if (t < 0) return true; const [x, y] = bez(core.x, cy, e[0], e[1], e[2], e[3], t); dot(x, y, 2.2, "#88c0d0", Math.sin(Math.PI * t)); return true; });
+            F.burst = F.burst.filter(p => { const t = (now - p.t0) / p.d; if (t < 0) return true; if (t > 1.6) return false; const k = Math.min(1, t), e = 1 - Math.pow(1 - k, 3), [x, y] = bez(p.x0, p.y0, p.mx, p.my, p.x1, p.y1, e); dot(x, y, p.s, p.c, t < 1 ? 0.9 : 0.9 * (1 - (t - 1) / 0.6)); return true; });
+            g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+        };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, [small]);
-    const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(-1), head = useRef(null);
+    const enter = i => { fx.current.hover = i; World.scene?.setWhat(i); }, leave = () => { fx.current.hover = -1; World.scene?.setWhat(-1); }, head = useRef(null);
     useFit(head, c => c ? innerHeight * 0.22 : innerHeight * 0.42);
     useEffect(() => { const run = () => sats.current.forEach(el => { if (!el) return; const room = compact() ? innerHeight * 0.36 : Math.min(innerHeight * 0.4, (innerHeight - 200) / 2); for (let l = 0; l <= 3; l++) { el.dataset.fit = String(l); if (el.offsetHeight <= room) break; } }); run(); addEventListener("resize", run); document.fonts?.ready.then(run); return () => removeEventListener("resize", run); }, [small]);
     return (
@@ -195,10 +222,12 @@ export function What() {
                     <p className="pl-p" data-drop="1">Keep scrolling: each one comes out of my AI tower. Hover a card to power the core; each has a 1-minute hands-on demo.</p>
                     <div className="pl-what-steps" aria-hidden="true">{WHAT.map((w, i) => <i key={w.id} className={i < n ? "is-on" : ""} />)}</div>
                 </div>
+                {!small && <canvas className="pl-sparks" ref={cv} aria-hidden="true" />}
                 {!small && <svg className="pl-beams" aria-hidden="true">{WHAT.map((w, i) => <path key={w.id} ref={el => { beams.current[i] = el; }} className={i < n ? "is-on" : ""} pathLength="1" />)}</svg>}
                 <div className={small ? "pl-sats-row" : ""}>
                     {WHAT.map((w, i) => (
                         <div key={w.id} ref={el => { sats.current[i] = el; }} className={`pl-sat pl-sat-${i} ${small || i < n ? "is-out" : ""}`} onPointerEnter={() => enter(i)} onPointerLeave={leave} onFocus={() => enter(i)} onBlur={leave}>
+                            <span className="pl-sat-scan" aria-hidden="true" />
                             <span className="pl-sat-n mono">{w.n}</span>
                             <h3>{w.title}</h3>
                             <p data-drop="2">{w.plain}</p>
@@ -283,12 +312,23 @@ export function Experience() {
     }, 6);
     useSnap(sec, [0.15, 1.15, 2.15, 3.15, 4.15]);
     useEffect(() => { Views.experience = () => { const p = ps.current; return p < -0.35 ? {} : p < 3.65 ? { focus: { floorF: Math.min(3, Math.max(0, p - 0.15)) } } : { focus: { what: "lab" } }; }; return () => { delete Views.experience; }; }, []);
-    // a light line from the floor's window to its panel
+    // each panel comes out of its floor's window (the lab's hologram for the notebook) and slides back in as you ride on;
+    // a soft cone of window light joins them
     useEffect(() => {
-        let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const ln = line.current, pn = panel.current, S = World.scene, k = cur.current; if (!ln || !pn || !S || k < 0) return;
-            const at = S.screenOf(k < 4 ? "floor" : "lab", Math.min(3, k)), r = pn.getBoundingClientRect(); if (!at) return;
-            const wide = !compact(), x2 = wide ? r.right : r.left + r.width / 2, y2 = wide ? r.top + 60 : r.top;
-            ln.setAttribute("d", `M${at.x} ${at.y} C${(at.x + x2) / 2} ${at.y}, ${(at.x + x2) / 2} ${y2}, ${x2} ${y2}`); };
+        let raf = 0; const loop = () => {
+            raf = requestAnimationFrame(loop); const pn = panel.current, S = World.scene, k = cur.current, cone = line.current; if (!pn || !S || k < 0) return;
+            const at = S.screenOf(k < 4 ? "floor" : "lab", Math.min(3, k)); if (!at) return;
+            const e = clamp01(1 - Math.max(0, Math.abs(ps.current - (k + 0.15)) - 0.12) / 0.36), E = e * e * (3 - 2 * e);
+            if (compact() || reducedMotion()) { pn.style.opacity = String(Math.min(1, e * 2)); pn.style.translate = `0 ${(1 - E) * 24}px`; if (cone) cone.style.opacity = "0"; return; }
+            const par = pn.offsetParent?.getBoundingClientRect(); if (!par) return;
+            const L = par.left + pn.offsetLeft, T = par.top + pn.offsetTop, W = pn.offsetWidth, Hh = pn.offsetHeight, cx = L + W / 2, cy = T + Hh / 2;
+            const sc = 0.04 + 0.96 * E, dx = (at.x - cx) * (1 - E), dy = (at.y - cy) * (1 - E);
+            pn.style.transform = `translate(${dx}px, ${dy}px) scale(${sc}) rotateY(${(1 - E) * -38}deg)`; pn.style.opacity = String(Math.min(1, E * 2.4));
+            if (!cone) return;
+            const nx = cx + dx + (at.x < cx + dx ? -1 : 1) * (W * sc) / 2, top = cy + dy - (Hh * sc) / 2 + 18 * sc, bot = cy + dy + (Hh * sc) / 2 - 18 * sc, st = pn.closest(".pl-stage").getBoundingClientRect().top;
+            cone.setAttribute("points", `${at.x},${at.y - 9 - st} ${nx},${top - st} ${nx},${bot - st} ${at.x},${at.y + 9 - st}`);
+            cone.style.opacity = String(E * (0.22 + 0.6 * Math.sin(Math.PI * E)));
+        };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, []);
     const fl = f >= 0 && f < 4 ? job.focus[f] : null;
@@ -296,7 +336,7 @@ export function Experience() {
     return (
         <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(5 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [3.55, E, 3], [4.05, L, 3], [5.2, L, 3]])}>
             <div className="pl-stage pl-left">
-                {f >= 0 && <svg className="pl-exp-line" aria-hidden="true"><path ref={line} /></svg>}
+                {f >= 0 && <svg className="pl-exp-line" aria-hidden="true"><defs><linearGradient id="plWin" x1="1" x2="0"><stop offset="0" stopColor="#f5e6b8" stopOpacity=".85" /><stop offset=".35" stopColor="#88c0d0" stopOpacity=".35" /><stop offset="1" stopColor="#88c0d0" stopOpacity="0" /></linearGradient></defs><polygon ref={line} className="pl-exp-cone" fill="url(#plWin)" /></svg>}
                 {f >= 0 && f < 4 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
                 {f < 0 && <div className="pl-exp-intro"><Kick>04 · Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
                 {fl && (
@@ -518,8 +558,20 @@ function useLeaf(ref, on, dur = 1500) {
         raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf);
     }, [on, dur]);
 }
+/** follows the scroll one step at a time, and holds each step long enough to read (quicker on the way back) */
+function usePaced(want, hold = 3000, back = 1200) {
+    const [step, setStep] = useState(want), last = useRef(0);
+    useEffect(() => {
+        if (want === step) return;
+        if (reducedMotion()) { setStep(want); return; }
+        const wait = Math.max(0, last.current + (want > step ? hold : back) - performance.now());
+        const t = setTimeout(() => { last.current = performance.now(); setStep(s => s + Math.sign(want - s)); }, wait);
+        return () => clearTimeout(t);
+    }, [want, step, hold, back]);
+    return step;
+}
 function Leaf({ on, k, front, back }) {
-    const ref = useRef(null); useLeaf(ref, on);
+    const ref = useRef(null); useLeaf(ref, on, 2300);
     return <div className="pl-leaf" ref={ref} style={{ "--z0": 10 - k, "--z1": 20 + k }}><div className="pl-face">{front}</div><div className="pl-face is-back">{back}</div></div>;
 }
 function Passport({ open, turned, stamped }) {
@@ -551,7 +603,8 @@ function Passport({ open, turned, stamped }) {
 }
 function Tick({ on }) { return <svg viewBox="0 0 24 24" className={`pl-tick ${on ? "is-on" : ""}`} aria-hidden="true"><path d="M4 13.5 9.5 18.5 20 5.5" /></svg>; }
 function GapYear({ q }) {
-    const n = TICKS.filter(x => q >= x).length, open = q >= OPEN, turned = q >= TURN, stamped = q >= STAMP;
+    const n = TICKS.filter(x => q >= x).length, want = (q >= OPEN) + (q >= TURN) + (q >= STAMP), step = usePaced(want, 3200, 1400);
+    const open = step >= 1, turned = step >= 2, stamped = step >= 3;
     return (
         <div className={`pl-gap2 ${open ? "is-pass" : ""}`}>
             <div className="pl-edu-cap"><Kick>06 · My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
@@ -744,11 +797,15 @@ export function Contact({ onCv, onQuick }) {
             <div className="pl-desk-table">
                 <Letter />
                 <div className="pl-stamps">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
-                <div className="pl-trust">
-                    <span className="pl-score mono">You explored <b>{score}%</b> of my world</span>
-                    <span className={`mono ${ui.orbs.length ? "ok" : ""}`}>{ui.orbs.length}/5 orbs</span>
-                    <span className={`mono ${a.tries ? "ok" : ""}`}>{a.tries ? `${a.tries} attacks · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try to break my AI</button>}</span>
-                    {verified ? <span className="pl-stamp mono">Verified<small>by you ✓</small></span> : <button className="pl-rubber" onClick={() => { mark("verdict", "solved"); say("Thank you! That means a lot 🙏"); }}>Stamp me: trustworthy</button>}
+                <div className="pl-trust pl-log">
+                    <span className="pl-log-cap mono">Your visit · logged on this desk</span>
+                    <div className="pl-log-dial"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${score} 100` }} /></svg><b>{score}%</b><small>of my world</small></div>
+                    <ul className="pl-log-list">
+                        <li className={ui.orbs.length ? "ok" : ""}><i aria-hidden="true">✦</i><span>Skill orbs</span><b className="mono">{ui.orbs.length}/{ORBS.length}</b></li>
+                        <li className={a.tries ? "ok" : ""}><i aria-hidden="true">⛨</i><span>Break my AI</span><b className="mono">{a.tries ? `${a.tries} tries · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try it</button>}</b></li>
+                        <li className={demos ? "ok" : ""}><i aria-hidden="true">▶</i><span>Demos solved</span><b className="mono">{demos}/3</b></li>
+                    </ul>
+                    <div className="pl-log-seal">{verified ? <span className="pl-stamp mono">Verified<small>by you ✓</small></span> : <button className="pl-rubber" onClick={() => { mark("verdict", "solved"); say("Thank you! That means a lot 🙏"); }}>Stamp me: trustworthy</button>}</div>
                 </div>
             </div>
             </div>
