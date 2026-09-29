@@ -1861,3 +1861,43 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
   .pl-hero-dock .pl-tools > span:not(.pl-tools-k):not(.is-on) { display: none; }
   .pl-hero-dock .pl-picks { display: flex; justify-content: center; } .pl-hero-dock .pl-picks button:not(.is-job) { display: none; }
 }
+
+/* contact, desktop: the letter runs the full height on the left; the visit card top right, the stamps in one row below it */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-table { grid-template-areas: "letter . log" "letter stamps stamps" !important; grid-template-rows: minmax(0, 1fr) auto !important; min-height: var(--avail, 0px); align-items: stretch !important; }
+  .pl-desk-table > .pl-envelope { grid-area: letter !important; display: flex; flex-direction: column; }
+  .pl-desk-table > .pl-envelope > .pl-mailform { flex: 1 0 auto; min-height: 0 !important; display: flex; flex-direction: column; }
+  .pl-desk-table > .pl-envelope .pl-mailform textarea { flex: 1 0 auto; min-height: 150px !important; }
+  .pl-desk-table > .pl-envelope .pl-mailform .pl-btn.is-main { margin-top: 14px; align-self: flex-end; width: auto !important; padding-inline: 26px; }
+  .pl-desk-table > .pl-trust.pl-log { grid-area: log !important; align-self: start !important; }
+  .pl-desk-table > .pl-stamps.is-row { grid-area: stamps !important; justify-self: center !important; align-self: end !important; }
+}
+/* the message grows with its text: never a scrollbar inside the letter */
+.pl-mailform textarea { overflow: hidden; }
+
+/* a letter the AI agent drafted is marked until it is sent */
+.pl-drafted { display: inline-flex; align-self: flex-start; max-width: calc(100% - 96px); box-sizing: border-box; margin: 0 0 6px; padding: 4px 10px; border: 1.5px dashed #5e81ac; border-radius: 4px; color: #3b5f8a; font-size: 11px; letter-spacing: .04em; background: rgba(94,129,172,.08); rotate: -1deg; }
+.pl-mailform.is-drafted { box-shadow: 0 0 0 3px rgba(136,192,208,.35), 0 18px 40px -18px rgba(0,0,0,.5); }
+
+/* the agent at work: a pill names the action, the target glows once */
+.agent-pill { position: fixed; top: 76px; left: 50%; z-index: 950; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; padding: 9px 16px 9px 12px; border-radius: 999px; background: rgba(46,52,64,.94); color: #eceff4; border: 1px solid rgba(136,192,208,.55); box-shadow: 0 10px 30px -10px rgba(0,0,0,.6), 0 0 0 4px rgba(136,192,208,.12); font-size: 14px; animation: agent-pill 3.4s cubic-bezier(.3,1.2,.4,1) both; pointer-events: none; }
+.agent-pill .mono { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #88c0d0; }
+.agent-pill-dot { width: 8px; height: 8px; border-radius: 50%; background: #88c0d0; box-shadow: 0 0 10px #88c0d0; animation: pl-tool-pulse .9s ease-in-out infinite; }
+@keyframes agent-pill { 0% { opacity: 0; transform: translate(-50%, -14px) scale(.94); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -8px); } }
+:root[data-theme="light"] .agent-pill { background: rgba(255,255,255,.96); color: #2e3440; border-color: #5e81ac; } :root[data-theme="light"] .agent-pill .mono { color: #3b5f8a; } :root[data-theme="light"] .agent-pill-dot { background: #5e81ac; box-shadow: none; }
+.is-agent-lit { animation: agent-lit 3s ease-out; border-radius: 12px; }
+@keyframes agent-lit { 0% { box-shadow: 0 0 0 0 rgba(136,192,208,0); } 15% { box-shadow: 0 0 0 6px rgba(136,192,208,.55), 0 0 40px rgba(136,192,208,.35); } 100% { box-shadow: 0 0 0 0 rgba(136,192,208,0); } }
+@media (prefers-reduced-motion: reduce) { .agent-pill, .is-agent-lit, .agent-pill-dot { animation: none !important; } }
+
+/* chat: which tools the agent used, and receipts for what it did on the page */
+.bubble-tools { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 4px 4px; }
+.bubble-tools span { font-size: 9.5px; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; color: #88c0d0; border: 1px solid rgba(136,192,208,.4); background: rgba(136,192,208,.08); }
+.bubble-tools span::before { content: "⚙ "; opacity: .7; }
+.bubble-acts { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 4px 2px; }
+.bubble-acts button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 10px; font-size: 12.5px; color: inherit; background: rgba(136,192,208,.12); border: 1px solid rgba(136,192,208,.4); cursor: pointer; }
+.bubble-acts button i { font-style: normal; color: #88c0d0; } .bubble-acts button b { opacity: .55; font-weight: 400; } .bubble-acts button:hover { background: rgba(136,192,208,.22); }
+:root[data-theme="light"] .bubble-tools span, :root[data-theme="light"] .bubble-acts button i { color: #3b5f8a; } :root[data-theme="light"] .bubble-tools span { border-color: rgba(94,129,172,.45); }
+:root[data-theme="light"] .bubble-acts button { background: rgba(94,129,172,.1); border-color: rgba(94,129,172,.4); }
+
+/* hero tool strip: easier to read on the night sky */
+.pl-tools > span { color: #c2ccd6; border-color: rgba(136,192,208,.4); } .pl-tools .pl-tools-k { color: #a9d8e6; }

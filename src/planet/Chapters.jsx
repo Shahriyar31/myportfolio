@@ -760,7 +760,9 @@ function useScaleFit(ref) {
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
             el.style.width = "";
-            if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
+            if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); el.style.removeProperty("--avail"); return; }
+            // the desk (and so the letter) may use the full height down to the footer
+            el.style.setProperty("--avail", `${Math.max(420, innerHeight - (el.offsetParent?.offsetTop || 0) - el.offsetTop - 104)}px`);
             const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 104, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
             el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.min(70, Math.max(0, (avail - h * k) / 2)).toFixed(1)}px`);
             if (k < 1) el.style.width = `${(100 / k).toFixed(2)}%`; // lay out wider, then scale back: the desk still spans the whole width
@@ -771,10 +773,12 @@ function useScaleFit(ref) {
 }
 /* ── 9 · contact: write me a letter; it folds into a paper plane and flies into my mailbox ── */
 function Letter() {
-    const [name, setName] = useState(""), [email, setEmail] = useState(""), [msg, setMsg] = useState(""), [trap, setTrap] = useState(""), [st, setSt] = useState("idle"), [err, setErr] = useState(""), paper = useRef(null);
+    const [name, setName] = useState(""), [email, setEmail] = useState(""), [msg, setMsg] = useState(""), [trap, setTrap] = useState(""), [st, setSt] = useState("idle"), [err, setErr] = useState(""), [drafted, setDrafted] = useState(false), paper = useRef(null), area = useRef(null);
+    // the message grows with the text, so the whole letter can be read without scrolling inside it
+    useLayoutEffect(() => { const el = area.current; if (!el) return; el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; }, [msg, st]);
     // the AI assistant can pre-fill the letter (never send it): the visitor reads it, edits it and sends it
     useEffect(() => {
-        const fill = e => { const d = e.detail || {}; setSt("idle"); setErr(""); setMsg(d.message || ""); if (d.name) setName(d.name); if (d.email) setEmail(d.email); scrollToId("contact"); };
+        const fill = e => { const d = e.detail || {}; setSt("idle"); setErr(""); setMsg(d.message || ""); setDrafted(true); if (d.name) setName(d.name); if (d.email) setEmail(d.email); scrollToId("contact"); };
         addEventListener("draft-letter", fill); return () => removeEventListener("draft-letter", fill);
     }, []);
     const mailto = () => `mailto:${EMAIL}?subject=${encodeURIComponent(`Hello from ${name.trim() || "your portfolio"}`)}&body=${encodeURIComponent(`${msg.trim()}\n\n— ${name.trim()} ${email.trim()}`)}`;
@@ -783,7 +787,7 @@ function Letter() {
     const send = e => {
         e.preventDefault(); if (!msg.trim() || !email.trim() || st !== "idle") return;
         setErr(""); const sending = deliver();
-        const done = ok => { if (ok) { World.scene?.setMail(true); setSt("sent"); say("Got it! I'll write back soon 💌"); } else { setSt("failed"); } };
+        const done = ok => { if (ok) { World.scene?.setMail(true); setDrafted(false); setSt("sent"); say("Got it! I'll write back soon 💌"); } else { setSt("failed"); } };
         if (reducedMotion()) { setSt("fold"); sending.then(() => done(true), x => { setErr(x.message); done(false); }); return; }
         setSt("fold");
         setTimeout(() => {
@@ -797,7 +801,8 @@ function Letter() {
         }, 650);
     };
     return (
-        <form ref={paper} className={`pl-mailform is-${st}`} onSubmit={send}>
+        <form ref={paper} className={`pl-mailform is-${st} ${drafted && st === "idle" ? "is-drafted" : ""}`} onSubmit={send}>
+            {drafted && st === "idle" && <span className="pl-drafted mono" role="status">✎ Drafted by my AI · read it, edit it, then send</span>}
             <span className="pl-postmark mono" aria-hidden="true">HAMBURG<br />✉</span>
             {st === "sent" ? (
                 <div className="pl-sent"><b>Delivered to my inbox ✓</b><p>Thank you{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}! I'll reply to {email.trim()} soon.</p><div className="pl-sig" aria-label={`Signed, ${NAME.split(" ")[0]}`}><span className="pl-sig-pre" aria-hidden="true">talk soon,</span><span className="pl-sig-name" aria-hidden="true">{NAME.split(" ")[0]}</span><svg className="pl-sig-fl" viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 18 C 50 30, 120 4, 196 14" pathLength="1" /></svg></div><button type="button" className="pl-link" onClick={() => { setSt("idle"); setMsg(""); }}>Write another</button></div>
@@ -805,7 +810,7 @@ function Letter() {
                 <div className="pl-sent"><b>The post office is closed right now.</b><p>{err || "It couldn't be delivered."} Your letter is still here: send it with your email app instead.</p><div className="pl-ctas"><a className="pl-btn is-main" href={mailto()}>Open my email app</a><button type="button" className="pl-link" onClick={() => setSt("idle")}>Try again</button></div></div>
             ) : (<>
                 <label className="pl-dear">Dear Farhan,</label>
-                <textarea value={msg} onChange={e => setMsg(e.target.value)} maxLength={2000} rows={4} placeholder="We're hiring for… / I liked your project… / Let's talk about…" aria-label="Your message" required />
+                <textarea ref={area} value={msg} onChange={e => setMsg(e.target.value)} maxLength={2000} rows={5} placeholder="We're hiring for… / I liked your project… / Let's talk about…" aria-label="Your message" required />
                 <div className="pl-sign"><label>From</label><input value={name} onChange={e => setName(e.target.value)} maxLength={80} placeholder="your name & company" aria-label="Your name" /></div>
                 <div className="pl-sign"><label>Reply to</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={120} placeholder="you@company.com" aria-label="Your email, so I can reply" required /></div>
                 <input className="pl-trap" tabIndex={-1} autoComplete="off" value={trap} onChange={e => setTrap(e.target.value)} aria-hidden="true" name="website" />

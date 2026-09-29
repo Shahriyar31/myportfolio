@@ -75,9 +75,10 @@ function makeTools(sink) {
         ({ project }) => ({ type: "project", id: PROJECTS[project], label: `open the ${project.replace(/-/g, " ")} project` }));
     const open_resume = act("open_resume", "Open Farhan's résumé (CV) for the visitor.", z.object({}), () => ({ type: "resume", label: "open the résumé" }));
     const open_quick_read = act("open_quick_read", "Open the one-minute quick read summary of Farhan's profile.", z.object({}), () => ({ type: "quick_read", label: "open the quick read" }));
-    const draft_letter = act("draft_letter", "Fill in the contact letter on the page with a short, friendly message written in the VISITOR's voice to Farhan. The visitor reviews it and sends it themselves; nothing is sent automatically.",
+    const draft_letter = act("draft_letter", "Fill in the contact letter on the page with a short, friendly message written in the VISITOR's voice to Farhan. The letter already starts with 'Dear Farhan,', so do not add a greeting; end with the visitor's name if they gave it. The visitor reviews it and sends it themselves; nothing is sent automatically.",
         z.object({ message: z.string().min(10).max(1200), name: z.string().max(80).optional().describe("the visitor's name and company, only if they said it"), email: z.string().max(120).optional().describe("the visitor's email, only if they gave it") }),
-        ({ message, name, email }) => ({ type: "letter", message: message.slice(0, 1200), name: (name || "").slice(0, 80), email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "") ? email : "", label: "fill in the letter on the contact desk for you to review and send" }));
+        // the letter already begins "Dear Farhan,": drop a second greeting the model may add
+        ({ message, name, email }) => ({ type: "letter", message: message.replace(/^\s*(?:hi|hello|hey|dear)\b[^\n,!]{0,30}farhan\s*[,!.:]?\s*/i, "").trim().slice(0, 1200), name: (name || "").slice(0, 80), email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "") ? email : "", label: "fill in the letter on the contact desk for you to review and send" }));
 
     return [search_notes, match_job, show_section, open_project, open_resume, open_quick_read, draft_letter];
 }

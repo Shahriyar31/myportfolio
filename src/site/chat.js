@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { scrollToId } from "./hooks";
+import { PROJECTS } from "../data/constants";
 
 /*
  * "Ask my AI": the browser side of a grounded agent.
@@ -58,10 +59,10 @@ const step = (id, status, detail) => {
 };
 let history = [];
 
-async function typeOut(text, src = []) {
-    const n = text.length > 280 ? 4 : 2;
-    for (let i = 1; i <= text.length; i += n) { set({ typing: text.slice(0, i) }); await sleep(12); }
-    set({ typing: "", msgs: [...state.msgs, { r: "b", t: text, src }] });
+async function typeOut(text, src = [], extra = {}) {
+    const n = text.length > 280 ? 6 : 3;
+    for (let i = 1; i <= text.length; i += n) { set({ typing: text.slice(0, i) }); await sleep(14); }
+    set({ typing: "", msgs: [...state.msgs, { r: "b", t: text, src, ...extra }] });
 }
 
 const SERVER_STEP = { guard: "intent", rewrite: "intent", agent: "intent", retrieve: "retrieve", tools: "retrieve", generate: "generate", refuse: "generate", verify: "policy" };
@@ -74,12 +75,29 @@ const ACTIONS = {
     quick_read: () => dispatchEvent(new Event("quick-read")),
     letter: a => typeof a.message === "string" && dispatchEvent(new CustomEvent("draft-letter", { detail: { message: a.message.slice(0, 1200), name: String(a.name || "").slice(0, 80), email: String(a.email || "").slice(0, 120) } })),
 };
-function perform(actions) {
-    const list = (Array.isArray(actions) ? actions : []).filter(a => ACTIONS[a?.type]).slice(0, 2);
+const SECTION_NAME = { home: "the start", what: "What I do", break: "Break my AI", experience: "my work at Nordex", research: "my research", projects: "my projects", journey: "my journey", skills: "my skills", lens: "my photography", contact: "the contact desk" };
+/** what the agent is doing, in words: shown on the page while it happens and kept as a receipt under the answer */
+export const describe = a => ({
+    section: `scrolled to ${SECTION_NAME[a.id] || a.id}`,
+    project: `opened ${PROJECTS.find(p => p.id === a.id)?.title || "a project"}`,
+    resume: "opened my résumé",
+    quick_read: "opened the quick read",
+    letter: "drafted a letter for you to review",
+})[a.type] || a.type;
+const TARGET = { section: a => a.id, project: () => "projects", letter: () => "contact" };
+function perform(list) {
     if (!list.length) return;
     if (innerWidth < 760 && list.some(a => a.type !== "quick_read" && a.type !== "resume")) openChat(false); // on a phone the panel would hide what we scroll to
-    list.forEach((a, i) => setTimeout(() => ACTIONS[a.type](a), 350 + i * 900));
+    list.forEach((a, i) => setTimeout(() => {
+        dispatchEvent(new CustomEvent("agent-act", { detail: { text: describe(a), target: TARGET[a.type]?.(a) } }));
+        ACTIONS[a.type](a);
+    }, 350 + i * 1100));
 }
+const validActions = actions => (Array.isArray(actions) ? actions : []).filter(a => ACTIONS[a?.type]).slice(0, 2);
+
+/** redo one page action from a receipt under an answer */
+export const redo = a => ACTIONS[a?.type] && perform([a]);
+
 export async function ask(text) {
     text = text.trim();
     if (!text || state.busy) return;
@@ -118,9 +136,10 @@ export async function ask(text) {
     step("ledger", "ok", `#${state.ledger[0].n} · ${hash.slice(0, 10)}…`);
 
     history = [...history, { role: "assistant", content: reply }].slice(-12);
-    await typeOut(reply, failed.length ? [] : sources);
+    const acts = failed.length ? [] : validActions(actions);
+    await typeOut(reply, failed.length ? [] : sources, { tools: state.tools, acts });
     set({ busy: false });
-    if (!failed.length) perform(actions);
+    perform(acts);
 }
 
 /* "Paste a job ad": open the assistant ready for a job description */
