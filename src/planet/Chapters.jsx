@@ -417,121 +417,122 @@ function Laptop({ title, children, className = "" }) {
         </div>
     );
 }
-/* type lines out one after the other: [prompt command, output] */
-function useTyping(lines, run) {
-    const [st, setSt] = useState({ i: 0, c: 0 });
-    useEffect(() => {
-        if (!run) return; if (reducedMotion()) { setSt({ i: lines.length, c: 0 }); return; }
-        setSt({ i: 0, c: 0 }); let i = 0, c = 0, t = 0;
-        const tick = () => { const cmd = lines[i]?.[0] || ""; if (c < cmd.length) { c += 1; setSt({ i, c }); t = setTimeout(tick, 26); } else { i += 1; c = 0; setSt({ i, c }); if (i < lines.length) t = setTimeout(tick, 380); } };
-        t = setTimeout(tick, 500); return () => clearTimeout(t);
-    }, [run, lines]);
-    return st;
+/* type one short command, then show the (readable) result */
+function useCmd(cmd, run = true) {
+    const [n, setN] = useState(0);
+    useEffect(() => { if (!run) return; if (reducedMotion()) { setN(cmd.length + 1); return; } setN(0); let k = 0, t = 0; const f = () => { k += 1; setN(k); if (k <= cmd.length) t = setTimeout(f, k === cmd.length ? 260 : 32); }; t = setTimeout(f, 450); return () => clearTimeout(t); }, [cmd, run]);
+    return [cmd.slice(0, n), n > cmd.length];
 }
-const CGEC_LINES = (bt) => [
-    ["whoami", <span key="w">farhan-shahriyar · computer science undergrad</span>],
-    ["cat degree.txt", <dl key="d" className="pl-kv"><dt>degree</dt><dd><b>B.Tech. Computer Science</b></dd><dt>college</dt><dd>{bt.school}</dd><dt>where</dt><dd>Cooch Behar, West Bengal, India</dd><dt>when</dt><dd>Jul 2018 – Aug 2022</dd><dt>cgpa</dt><dd><b>8.73</b> / 10 <span className="pl-bar" style={{ "--v": 0.873 }} /> top 10%</dd></dl>],
-    ["ls courses/", <div key="c" className="pl-ls">{bt.pills.map(t => <span key={t}>{t.replace(/\s+/g, "-").replace(/\.$/, "")}/</span>)}</div>],
-    ["cat extra.txt", <span key="e">teaching assistant · student council</span>],
-    ["git tag", <span key="g" className="t-ok">v1.0-graduated-2022 ✓</span>],
-];
 function CgecLaptop() {
-    const [bt] = EDU_CHAPTERS, lines = useRef(CGEC_LINES(bt)).current, { i, c } = useTyping(lines, true), wrap = useRef(null);
-    useFit(wrap, cp => cp ? innerHeight * 0.6 : innerHeight - 150);
+    const [bt] = EDU_CHAPTERS, [typed, done] = useCmd("cat btech.md"), wrap = useRef(null);
+    useFit(wrap, cp => cp ? innerHeight * 0.62 : innerHeight - 150, [done]);
     return (
         <div className="pl-edu" ref={wrap}>
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018–2022</Kick><H text="Where it started." accent={["started."]} /></div>
-            <Laptop title="farhan@cgec: ~/btech">
-                <div className="pl-tty">{lines.map(([cmd, out], k) => k > i ? null : (
-                    <div key={cmd} className="pl-tty-row"><p><span className="pl-ps">~/btech $</span> {k === i ? cmd.slice(0, c) : cmd}{k === i && <span className="pl-caret" />}</p>{k < i && <div className="pl-tty-out">{out}</div>}</div>))}
-                    {i >= lines.length && <p><span className="pl-ps">~/btech $</span> <span className="pl-caret" /></p>}
-                </div>
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
+            <Laptop title="farhan@cgec: ~/btech" className="is-term">
+                <p className="pl-lap-cmd"><span>~/btech $</span> {typed}{!done && <span className="pl-caret" />}</p>
+                {done && (
+                    <div className="pl-dv">
+                        <span className="pl-dv-kick mono">B.Tech. · Jul 2018 – Aug 2022</span>
+                        <h3>Computer Science</h3>
+                        <p className="pl-dv-sub">{bt.school} · West Bengal, India</p>
+                        <div className="pl-dv-stats"><div><b>8.73</b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b>4 yrs</b>2018 – 2022</div></div>
+                        <div className="pl-dv-chips" data-drop="1">{bt.pills.map(t => <span key={t}>{t}</span>)}</div>
+                        <p className="pl-dv-ok" data-drop="2">✓ Graduated 2022 · teaching assistant · student council</p>
+                    </div>
+                )}
             </Laptop>
         </div>
     );
 }
-/* the year of getting ready: this one really is a passport */
-const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Student visa", "Finances and paperwork", "Goodbye, West Bengal"];
-const STAMPS = [["is-red", "Graduated", "2022", "Cooch Behar", -12], ["is-green", "Student", "visa", "granted", 9], ["is-blue", "Entry", "2023", "Hamburg", -6]];
-function PrepPassport({ q, wide }) {
-    const n = Math.min(PREP.length, Math.floor(q * (PREP.length + 0.6))), got = n >= 3 ? 2 : 1, ref = useRef(null);
-    useFit(ref, cp => cp ? innerHeight * 0.58 : innerHeight - 170, [wide]);
+/* the gap year: a diary that ticks itself off, then my passport opens and the visa is stamped */
+const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Finances and paperwork", "Student visa", "Goodbye, West Bengal"];
+const clamp01 = x => Math.min(1, Math.max(0, x));
+function GapYear({ q }) {
+    const n = Math.min(PREP.length, Math.floor(clamp01(q / 0.24) * (PREP.length + 0.4))), stamped = q > 0.8, ref = useRef(null);
+    // one small book on the left; each leaf turns over its left edge in turn: diary → cover → photo page → visa page
+    const t = [clamp01((q - 0.26) / 0.09), clamp01((q - 0.37) / 0.09), clamp01((q - 0.66) / 0.09)];
+    useFit(ref, cp => cp ? innerHeight * 0.6 : innerHeight - 160, []);
+    const leaf = (k, cls, kids) => <div className={`pl-bk-leaf ${cls}`} style={{ "--t": t[k], zIndex: 10 - k }} aria-hidden={t[k] >= 1}>{kids}</div>;
     return (
-        <div className={`pl-passport ${wide ? "is-spread" : ""}`} ref={ref}>
-            <div className="pl-page is-left">
-                <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 3</span></div>
-                <span className="pl-page-when mono">06 · stop 2 of 4 · 2022 – 2023 · at home in West Bengal</span>
-                <div className="pl-degree is-small">One year<small>to get ready for Germany</small></div>
-                <ul className="pl-prep">{PREP.map((t, k) => <li key={t} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{t}</li>)}</ul>
-                {!wide && n >= 3 && <span className="pl-stamp-ink is-green mono">Student<br /><b>visa</b><br />granted</span>}
-            </div>
-            {wide && (
-                <div className="pl-page is-right">
-                    <div className="pl-page-top mono"><span>Visas · stamps</span><span>Page 4</span></div>
-                    <div className="pl-stamps-grid">{STAMPS.map(([c, a, b, d, r], k) => <span key={a} className={`pl-stamp-ink ${c} mono ${k < got ? "is-on" : "is-empty"}`} style={{ "--r": `${r}deg` }}>{k < got ? <>{a}<br /><b>{b}</b><br />{d}</> : "·"}</span>)}</div>
-                    <p className="pl-page-school"><span>Admitted to TUHH for the M.Sc. Data Science. Next: a one-way flight to Hamburg.</span></p>
+        <div className="pl-gap" ref={ref}>
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
+            <div className="pl-book">
+                {leaf(0, "pl-diary", <>
+                    <span className="pl-diary-date mono">2022 – 2023 · at home in West Bengal</span>
+                    <b className="pl-diary-h">To do before Germany</b>
+                    <ul>{PREP.map((x, k) => <li key={x} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{x}</li>)}</ul>
+                </>)}
+                {leaf(1, "pl-bk-cover", <><span>भारत गणराज्य</span><i /><b>Republic of India</b><em>Passport</em></>)}
+                {leaf(2, "pl-bk-page", <>
+                    <div className="pl-pp-top mono"><span>Republic of India · Passport</span><span>illustration</span></div>
+                    <div className="pl-pp-bio"><img src="/images/profile-suit.jpg" alt="Farhan Shahriyar" loading="lazy" /><dl><dt>Name</dt><dd>{NAME.toUpperCase()}</dd><dt>Nationality</dt><dd>INDIAN</dd><dt>Home</dt><dd>West Bengal, India</dd><dt>No.</dt><dd>• • • • • • • •</dd></dl></div>
+                    <p className="pl-pp-mrz mono" aria-hidden="true">P&lt;IND&lt;SHAHRIYAR&lt;&lt;FARHAN&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</p>
+                </>)}
+                <div className="pl-bk-leaf pl-bk-page is-visa" style={{ zIndex: 1 }}>
+                    <div className="pl-pp-top mono"><span>Visas</span><span>page 7</span></div>
+                    <p className="pl-pp-note">Admitted to <b>TUHH</b> for the M.Sc. Data Science.</p>
+                    <dl className="pl-pp-visa"><dt>Country</dt><dd>Germany</dd><dt>Purpose</dt><dd>Study</dd><dt>Holder</dt><dd>{NAME}</dd></dl>
+                    <span className={`pl-stamp-ink is-green mono pl-visa ${stamped ? "is-on" : ""}`}>Student visa<br /><b>Germany</b><br />granted · 2023</span>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
-/* the flight: a boarding pass that fills in as the plane flies */
+/* the flight: a boarding pass, Kolkata to Hamburg, that fills in as the plane flies */
 function BoardingPass() {
-    const ui = useUI(), f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7000), st = f <= 0 ? "Boarding" : f < 1 ? "In the air" : "Landed";
+    const ui = useUI(), f = clamp01(ui.flight), km = Math.round(f * 7250), st = f <= 0 ? "Boarding" : f < 1 ? "In the air" : "Landed";
     return (
         <div className="pl-bpass" style={{ "--f": f }}>
             <div className="pl-bpass-main">
                 <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>06 · stop 3 of 4 · 2023</span></div>
                 <div className="pl-bpass-route">
-                    <div><small className="mono">From</small><b>CCB</b><span>Cooch Behar, India</span></div>
+                    <div><small className="mono">From</small><b>CCU</b><span>Kolkata, India</span></div>
                     <div className="pl-bpass-track"><i /><em aria-hidden="true">✈</em></div>
                     <div className="is-to"><small className="mono">To</small><b>HAM</b><span>Hamburg, Germany</span></div>
                 </div>
                 <div className="pl-bpass-fields">
                     <div><small className="mono">Passenger</small><b>{NAME}</b></div><div><small className="mono">Purpose</small><b>M.Sc. Data Science · TUHH</b></div>
-                    <div><small className="mono">Travelling</small><b>Alone, at 22</b></div><div><small className="mono">Status</small><b className={f >= 1 ? "is-ok" : ""}>{st} · {km.toLocaleString("en-GB")} km</b></div>
+                    <div><small className="mono">Status</small><b className={f >= 1 ? "is-ok" : ""}>{st}</b></div><div><small className="mono">Distance</small><b>{km.toLocaleString("en-GB")} / 7,250 km</b></div>
                 </div>
             </div>
-            <div className="pl-bpass-stub"><small className="mono">Admit one</small><b>HAM</b><span className="pl-barcode" aria-hidden="true" /><small className="mono">a new chapter</small></div>
+            <div className="pl-bpass-stub"><small className="mono">Admit one</small><b>HAM</b><span className="pl-barcode" aria-hidden="true" /><small className="mono">2023</small></div>
         </div>
     );
 }
-/* the university: a Jupyter notebook whose cells run one by one */
-const NB_CELLS = (ms, res) => [
-    ["student = MSc(\"Data Science\", at=\"TUHH\")", <span key="a"><b>{ms.school}</b> · M.Sc. Data Science · Oct 2023 – now · Hamburg</span>],
-    ["student.research", <ul key="b" className="pl-nb-list"><li>{res.role.split("—")[1]?.trim()} <small>research project</small></li><li>Security threats in the Model Context Protocol (MCP)</li><li>Preprint · {PAPER.when}: <i>{PAPER.title}</i></li></ul>],
-    ["student.plot(\"languages\")", <div key="c" className="pl-nb-chart">{[["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1 · daily", 0.4]].map(([l, lv, v]) => <div key={l}><span>{l}</span><i style={{ "--v": v }} /><small>{lv}</small></div>)}</div>],
-    ["student.work", <span key="d">Working student · <b>Nordex Group</b> · Aug 2025 – now <button className="pl-link" onClick={() => scrollToId("experience")}>see it on the Nordex tower →</button></span>],
-];
+/* the university: a notebook whose cells run one by one; big, readable outputs */
 function TuhhNotebook() {
-    const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], cells = useRef(NB_CELLS(ms, res)).current, { i, c } = useTyping(cells, true), wrap = useRef(null);
-    useFit(wrap, cp => cp ? innerHeight * 0.6 : innerHeight - 150);
+    const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], wrap = useRef(null), [typed, done] = useCmd('MSc("Data Science", at="TUHH")'), [k, setK] = useState(0);
+    useEffect(() => { if (!done) return; if (reducedMotion()) { setK(3); return; } setK(1); const a = setTimeout(() => setK(2), 650), b = setTimeout(() => setK(3), 1300); return () => { clearTimeout(a); clearTimeout(b); }; }, [done]);
+    useFit(wrap, cp => cp ? innerHeight * 0.62 : innerHeight - 150, [k]);
     return (
         <div className="pl-edu" ref={wrap}>
             <div className="pl-edu-cap"><Kick>06 · My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
             <Laptop title="M.Sc._Data_Science.ipynb · Python 3" className="is-nb">
-                {cells.map(([code, out], k) => k > i ? null : (
-                    <div key={code} className="pl-cell"><div className="pl-cell-in"><span className="mono">In [{k < i ? k + 1 : " "}]:</span><code>{k === i ? code.slice(0, c) : code}{k === i && <span className="pl-caret" />}</code></div>
-                        {k < i && <div className="pl-cell-out"><span className="mono">Out[{k + 1}]:</span><div>{out}</div></div>}</div>))}
+                <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [1]:</span><code>{typed}{!done && <span className="pl-caret" />}</code></div>
+                    {k >= 1 && <div className="pl-cell-out"><span className="mono">Out[1]:</span><div className="pl-dv"><h3>M.Sc. Data Science</h3><p className="pl-dv-sub">{ms.school} · Hamburg · Oct 2023 – now</p></div></div>}</div>
+                {k >= 2 && <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [2]:</span><code>student.research</code></div>
+                    <div className="pl-cell-out"><span className="mono">Out[2]:</span><ul className="pl-nb-list"><li>{res.role.split("—")[1]?.trim()}</li><li>Security threats in the Model Context Protocol (MCP)</li><li data-drop="1">Preprint, {PAPER.when}: <i>{PAPER.title}</i></li></ul></div></div>}
+                {k >= 3 && <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [3]:</span><code>student.work, student.languages</code></div>
+                    <div className="pl-cell-out"><span className="mono">Out[3]:</span><div className="pl-nb-two"><p>Working student · <b>Nordex Group</b><br />Aug 2025 – now <button className="pl-link" onClick={() => scrollToId("experience")}>see it →</button></p>
+                        <div className="pl-nb-chart" data-drop="2">{[["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1", 0.4]].map(([l, lv, v]) => <div key={l}><span>{l}</span><i style={{ "--v": v }} /><small>{lv}</small></div>)}</div></div></div></div>}
             </Laptop>
         </div>
     );
 }
 export function Journey() {
     const J = PLACES.journey, T = PLACES.tuhh.theta, sec = useRef(null), [stop, setStop] = useState(0), [q, setQ] = useState(0), cur = useRef(0), [s0, s1] = JOURNEY.spans;
-    const [wide, setWide] = useState(false);
-    useEffect(() => { const f = () => setWide(!compact() && innerWidth >= 1200 && innerHeight >= 640); f(); addEventListener("resize", f); return () => removeEventListener("resize", f); }, []);
     useSlots(sec, p => {
         const k = p < s0 - 0.1 ? 0 : p < s0 + s1 - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; if (k !== cur.current) { cur.current = k; setStop(k); }
         if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3))));
     }, 7);
-    useSnap(sec, [0, s0 + 0.35, JOURNEY.land + 0.5]);
+    useSnap(sec, [0, JOURNEY.land + 0.5]);
     const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = 7; // the building stands beside me, the laptop or passport on the left
     const keys = [[-0.6, J.cgec - off, "WB"], [s0 - 0.35, J.cgec - off, "WB"], [s0 + 0.05, J.home - 4, 5], [t0 - 0.2, J.home - 4, 5], [JOURNEY.takeoff - 0.1, J.runway, 5], [JOURNEY.takeoff + 0.25, J.runway + 10, "N"], [JOURNEY.land - 0.15, J.to - 3, "N"], [JOURNEY.land, J.to, "N"], [JOURNEY.land + 0.35, T - off, 6], [total, T - off, 6]];
     return (
         <section id="journey" ref={sec} className="pl-deck pl-journey-sec" style={{ height: `calc(${total} * 95svh + 100svh)` }} data-slot="0.95" data-keys={JSON.stringify(keys)}>
             <div className="pl-stage pl-left">
-                <div className="pl-edu-swap" key={stop}>{stop === 0 ? <CgecLaptop /> : stop === 1 ? <PrepPassport q={q} wide={wide} /> : stop === 2 ? <BoardingPass /> : <TuhhNotebook />}</div>
+                <div className="pl-edu-swap" key={stop}>{stop === 0 ? <CgecLaptop /> : stop === 1 ? <GapYear q={q} /> : stop === 2 ? <BoardingPass /> : <TuhhNotebook />}</div>
             </div>
         </section>
     );
@@ -614,7 +615,7 @@ export function Contact({ onCv, onQuick }) {
             <div className="pl-desk-table">
                 <Letter />
                 <div className="pl-stamps">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
-                <div className="pl-trust" data-drop="2">
+                <div className="pl-trust">
                     <span className="pl-score mono">You explored <b>{score}%</b> of my world</span>
                     <span className={`mono ${ui.orbs.length ? "ok" : ""}`}>{ui.orbs.length}/5 orbs</span>
                     <span className={`mono ${a.tries ? "ok" : ""}`}>{a.tries ? `${a.tries} attacks · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try to break my AI</button>}</span>
