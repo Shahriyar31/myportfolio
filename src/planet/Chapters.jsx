@@ -208,20 +208,21 @@ export function What() {
     useSlots(sec, q => { const k = q < -0.7 ? 0 : Math.min(3, Math.floor(q + 1.5)); if (k !== cur.current) { cur.current = k; setN(k); } });
     const act = n - 1;
     useEffect(() => { World.scene?.setWhat(act); return () => World.scene?.setWhat(-1); }, [act]);
-    // keep the hologram level with its ring: the blade starts at the ring's edge, the panel sits at the same height
+    // control room: each monitor is wired to its ring on the tower; the wires follow the 3D rings as the camera moves
+    const mons = useRef([]), wires = useRef([]), stage = useRef(null);
     useEffect(() => {
         let raf = 0; const loop = () => {
-            raf = requestAnimationFrame(loop); const h = holo.current, S = World.scene; if (!h || !S || cur.current < 1) return;
-            const at = S.screenOf("ring", cur.current), st = h.parentElement.getBoundingClientRect(); if (!at) return;
-            const panel = h.querySelector(".pl-holo-panel"), ph = panel?.offsetHeight || 300, left = h.offsetLeft + st.left, me = S.screenOf("me");
-            // below my speech bubble, level with the ring when there is room
-            const top = Math.min(Math.max(96, at.y - 56, me ? me.y - 2 : 0), innerHeight - ph - 90), oy = Math.min(ph - 14, Math.max(14, at.y - top));
-            const dx = left - at.x, dy = top + oy - at.y;
-            h.style.setProperty("--top", `${top - st.top}px`); h.style.setProperty("--oy", `${oy}px`);
-            h.style.setProperty("--bx", `${at.x - left}px`); h.style.setProperty("--by", `${at.y - st.top}px`); h.style.setProperty("--bl", `${Math.hypot(dx, dy)}px`); h.style.setProperty("--ba", `${Math.atan2(dy, dx)}rad`);
+            raf = requestAnimationFrame(loop); const S = World.scene, st = stage.current; if (!S || !st) return;
+            const o = st.getBoundingClientRect();
+            WHAT.forEach((_, i) => {
+                const m = mons.current[i], wpath = wires.current[i], at = S.screenOf("ring", i + 1); if (!m || !wpath || !at) return;
+                const r = m.getBoundingClientRect(), left = r.left + r.width / 2 < at.x;
+                const x1 = (left ? r.right : r.left) - o.left, y1 = r.top + Math.min(70, r.height / 2) - o.top, x2 = at.x - o.left, y2 = at.y - o.top, mx = (x1 + x2) / 2;
+                wpath.setAttribute("d", `M${x1.toFixed(1)} ${y1.toFixed(1)} C ${mx.toFixed(1)} ${y1.toFixed(1)}, ${mx.toFixed(1)} ${y2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+            });
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-    }, []);
+    }, [small]);
     const go = i => { const el = sec.current; if (!el) return; const y = el.getBoundingClientRect().top + scrollY + innerHeight * 0.45 * i + 2; window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.1 }) : scrollTo({ top: y, behavior: "smooth" }); };
     const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(act), head = useRef(null);
     useFit(head, c => c ? innerHeight * 0.22 : innerHeight * 0.5);
@@ -233,24 +234,25 @@ export function What() {
                     <Kick>What I do · the AI tower</Kick>
                     <H text="Three things, done properly." accent={["properly."]} />
                     <p className="pl-p" data-drop="1">My AI tower runs three modules. Scroll to bring each one online; every module has a 1-minute hands-on demo.</p>
-                    {!small && <p className="pl-mods-cap mono"><span>3 hands-on demos</span><b>{WHAT.filter(m => p[m.id]?.status === "solved").length} / 3 tried</b></p>}
-                    {!small && <ol className="pl-mods pl-avoid">{WHAT.map((m, i) => <li key={m.id} className={i === act ? "is-on" : i < act ? "is-done" : ""}><button onClick={() => go(i)}><span className="mono">{m.n}</span><b>{m.title}</b><em className="mono">{i === act ? "online" : p[m.id]?.status === "solved" ? "✓ tried" : i < act ? "loaded" : "standby"}</em></button><button className="pl-mods-try" onClick={() => setOpen(m)} aria-label={`Try the demo: ${m.demo}`}>▶ {p[m.id]?.status === "solved" ? "Replay" : "Try"}</button></li>)}</ol>}
+                    {!small && <p className="pl-mods-cap mono"><span>3 live demos · 1 min each</span><b>{WHAT.filter(m => p[m.id]?.status === "solved").length} / 3 tried</b></p>}
                 </div>
-                {!small && w && (
-                    <div className="pl-holo" ref={holo} key={w.id} aria-live="polite">
-                        <i className="pl-holo-blade" aria-hidden="true" />
-                        <div className="pl-holo-panel pl-avoid" onPointerEnter={() => enter(act)} onPointerLeave={leave}>
-                            <span className="pl-holo-c" aria-hidden="true"><i /><i /><i /><i /></span>
-                            <div className="pl-holo-top mono"><span><i className="pl-holo-dot" />Module {w.n} · online</span><span>{act + 1} / {WHAT.length}</span></div>
-                            <h3>{w.title}</h3>
-                            <p>{w.plain}</p>
-                            <div className="pl-holo-tools">{w.tools.map((t, k) => <span key={t} style={{ "--d": `${0.95 + k * 0.08}s` }}>{t}</span>)}</div>
-                            <button className="pl-holo-demo" onClick={() => setOpen(w)} aria-label={`Play the demo: ${w.demo}`}>
-                                <span className="pl-holo-demo-cap mono"><span>Preview · what you'll do</span><span>1 min · in your browser</span></span>
-                                <Teaser id={w.id} />
-                                <span className="pl-holo-play"><i aria-hidden="true">▶</i><span><small className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Play the demo"}</small><b>{w.demo}</b></span></span>
-                            </button>
-                        </div>
+                {!small && (
+                    <div className="pl-room" ref={stage}>
+                        <svg className="pl-room-wires" aria-hidden="true">{WHAT.map((m, i) => <path key={m.id} ref={el => { wires.current[i] = el; }} className={i === act ? "is-on" : ""} />)}</svg>
+                        {WHAT.map((m, i) => {
+                            const solved = p[m.id]?.status === "solved";
+                            return (
+                                <article key={m.id} ref={el => { mons.current[i] = el; }} className={`pl-mon pl-avoid is-${i} ${i === act ? "is-on" : ""}`} onPointerEnter={() => enter(i)} onPointerLeave={leave}>
+                                    <div className="pl-mon-top mono"><span><i className="pl-holo-dot" />Module {m.n} · {i === act ? "live" : "online"}</span><span>{solved ? "✓ tried" : `${i + 1} / 3`}</span></div>
+                                    <h3>{m.title}</h3>
+                                    <p>{m.plain}</p>
+                                    <button className="pl-holo-demo" onClick={() => setOpen(m)} aria-label={`Play the demo: ${m.demo}`}>
+                                        <Teaser id={m.id} />
+                                        <span className="pl-holo-play"><i aria-hidden="true">▶</i><span><small className="mono">{solved ? "✓ Solved · replay" : "Play · 1 min"}</small><b>{m.demo}</b></span></span>
+                                    </button>
+                                    <div className="pl-mon-tools">{m.tools.map(t => <span key={t}>{t}</span>)}</div>
+                                </article>);
+                        })}
                     </div>
                 )}
                 {small && (
@@ -261,6 +263,7 @@ export function What() {
                                 <h3>{m.title}</h3>
                                 <p data-drop="2">{m.plain}</p>
                                 <div className="pl-tags" data-drop="1">{m.tools.map(t => <span key={t}>{t}</span>)}</div>
+                                <button className="pl-sat-tz" onClick={() => setOpen(m)} aria-label={`Play the demo: ${m.demo}`}><Teaser id={m.id} /></button>
                                 <button className="pl-try" onClick={() => setOpen(m)}><span className="mono">{p[m.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span>{m.demo} →</button>
                             </div>
                         ))}
