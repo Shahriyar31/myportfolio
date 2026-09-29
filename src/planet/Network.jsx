@@ -120,32 +120,51 @@ export default function Network() {
     // start on its own the first time the chapter is on screen
     useEffect(() => { const el = box.current; const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && !started.current) { started.current = true; push({ k: "dim", t: "welcome to my toolkit · pick a role, or type a skill" }); later(700, () => install(ROLES[0])); } if (!e.isIntersecting) World.scene?.setRole(null); else if (role) World.scene?.setRole(role.color); }, { threshold: 0.3 }); io.observe(el); return () => io.disconnect(); }, [role]);
     const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "close to my desk" };
+    const [all, setAll] = useState(false);
+    const manifest = role ? role.skills.map(name => S.find(x => x[0] === name)).filter(Boolean) : [];
     return (
-        <div className="pl-skillterm" ref={box} style={{ "--rc": role?.color || "#88c0d0" }}>
+        <div className="pl-skillterm is-v2" ref={box} style={{ "--rc": role?.color || "#88c0d0" }}>
             <div className="pl-net-head">
                 <div><span className="pl-kick mono"><i aria-hidden="true" />My toolkit · the skill installer</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}<svg className="pl-swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13 C 48 7, 118 3, 196 9 M 30 17 C 80 13, 140 12, 176 14" pathLength="1" /></svg></span> for?</h2></div>
-                <p className="pl-p">Pick the role you're hiring for and my skills install one by one, each with where I've really used it. Or type a skill, like <code>rag</code> or <code>kafka</code>.</p>
+                <p className="pl-p">Pick a role: my skills for it install one by one, each with where I've really used it.</p>
             </div>
-            <div className="pl-st-grid">
+            {/* the roles, as big tabs */}
+            <div className="pl-sk-roles" role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={role?.id === r.id} className={role?.id === r.id ? "is-on" : ""} style={{ "--c": r.color }} onClick={() => install(r)} disabled={busy && role?.id === r.id}><span className="mono">install</span><b>{r.name}</b><small className="mono">{r.skills.length} skills</small></button>)}</div>
+            <div className="pl-sk-main">
+                {/* the installed manifest: what a recruiter actually reads */}
+                <div className="pl-sk-manifest" aria-label={role ? `${role.name}: installed skills` : "Installed skills"}>
+                    <div className="pl-sk-mhead mono"><span>{role ? `${slug(role.name)} · manifest` : "manifest"}</span><span>{lit.size} / {manifest.length || 0} installed</span></div>
+                    <ol className="pl-sk-cards" key={role?.id || "none"}>{manifest.map((sk, i) => (
+                        <li key={sk[0]} className={lit.has(sk[0]) ? "is-in" : ""} style={{ "--c": tint(sk), "--i": i }}>
+                            <span className="pl-sk-logo"><Logo ic={sk[1]} color={sk[2]} /></span>
+                            <div><b>{sk[0]}</b><em>{sk[4] || "in my toolkit"}</em></div>
+                            <i className="pl-sk-tick" aria-hidden="true">✓</i>
+                            <span className="pl-sk-bar" aria-hidden="true" />
+                        </li>))}</ol>
+                </div>
+                {/* the terminal, compact: the live log, the proof and the input */}
                 <div className="pl-st-term">
                     <div className="pl-st-bar"><i /><i /><i /><span className="mono">farhan@toolkit · zsh</span></div>
-                    <div className="pl-st-chips">{ROLES.map(r => <button key={r.id} className={role?.id === r.id ? "is-on" : ""} style={{ "--c": r.color }} onClick={() => install(r)} disabled={busy && role?.id === r.id}><span className="mono">install</span>{r.name}</button>)}</div>
                     <div className="pl-st-screen" ref={screen} data-lenis-prevent aria-live="polite">
                         {log.map((l, i) => l.k === "cmd" ? <p key={i} className="pl-st-cmd"><span>❯</span> {l.t}</p>
-                            : l.k === "ok" ? <p key={i} className="pl-st-ok" style={{ "--c": l.c }}><i>✓</i><span className="pl-st-ic"><Logo ic={l.ic[1]} color={l.ic[2]} /></span><b>{l.t}</b><em>{l.where}</em><small>{l.n}/{l.of}</small></p>
-                            : l.k === "done" ? <div key={i} className="pl-st-done" style={{ "--c": l.c }}><p>● {l.t}</p><ul>{l.proof.map(([t, go]) => <li key={t}><button onClick={() => scrollToId(go)}>{t} →</button></li>)}</ul></div>
+                            : l.k === "ok" ? <p key={i} className="pl-st-ok is-short" style={{ "--c": l.c }}><i>✓</i><b>{l.t}</b><small>{l.n}/{l.of}</small></p>
+                            : l.k === "done" ? <div key={i} className="pl-st-done" style={{ "--c": l.c }}><p>● {l.t}</p><span className="mono">proof, on this site:</span><ul>{l.proof.map(([t, go]) => <li key={t}><button onClick={() => scrollToId(go)}>{t} →</button></li>)}</ul></div>
                             : l.k === "info" ? <div key={i} className="pl-st-info"><span className="pl-st-ic"><Logo ic={l.ic[1]} color={l.ic[2]} /></span><div><b>{l.name}</b><small>{l.group} · used at: {l.where}</small></div></div>
                             : <p key={i} className={`pl-st-${l.k}`}>{l.t}</p>)}
                         {busy && <p className="pl-st-dim"><span className="pl-st-spin" /> installing…</p>}
                     </div>
-                    <form className="pl-st-input" onSubmit={run}><span>❯</span><input value={cmd} onChange={e => setCmd(e.target.value)} placeholder="farhan install --role data-engineer   ·   or a skill: rag" aria-label="Type a role or a skill" maxLength={60} /><button disabled={!cmd.trim()}>run</button></form>
+                    <form className="pl-st-input" onSubmit={run}><span>❯</span><input value={cmd} onChange={e => setCmd(e.target.value)} placeholder="or type a skill: rag, kafka…" aria-label="Type a role or a skill" maxLength={60} /><button disabled={!cmd.trim()}>run</button></form>
                 </div>
-                <div className={`pl-st-pkgs ${lit.size ? "has-lit" : ""}`} aria-label="Installed skills">
+            </div>
+            {/* the whole toolkit, one click away */}
+            <div className={`pl-sk-all ${all ? "is-open" : ""}`}>
+                <button className="pl-sk-alltoggle" onClick={() => setAll(v => !v)} aria-expanded={all}><span className="mono">{all ? "▾" : "▸"}</span> {all ? "Hide the full toolkit" : `Browse all ${S.length} skills`}</button>
+                {all && <div className="pl-st-pkgs has-lit" aria-label="All skills">
                     {GROUPS.map(([g, a, b], gi) => (
                         <div key={g} className="pl-st-group"><span className="mono">{SKY[gi][0]} · {g}</span>
                             <div>{S.slice(a, b).map(sk => <button key={sk[0]} className={`pl-st-pkg ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }} onClick={() => info(sk[0])} title={sk[4] ? `Used at: ${sk[4]}` : "In my toolkit"}><span className="pl-st-ic"><Logo ic={sk[1]} color={sk[2]} /></span>{sk[0]}</button>)}</div>
                         </div>))}
-                </div>
+                </div>}
             </div>
             <div className="pl-orbline">
                 <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} title={o.name}><i /></span>)}</div>
