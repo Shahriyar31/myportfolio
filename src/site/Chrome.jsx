@@ -153,7 +153,7 @@ export function CvModal({ open, onClose }) {
     }, [open, onClose]);
     if (!open) return null;
     return (
-        <div className="modal" role="dialog" aria-modal="true" aria-label="Résumé" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="modal" data-lenis-prevent role="dialog" aria-modal="true" aria-label="Résumé" onClick={e => e.target === e.currentTarget && onClose()}>
             <div className="modal-card neu-lg">
                 <div className="modal-bar">
                     <span className="mono">Résumé — Farhan Shahriyar</span>

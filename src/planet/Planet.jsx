@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SKIES, NIGHT, DAY, WB, ORBS, PLACES, CHAPTERS } from "./world";
 import { PROJECTS } from "../data/constants";
-import { scrollToId, reducedMotion } from "../site/hooks";
+import { scrollToId, reducedMotion, compact } from "../site/hooks";
 
 /*
  * The planet behind the whole page. Sections carry data-angle (where on the planet this
@@ -141,9 +141,19 @@ export default function Planet() {
     );
 }
 
+/* where each skill orb floats, and a way to get there */
+const goEnd = id => { const el = document.getElementById(id); if (!el) return; const y = el.getBoundingClientRect().top + scrollY + el.offsetHeight - innerHeight * 1.05; window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.4 }) : scrollTo({ top: y, behavior: "smooth" }); };
+const ORB_HINTS = {
+    azure: ["Next to the AI tower (What I do)", () => scrollToId("what")],
+    databricks: ["By the Nordex tower, before the ride up", () => scrollToId("experience")],
+    rag: ["At the far end of the project park", () => scrollToProject(PROJECT_ORDER.length - 1)],
+    euaiact: ["On the TUHH campus, after the flight", () => goEnd("journey")],
+    python: ["Close to my desk", () => scrollToId("contact")],
+};
 /* the skill-orb counter and messages */
 function Hud({ ui }) {
     const [open, setOpen] = useState(false);
+    useEffect(() => { if (!open) return; const y0 = scrollY, f = () => Math.abs(scrollY - y0) > 120 && setOpen(false); addEventListener("scroll", f, { passive: true }); return () => removeEventListener("scroll", f); }, [open]);
     return (
         <>
             <button className={`pl-orbs ${ui.chapter === "lens" ? "is-hide" : ""}`} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label={`Skills found: ${ui.orbs.length} of ${ORBS.length}`}>
@@ -153,7 +163,16 @@ function Hud({ ui }) {
             <button className={`pl-vision ${ui.neural ? "is-on" : ""} ${ui.chapter === "lens" ? "is-hide" : ""}`} onClick={() => setUI({ neural: !ui.neural })} aria-pressed={ui.neural} title="See my world the way my AI sees it">
                 <i aria-hidden="true" /><span>{ui.neural ? "Back to my world" : "AI vision"}</span>
             </button>
-            {open && <div className="pl-orbs-tip pl-glass" role="status">Five glowing skill orbs are hidden on my planet. Click one when you see it. {ui.orbs.length === ORBS.length ? "You found them all: neural vision is yours." : "Find all five to unlock neural vision."}</div>}
+            {open && (
+                <div className="pl-orbs-tip pl-glass" data-lenis-prevent role="dialog" aria-label="Skill orbs">
+                    <div className="pl-orbs-top"><b>Find my 5 skill orbs</b><button onClick={() => setOpen(false)} aria-label="Close">×</button></div>
+                    <p>They float along my path. Walk there, then click the glowing orb. {ui.orbs.length === ORBS.length ? "You found them all: neural vision is yours ✦" : "Find all five to unlock neural vision."}</p>
+                    <ul>{ORBS.map(o => { const got = ui.orbs.includes(o.id), h = ORB_HINTS[o.id]; return (
+                        <li key={o.id} className={got ? "is-got" : ""} style={{ "--c": o.color }}><i /><div><b>{o.name}</b><small>{got ? "Found ✓" : h[0]}</small></div>
+                            {!got && <button onClick={() => { setOpen(false); h[1](); }}>Take me there →</button>}</li>); })}
+                    </ul>
+                </div>
+            )}
             <div className={`pl-toast pl-glass ${ui.toast ? "is-on" : ""}`} role="status" aria-live="polite">{ui.toast}</div>
         </>
     );
@@ -186,7 +205,7 @@ function Bubble({ ui }) {
             if (!at || !text || state.neural || at.y < 40 || at.y > innerHeight + 10 || at.x < -20 || at.x > innerWidth + 20) { b.style.opacity = "0"; return; }
             const hit = document.elementFromPoint(Math.max(0, Math.min(innerWidth - 1, at.x)), Math.max(0, Math.min(innerHeight - 1, at.y + 18)));
             if (hit && hit.tagName !== "CANVAS" && !hit.matches?.("main, body, .pl-sec, .pl-deck, .pl-stage, .pl-show-stage, .pl-show-track, .pl-show-slot, .pl-what-sec, .pl-what-stage, .pl-hero, .pl-desk, .pl-in, .pl-sats-row, .pl-beams, .pl-exp-line, .pl-exp-line path")) { b.style.opacity = "0"; return; }
-            const w = b.offsetWidth, left = Math.max(12, Math.min(innerWidth - w - (innerWidth > 860 ? 110 : 12), at.x - 26)), y = Math.max(80, at.y - 14);
+            const w = b.offsetWidth, left = Math.max(12, Math.min(innerWidth - w - (!compact() ? 110 : 12), at.x - 26)), y = Math.max(80, at.y - 14);
             b.style.opacity = "1"; b.style.transform = `translate(${left}px, ${y}px) translateY(-100%)`; b.style.setProperty("--tail", `${Math.min(w - 16, Math.max(16, at.x - left))}px`);
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);

@@ -20,7 +20,7 @@ export default function QuickRead({ open, onClose, onOpenCv }) {
     const main = PROJECTS.filter(p => [1, 2].includes(p.id)), earlier = PROJECTS.filter(p => ![1, 2].includes(p.id));
 
     return (
-        <div className="qr" role="dialog" aria-modal="true" aria-label="Quick read" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="qr" data-lenis-prevent role="dialog" aria-modal="true" aria-label="Quick read" onClick={e => e.target === e.currentTarget && onClose()}>
             <article className="qr-page">
                 <div className="qr-bar no-print">
                     <span className="mono">Quick read · 60 seconds</span>
@@ -36,7 +36,7 @@ export default function QuickRead({ open, onClose, onOpenCv }) {
                     {EXPERIENCE.map(e => <div key={e.id} className="qr-item"><p><b>{e.role}</b></p><p className="qr-meta">{e.company} · {e.location} · {e.date}</p><ul>{e.focus.map(f => <li key={f.k}><b>{f.k}{f.when ? ` (${f.when})` : ""}:</b> {f.d}</li>)}</ul></div>)}
                 </section>
                 <section><h3>Selected projects</h3>
-                    {main.map(p => <div key={p.id} className="qr-item"><p><b>{p.title}</b>, {p.sub}</p><p>{p.desc}</p><p className="qr-meta">{p.tags.join(" · ")}</p></div>)}
+                    {main.map(p => <div key={p.id} className="qr-item"><p><b>{p.title}</b>, {p.sub}</p><p>{p.desc}</p>{p.points && <ul>{p.points.map(t => <li key={t}>{t}</li>)}</ul>}<p className="qr-meta">{p.tags.join(" · ")}</p></div>)}
                     <p className="qr-meta">Earlier: {earlier.map(p => `${p.title} (${p.sub})`).join(" · ")}</p>
                 </section>
                 <section><h3>Publication</h3><div className="qr-item"><p><b>{PAPER.title}</b></p><p className="qr-meta">{PAPER.where} · {PAPER.when}</p></div></section>

@@ -155,7 +155,7 @@ export function ChatDock() {
                     <img className="dock-av" src="/images/profile-cartoon.jpg" alt="" /><span className="dock-label">Ask my AI</span><span className="device-led" aria-hidden="true" />
                 </button>
             </div>
-            <div className={`dock neu-lg ${open ? "is-open" : ""}`} role="dialog" aria-label="Chat with Farhan's AI" inert={!open}>
+            <div className={`dock neu-lg ${open ? "is-open" : ""}`} data-lenis-prevent role="dialog" aria-label="Chat with Farhan's AI" inert={!open}>
                 <div className="device-head">
                     <span className="device-led" aria-hidden="true" />
                     <span className="mono">Ask Farhan's AI</span>

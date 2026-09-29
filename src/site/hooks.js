@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from "react";
 export const reducedMotion = () =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** phones and upright tablets get the compact arrangement */
+export const COMPACT = "(max-width: 860px), (max-width: 1180px) and (orientation: portrait)";
+export const compact = () => typeof window !== "undefined" && window.matchMedia(COMPACT).matches;
+
 export const finePointer = () =>
     typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 

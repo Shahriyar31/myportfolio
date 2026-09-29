@@ -20,7 +20,7 @@ function Lightbox({ list, idx, setIdx }) {
     }, [prev, next, setIdx]);
     const p = list[idx];
     return (
-        <div className="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={e => e.target === e.currentTarget && setIdx(-1)}>
+        <div className="lb" data-lenis-prevent role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={e => e.target === e.currentTarget && setIdx(-1)}>
             <figure className="lb-frame neu-lg">
                 <img key={p.n} src={src(p.n, true)} alt={p.t || `${p.c} photograph`} width={p.w} height={p.h} />
                 <figcaption><span className="mono">{String(idx + 1).padStart(2, "0")} / {n} · {p.c}</span>{p.t && <b>{p.t}</b>}</figcaption>

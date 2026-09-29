@@ -87,8 +87,8 @@ function Books() {
     const words = txt.split(/(\s+)/), score = words.reduce((a, w) => { const k = w.toLowerCase().replace(/[^a-z]/g, ""); return a + (POS.includes(k) ? 1 : NEG.includes(k) ? -1 : 0); }, 0);
     return (
         <div className="pv">
-            <div className="pv-head"><span className="mono">review sentiment</span><b className={score > 0 ? "pv-ok" : score < 0 ? "pv-bad" : ""}>{score > 0 ? "Positive" : score < 0 ? "Negative" : "Neutral"} ({score > 0 ? "+" : ""}{score})</b></div>
-            <input className="pv-input" value={txt} onChange={e => setTxt(e.target.value.slice(0, 160))} aria-label="Write a book review" />
+            <div className="pv-head"><span className="mono">sentence sentiment · try it</span><b className={score > 0 ? "pv-ok" : score < 0 ? "pv-bad" : ""}>{score > 0 ? "Positive" : score < 0 ? "Negative" : "Neutral"} ({score > 0 ? "+" : ""}{score})</b></div>
+            <input className="pv-input" value={txt} onChange={e => setTxt(e.target.value.slice(0, 160))} aria-label="Write a sentence" />
             <p className="pv-words">{words.map((w, i) => { const k = w.toLowerCase().replace(/[^a-z]/g, ""); return <span key={i} className={POS.includes(k) ? "is-pos" : NEG.includes(k) ? "is-neg" : ""}>{w}</span>; })}</p>
             <Note />
         </div>

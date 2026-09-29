@@ -235,7 +235,7 @@ export default class PlanetScene {
         const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
         return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
     }
-    /** Cooch Behar Government Engineering College, as I remember it: a long cream block with red bands, a tall entrance, the flag */
+    /** Cooch Behar Government Engineering College, as I remember it: a long cream block with red bands, a tall entrance */
     cgec(g) {
         const m = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }), wall = m(0xf1e8d6), band = m(0xb5523b), glass = m(0x5d8fb8);
         this.box(6.4, 0.2, 2, this.M.path, g, 0, 0, 0.1, 0.04);
@@ -246,16 +246,6 @@ export default class PlanetScene {
         this.cyl(0.07, 0.07, 1.05, wall, g, -0.75, 0.2, 1.22, 8); this.cyl(0.07, 0.07, 1.05, wall, g, 0.75, 0.2, 1.22, 8);
         this.box(0.7, 0.9, 0.04, glass, g, 0, 0.2, 0.86, 0.02);
         const s = this.sign([["COOCH BEHAR GOVT.", 150, 0.36], ["ENGINEERING COLLEGE", 132, 0.72]], 1.7, 0.5, { bg: "#f7f1e6", fg: "#7a2a1c" }); s.position.set(0, 2.3, 0.87); g.add(s);
-        // the flag
-        const pole = this.cyl(0.035, 0.045, 3.6, this.M.white, g, 2.6, 0.2, 1.1, 8);
-        const fc = document.createElement("canvas"); fc.width = 150; fc.height = 100; const x = fc.getContext("2d");
-        [["#ff9933", 0], ["#ffffff", 1], ["#138808", 2]].forEach(([c, i]) => { x.fillStyle = c; x.fillRect(0, i * 33.4, 150, 33.4); });
-        x.strokeStyle = "#000080"; x.lineWidth = 3; x.beginPath(); x.arc(75, 50, 13, 0, 7); x.stroke();
-        const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace;
-        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6, 10, 1), new THREE.MeshStandardMaterial({ map: ft, side: THREE.DoubleSide, roughness: 0.9 })); flag.position.set(3.05, 3.45, 1.1); g.add(flag);
-        const fp = flag.geometry.attributes.position, base = fp.array.slice();
-        this.anim.push(t => { for (let i = 0; i < fp.count; i++) { const px = base[i * 3]; fp.array[i * 3 + 2] = Math.sin(t * 4 + px * 5) * 0.06 * (px + 0.45); } fp.needsUpdate = true; });
-        pole.castShadow = false;
     }
     /** TUHH, Hamburg: red-brick main building, white windows, dark roof, and the modern turquoise wing */
     tuhh(g) {
@@ -551,7 +541,7 @@ export default class PlanetScene {
             this.meBody.rotation.y += (faceCam - this.meBody.rotation.y) * 0.12;
             if (this.head && this.base === "idle" && !this.oneShot) { this.head.rotation.y += (this.smooth.x * 0.5 - this.head.rotation.y) * 0.1; this.head.rotation.x += (-this.smooth.y * 0.3 - this.head.rotation.x) * 0.1; }
             this.mixer.update(dt);
-            if (typing && !this.oneShot) { ["arm-left", "arm-right"].forEach((n, i) => { const b = this.meBody.getObjectByName(n); if (b) b.rotation.x -= 1.1 + Math.sin(t * 16 + i * 2) * 0.12; }); }
+            if (typing && !this.oneShot && this.head) { this.head.rotation.x = 0.18 + Math.sin(t * 5) * 0.035; this.head.rotation.y = -0.25 + Math.sin(t * 0.7) * 0.08; }
             // the coding rig appears under me when I sit down in the park
             this.rigK += ((typing ? 1 : 0) - this.rigK) * 0.12; this.rig.visible = this.rigK > 0.01; this.rig.scale.setScalar(Math.max(0.001, this.rigK)); this.rig.rotation.y = 1.2;
             if (this.rig.visible) {

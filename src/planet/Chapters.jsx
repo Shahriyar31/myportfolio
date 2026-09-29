@@ -7,7 +7,7 @@ import { EXPERIENCE, PROJECTS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/co
 import { useChat, ask, openChat } from "../site/chat";
 import { attack, settle, useAttack, LAYERS } from "../site/attack";
 import { useProgress, mark } from "../site/progress";
-import { scrollToId, reducedMotion } from "../site/hooks";
+import { scrollToId, reducedMotion, compact, COMPACT } from "../site/hooks";
 import Preview from "../site/Previews";
 import BuildIt from "../site/BuildIt";
 import KeepLegal from "../site/KeepLegal";
@@ -91,8 +91,10 @@ const PROOF = [
 ];
 const STACK = ["Azure AI Foundry", "Azure OpenAI", "RAG", "LangGraph", "MCP", "EU AI Act", "GDPR", "NIST AI RMF", "OWASP LLM Top 10", "Python", "SQL", "Kafka", "Docker", "DevSecOps"];
 export function Hero({ ready, onQuick, onCv }) {
+    const sec = useRef(null);
+    useEffect(() => { const f = () => { const el = sec.current; if (!el) return; const k = Math.max(0, Math.min(1, scrollY / (innerHeight * 0.55))); el.style.setProperty("--fade", String(1 - k)); }; f(); addEventListener("scroll", f, { passive: true }); return () => removeEventListener("scroll", f); }, []);
     return (
-        <section id="home" className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
+        <section id="home" ref={sec} className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
             <div className="pl-hero-copy">
                 <span className="pl-chip mono"><i className="pl-dot" />Open to roles · Hamburg, Germany</span>
                 <h1 className="pl-hero-name"><span className="pl-hero-hi">Hi, I'm</span> {NAME}</h1>
@@ -124,48 +126,43 @@ function DemoModal({ item, onClose }) {
     }, [onClose]);
     const { Demo } = item;
     return (
-        <div className="pl-modal" role="dialog" aria-modal="true" aria-label={item.demo} onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="pl-modal" data-lenis-prevent role="dialog" aria-modal="true" aria-label={item.demo} onClick={e => e.target === e.currentTarget && onClose()}>
             <div className="pl-modal-box pl-card is-drawn"><button className="pl-x" onClick={onClose} aria-label="Close demo">×</button><Demo /></div>
         </div>
     );
 }
 export function What() {
-    const [open, setOpen] = useState(null), p = useProgress(), sec = useRef(null), stage = useRef(null), sats = useRef([]), beams = useRef([]), hot = useRef(-1), [small, setSmall] = useState(false);
+    const [open, setOpen] = useState(null), p = useProgress(), sec = useRef(null), stage = useRef(null), sats = useRef([]), beams = useRef([]), [n, setN] = useState(0), cur = useRef(0), [small, setSmall] = useState(false);
+    useEffect(() => { const mq = matchMedia(COMPACT), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
+    // one card per stretch of scroll: it pops out of the tower's core and stays put
+    useSlots(sec, q => { const k = q < -0.7 ? 0 : Math.min(3, Math.floor(q + 1.5)); if (k !== cur.current) { cur.current = k; setN(k); } });
     useEffect(() => {
-        const mq = matchMedia("(max-width: 860px)"), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f);
-        let raf = 0, t = 0, last = performance.now();
-        const loop = now => {
-            raf = requestAnimationFrame(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now;
-            const el = sec.current, st = stage.current, S = World.scene; if (!el || !st || !S || mq.matches) return;
-            const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
-            if (hot.current < 0 && !reducedMotion()) t += dt * 0.16;
-            const top = st.getBoundingClientRect().top, core = S.screenOf("core");
-            WHAT.forEach((w, i) => {
-                const n = sats.current[i], ln = beams.current[i]; if (!n) return;
-                const a = t + i * (Math.PI * 2 / 3), at = S.screenOf("tower", a); if (!at) return;
-                const front = (Math.sin(a) + 1) / 2, k = hot.current === i ? 1.08 : 0.8 + front * 0.2;
-                const hw = n.offsetWidth / 2, cx = Math.min(innerWidth - 120 - hw, Math.max(24 + hw, at.x)); at.x = cx;
-                n.style.transform = `translate(${cx - hw}px, ${Math.max(84, at.y - top - n.offsetHeight / 2)}px) scale(${k})`;
-                n.style.zIndex = hot.current === i ? 30 : String(10 + Math.round(front * 10)); n.style.opacity = String(hot.current >= 0 && hot.current !== i ? 0.45 : 0.55 + front * 0.45);
-                if (ln && core) { ln.setAttribute("x1", core.x); ln.setAttribute("y1", core.y - top); ln.setAttribute("x2", at.x); ln.setAttribute("y2", at.y - top); ln.style.opacity = String(0.25 + front * 0.6); }
-            });
-        };
-        raf = requestAnimationFrame(loop);
-        return () => { cancelAnimationFrame(raf); mq.removeEventListener("change", f); };
-    }, []);
-    const enter = i => { hot.current = i; World.scene?.setWhat(i); }, leave = () => { hot.current = -1; World.scene?.setWhat(-1); };
+        if (n <= 0) return; World.scene?.setWhat(n - 1);
+        const el = sats.current[n - 1], core = World.scene?.screenOf("core");
+        if (el && core && !small && !reducedMotion()) { const r = el.getBoundingClientRect(); el.animate([{ transform: `translate(${core.x - r.left - r.width / 2}px, ${core.y - r.top - r.height / 2}px) scale(.08)`, opacity: 0, filter: "blur(6px) brightness(1.8)" }, { opacity: 1, offset: 0.4 }, { transform: "none", opacity: 1, filter: "none" }], { duration: 1000, easing: "cubic-bezier(.2,.9,.25,1.1)" }); }
+        const t = setTimeout(() => World.scene?.setWhat(-1), 1600); return () => clearTimeout(t);
+    }, [n, small]);
+    // light beams from the core to each card that is out
+    useEffect(() => {
+        let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const st = stage.current, S = World.scene; if (!st || !S || small) return; const top = st.getBoundingClientRect().top, core = S.screenOf("core"); if (!core) return;
+            WHAT.forEach((w, i) => { const ln = beams.current[i], el = sats.current[i]; if (!ln || !el) return; const r = el.getBoundingClientRect(), x2 = r.left + r.width / 2 < core.x ? r.right : r.left, y2 = r.top + Math.min(40, r.height / 2);
+                ln.setAttribute("d", `M${core.x} ${core.y - top} Q${(core.x + x2) / 2} ${Math.min(core.y, y2) - top - 40} ${x2} ${y2 - top}`); }); };
+        raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+    }, [small]);
+    const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(-1);
     return (
-        <section id="what" ref={sec} className="pl-what-sec" data-angle={PLACES.what.theta} data-sky="1">
+        <section id="what" ref={sec} className="pl-what-sec" data-angle={PLACES.what.theta} data-sky="1" data-slot="0.45" style={{ height: "calc(100svh + 150svh)" }}>
             <div className="pl-what-stage" ref={stage}>
                 <div className="pl-what-head">
                     <Kick>02 · What I do · the AI tower</Kick>
                     <H text="Three things, done properly." accent={["properly."]} />
-                    <p className="pl-p">They orbit my AI tower. Hover one to power up the core; each has a 1-minute hands-on demo.</p>
+                    <p className="pl-p">Keep scrolling: each one comes out of my AI tower. Hover a card to power the core; each has a 1-minute hands-on demo.</p>
+                    <div className="pl-what-steps" aria-hidden="true">{WHAT.map((w, i) => <i key={w.id} className={i < n ? "is-on" : ""} />)}</div>
                 </div>
-                {!small && <svg className="pl-beams" aria-hidden="true">{WHAT.map((w, i) => <line key={w.id} ref={el => { beams.current[i] = el; }} />)}</svg>}
+                {!small && <svg className="pl-beams" aria-hidden="true">{WHAT.map((w, i) => <path key={w.id} ref={el => { beams.current[i] = el; }} className={i < n ? "is-on" : ""} pathLength="1" />)}</svg>}
                 <div className={small ? "pl-sats-row" : ""}>
                     {WHAT.map((w, i) => (
-                        <div key={w.id} ref={el => { sats.current[i] = el; }} className="pl-sat" onPointerEnter={() => enter(i)} onPointerLeave={leave} onFocus={() => enter(i)} onBlur={leave}>
+                        <div key={w.id} ref={el => { sats.current[i] = el; }} className={`pl-sat pl-sat-${i} ${small || i < n ? "is-out" : ""}`} onPointerEnter={() => enter(i)} onPointerLeave={leave} onFocus={() => enter(i)} onBlur={leave}>
                             <span className="pl-sat-n mono">{w.n}</span>
                             <h3>{w.title}</h3>
                             <p>{w.plain}</p>
@@ -247,7 +244,7 @@ export function Experience() {
     useEffect(() => {
         let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const ln = line.current, pn = panel.current, S = World.scene, k = cur.current; if (!ln || !pn || !S || k < 0) return;
             const at = S.screenOf(k < 4 ? "floor" : "lab", Math.min(3, k)), r = pn.getBoundingClientRect(); if (!at) return;
-            const wide = innerWidth > 860, x2 = wide ? r.right : r.left + r.width / 2, y2 = wide ? r.top + 60 : r.top;
+            const wide = !compact(), x2 = wide ? r.right : r.left + r.width / 2, y2 = wide ? r.top + 60 : r.top;
             ln.setAttribute("d", `M${at.x} ${at.y} C${(at.x + x2) / 2} ${at.y}, ${(at.x + x2) / 2} ${y2}, ${x2} ${y2}`); };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, []);
@@ -276,7 +273,7 @@ export function Experience() {
                         <p>{res.summary}</p>
                         <ul>{res.focus.map((x, i) => <li key={x.k} style={{ "--i": i }}><i>✓</i><b>{x.k}:</b> {x.d}</li>)}</ul>
                         <div className="pl-stickers">{res.tech.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
-                        <div className="pl-paper"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where}</small></div>
+                        <div className="pl-paper"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where} · now researching security threats in the Model Context Protocol (MCP)</small></div>
                         <button className="pl-link" onClick={() => scrollToProject(1)}>See it in the project park →</button>
                     </div>
                 )}
@@ -308,10 +305,14 @@ function ProjectCard({ p, i }) {
                 <h3 className="pl-show-h">{p.title}</h3>
                 <p className="pl-sub">{p.sub}</p>
                 <p className="pl-p">{p.desc}</p>
+                <ul className="pl-points">{p.points.map(t => <li key={t}>{t}</li>)}</ul>
                 <div className="pl-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
-                {p.link && <a className="pl-btn is-main" href={p.link} target="_blank" rel="noreferrer">{p.id === 1 ? "Open Argus AI ↗" : "View code ↗"}</a>}
             </div>
-            <div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div>
+            <div className="pl-show-side">
+                <div className="pl-show-stats">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div>
+                <div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div>
+                <div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div>
+            </div>
         </article>
     );
 }
@@ -319,15 +320,15 @@ function ProjectCard({ p, i }) {
 export function Projects() {
     const sec = useRef(null), items = PLACES.projects.items, N = PROJECT_ORDER.length, nodes = useRef([]), [near, setNear] = useState(0), nearRef = useRef(0);
     useSlots(sec, raw => {
-        const p = Math.min(N - 1, Math.max(0, raw)), w = nodes.current[0]?.offsetWidth || 700, gap = innerWidth > 860 ? w * 0.86 : w * 0.94;
+        const c = Math.min(N - 1, Math.max(0, raw)), base = Math.floor(c), fr = c - base, g = fr < 0.35 ? 0 : fr > 0.85 ? 1 : (fr - 0.35) / 0.5, p = base + g * g * (3 - 2 * g), w = nodes.current[0]?.offsetWidth || 700, gap = !compact() ? w * 0.86 : w * 0.94;
         nodes.current.forEach((n, k) => { if (!n) return; const o = k - p, a = Math.abs(o); n.style.visibility = a > 2.2 ? "hidden" : "visible";
-            n.style.transform = `translateX(${o * gap}px) perspective(1400px) rotateY(${-o * 24}deg) scale(${1 - Math.min(a, 1.6) * 0.16})`; n.style.opacity = String(Math.max(0, 1 - a * 0.55)); n.style.zIndex = String(20 - Math.round(a * 4)); n.style.filter = a > 0.25 ? `blur(${Math.min(4, (a - 0.25) * 4)}px) saturate(${1 - Math.min(a, 1) * 0.5})` : ""; n.classList.toggle("is-center", a < 0.3); });
+            n.style.transform = `translateX(${o * gap}px) perspective(1400px) rotateY(${-o * 24}deg) scale(${1 - Math.min(a, 1.6) * 0.16})`; n.style.opacity = String(Math.max(0, 1 - a * 0.42)); n.style.zIndex = String(20 - Math.round(a * 4)); n.style.filter = a > 0.3 ? `blur(${Math.min(3, (a - 0.3) * 2.5)}px) saturate(${1 - Math.min(a, 1) * 0.4})` : ""; n.classList.toggle("is-center", a < 0.3); });
         const k = Math.round(p); if (k !== nearRef.current) { nearRef.current = k; setNear(k); }
     });
-    useEffect(() => { Views.projects = () => ({ dy: innerWidth > 860 ? -1.7 : -0.4, zoom: 0.3 }); return () => { delete Views.projects; }; }, []);
-    const keys = [[-0.6, items[0].theta, 4], ...items.flatMap((it, k) => [[k - 0.28, it.theta, 4], [k + 0.28, it.theta, 4]])];
+    useEffect(() => { Views.projects = () => ({ dy: !compact() ? -1.7 : -0.4, zoom: 0.3 }); return () => { delete Views.projects; }; }, []);
+    const keys = [[-0.6, items[0].theta, 4], ...items.flatMap((it, k) => [[k - 0.1, it.theta, 4], [k + 0.4, it.theta, 4]])];
     return (
-        <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 80svh + 100svh)` }} data-slot="0.8" data-keys={JSON.stringify(keys)}>
+        <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 110svh + 100svh)` }} data-slot="1.1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
                 <div className="pl-show-head"><Kick>05 · The project park · {near + 1} / {N}</Kick><div className="pl-dots">{PROJECT_ORDER.map((id, k) => <button key={id} className={k === near ? "is-on" : ""} onClick={() => scrollToProject(k)} aria-label={`Project ${k + 1}`} />)}</div></div>
                 <div className="pl-show-track">
@@ -411,7 +412,7 @@ export function Journey() {
 }
 
 /* ── 7 · skills: a neural network; pick the role you're hiring for and the path lights up ── */
-function useSkillsView() { useEffect(() => { Views.skills = () => (innerWidth > 860 ? { dy: 2.2 } : {}); return () => { delete Views.skills; }; }, []); return undefined; }
+function useSkillsView() { useEffect(() => { Views.skills = () => (!compact() ? { dy: 2.2 } : {}); return () => { delete Views.skills; }; }, []); return undefined; }
 export function Skills() {
     return (
         <section id="skills" ref={useSkillsView()} className="pl-sec pl-skills-sec" data-angle={PLACES.skills.theta} data-sky="7">
@@ -427,12 +428,15 @@ export function Photos() {
 
 /* ── 9 · contact: write me a letter; it folds into a paper plane and flies into my mailbox ── */
 function Letter() {
-    const [name, setName] = useState(""), [msg, setMsg] = useState(""), [st, setSt] = useState("idle"), paper = useRef(null);
+    const [name, setName] = useState(""), [email, setEmail] = useState(""), [msg, setMsg] = useState(""), [trap, setTrap] = useState(""), [st, setSt] = useState("idle"), [err, setErr] = useState(""), paper = useRef(null);
+    const mailto = () => `mailto:${EMAIL}?subject=${encodeURIComponent(`Hello from ${name.trim() || "your portfolio"}`)}&body=${encodeURIComponent(`${msg.trim()}\n\n— ${name.trim()} ${email.trim()}`)}`;
+    const deliver = () => fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, message: msg, website: trap }) })
+        .then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Could not deliver right now"); return true; });
     const send = e => {
-        e.preventDefault(); if (!msg.trim() || st !== "idle") return;
-        const subject = `Hello from ${name.trim() || "your portfolio"}`, body = `${msg.trim()}\n\n${name.trim() ? `— ${name.trim()}` : ""}`;
-        const go = () => { location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; };
-        if (reducedMotion()) { World.scene?.setMail(true); go(); return; }
+        e.preventDefault(); if (!msg.trim() || !email.trim() || st !== "idle") return;
+        setErr(""); const sending = deliver();
+        const done = ok => { if (ok) { World.scene?.setMail(true); setSt("sent"); say("Got it! I'll write back soon 💌"); } else { setSt("failed"); } };
+        if (reducedMotion()) { setSt("fold"); sending.then(() => done(true), x => { setErr(x.message); done(false); }); return; }
         setSt("fold");
         setTimeout(() => {
             const r = paper.current.getBoundingClientRect(), to = World.scene?.screenOf("mail") || { x: innerWidth * 0.7, y: innerHeight * 0.4 };
@@ -440,22 +444,24 @@ function Letter() {
             document.body.appendChild(plane);
             const x0 = r.left + r.width / 2 - 32, y0 = r.top + r.height / 2 - 32, x1 = to.x - 32, y1 = to.y - 32, mx = (x0 + x1) / 2, my = Math.min(y0, y1) - 220;
             const pts = Array.from({ length: 13 }, (_, k) => { const t = k / 12, x = (1 - t) ** 2 * x0 + 2 * (1 - t) * t * mx + t * t * x1, y = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * my + t * t * y1; return { transform: `translate(${x}px, ${y}px) rotate(${-20 + t * 50}deg) scale(${1 - t * 0.6})`, opacity: t > 0.92 ? 0 : 1 }; });
-            plane.animate(pts, { duration: 1500, easing: "cubic-bezier(.45,0,.3,1)", fill: "forwards" }).finished.then(() => {
-                plane.remove(); World.scene?.setMail(true); setSt("sent"); toast("✉ Your letter landed in my mailbox. Your email app opens to send it.");
-                setTimeout(go, 600);
-            });
+            const flight = plane.animate(pts, { duration: 1500, easing: "cubic-bezier(.45,0,.3,1)", fill: "forwards" }).finished.then(() => plane.remove());
+            Promise.allSettled([flight, sending]).then(([, r2]) => { if (r2.status === "rejected") setErr(r2.reason?.message || ""); done(r2.status === "fulfilled"); });
         }, 650);
     };
     return (
         <form ref={paper} className={`pl-mailform is-${st}`} onSubmit={send}>
             <span className="pl-postmark mono" aria-hidden="true">HAMBURG<br />✉</span>
             {st === "sent" ? (
-                <div className="pl-sent"><b>Letter sent ✓</b><p>If your email app didn't open, write to <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p><button type="button" className="pl-link" onClick={() => { setSt("idle"); setMsg(""); }}>Write another</button></div>
+                <div className="pl-sent"><b>Delivered to my inbox ✓</b><p>Thank you{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}! I'll reply to {email.trim()} soon.</p><button type="button" className="pl-link" onClick={() => { setSt("idle"); setMsg(""); }}>Write another</button></div>
+            ) : st === "failed" ? (
+                <div className="pl-sent"><b>The post office is closed right now.</b><p>{err || "It couldn't be delivered."} Your letter is still here: send it with your email app instead.</p><div className="pl-ctas"><a className="pl-btn is-main" href={mailto()}>Open my email app</a><button type="button" className="pl-link" onClick={() => setSt("idle")}>Try again</button></div></div>
             ) : (<>
                 <label className="pl-dear">Dear Farhan,</label>
-                <textarea value={msg} onChange={e => setMsg(e.target.value)} maxLength={600} rows={4} placeholder="We're hiring for… / I liked your project… / Let's talk about…" aria-label="Your message" required />
-                <div className="pl-sign"><label>From</label><input value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="your name & company" aria-label="Your name" /></div>
-                <button className="pl-btn is-main" disabled={!msg.trim() || st !== "idle"}>Fold it & send ✈</button>
+                <textarea value={msg} onChange={e => setMsg(e.target.value)} maxLength={2000} rows={4} placeholder="We're hiring for… / I liked your project… / Let's talk about…" aria-label="Your message" required />
+                <div className="pl-sign"><label>From</label><input value={name} onChange={e => setName(e.target.value)} maxLength={80} placeholder="your name & company" aria-label="Your name" /></div>
+                <div className="pl-sign"><label>Reply to</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={120} placeholder="you@company.com" aria-label="Your email, so I can reply" required /></div>
+                <input className="pl-trap" tabIndex={-1} autoComplete="off" value={trap} onChange={e => setTrap(e.target.value)} aria-hidden="true" name="website" />
+                <button className="pl-btn is-main" disabled={!msg.trim() || !email.trim() || st !== "idle"}>{st === "fold" ? "Sending…" : "Fold it & send ✈"}</button>
             </>)}
         </form>
     );
@@ -464,7 +470,7 @@ export function Contact({ onCv, onQuick }) {
     const ui = useUI(), a = useAttack(), p = useProgress(), [copied, setCopied] = useState(false), verified = p.verdict?.status === "solved";
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
-    useEffect(() => { Views.contact = () => ({ fx: innerWidth > 860 ? -1.6 : 0, dy: innerWidth > 860 ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
+    useEffect(() => { Views.contact = () => ({ fx: !compact() ? -1.6 : 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     const stamps = [
@@ -473,6 +479,7 @@ export function Contact({ onCv, onQuick }) {
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
+            <div className="pl-desk-left">
             <div className="pl-desk-copy">
                 <Kick>08 · My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />
@@ -487,6 +494,7 @@ export function Contact({ onCv, onQuick }) {
                     <span className={`mono ${a.tries ? "ok" : ""}`}>{a.tries ? `${a.tries} attacks · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try to break my AI</button>}</span>
                     {verified ? <span className="pl-stamp mono">Verified<small>by you ✓</small></span> : <button className="pl-rubber" onClick={() => { mark("verdict", "solved"); say("Thank you! That means a lot 🙏"); }}>Stamp me: trustworthy</button>}
                 </div>
+            </div>
             </div>
             <footer className="pl-foot mono"><span>© {new Date().getFullYear()} {NAME} · Hamburg</span><button onClick={() => scrollToId("home")}>Walk back to the start ↑</button></footer>
         </section>
