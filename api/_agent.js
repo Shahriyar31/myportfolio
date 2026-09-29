@@ -25,7 +25,7 @@ import { SystemMessage, HumanMessage, AIMessage, ToolMessage } from "@langchain/
 import { Annotation, MessagesAnnotation, StateGraph, START, END } from "@langchain/langgraph";
 import { z } from "zod";
 import { KB } from "./_kb.js";
-import { retrieve, answer as ragAnswer, checkAnswer, PERSONA, REFUSAL, EMAIL, MODELS } from "./_rag.js";
+import { retrieve, answer as ragAnswer, checkAnswer, PERSONA, REFUSAL, EMAIL, MODELS, groqKey, ready } from "./_rag.js";
 import { inputShield } from "./_guard.js";
 
 const MAX_TURNS = 4, MAX_INPUT = 4000;
@@ -99,7 +99,7 @@ const State = Annotation.Root({
     trace: Annotation({ reducer: (a, z) => a.concat(z), default: () => [] }),
 });
 
-export function buildAgent({ apiKey = process.env.GROQ_API_KEY, baseUrl, timeout = 15000 } = {}) {
+export function buildAgent({ apiKey = groqKey(), baseUrl, timeout = 15000 } = {}) {
     const sink = { actions: [], sources: [] }, tools = makeTools(sink), byName = Object.fromEntries(tools.map(t => [t.name, t]));
     const llm = new ChatGroq({ apiKey, model: MODELS.answer, temperature: 0.35, maxTokens: 450, maxRetries: 1, ...(baseUrl ? { baseUrl } : {}) });
     const withTools = llm.bindTools(tools), answerOnly = llm.bindTools(tools, { tool_choice: "none" });
@@ -153,19 +153,21 @@ export function buildAgent({ apiKey = process.env.GROQ_API_KEY, baseUrl, timeout
 export async function runAgent(history, opts = {}) {
     const msgs = history.slice(-10).map(m => (m.role === "assistant" ? new AIMessage(m.content) : new HumanMessage(m.content)));
     const question = history.at(-1)?.content || "";
-    if (!(opts.apiKey ?? process.env.GROQ_API_KEY)) {
+    if (!(opts.apiKey ?? groqKey())) {
         const r = await ragAnswer(question.slice(0, 600), history.slice(0, -1));
         return { ...r, actions: [], trace: [{ step: "agent", detail: "no model key: grounded pipeline" }, ...r.trace] };
     }
     try {
+        if (!opts.baseUrl) await ready();
         const { graph, sink } = buildAgent(opts);
         const s = await graph.invoke({ messages: msgs }, { recursionLimit: 2 * MAX_TURNS + 6 });
         const seen = new Set(), sources = sink.sources.filter(d => !seen.has(d.file) && seen.add(d.file)).map(d => ({ title: d.title, section: d.section, file: d.file }));
         return { answer: s.answer, sources, actions: sink.actions.map(({ label, ...a }) => a), model: s.model || "guard", trace: s.trace };
     } catch (e) {
         // the agent failed (rate limit, malformed tool call, timeout): the grounded pipeline still answers
-        console.error("agent:", e?.message);
+        const why = String(e?.error?.message || e?.message || e).slice(0, 160);
+        console.error("agent:", why);
         const r = await ragAnswer(question.slice(0, 600), history.slice(0, -1));
-        return { ...r, actions: [], trace: [{ step: "agent", detail: "agent unavailable: grounded pipeline" }, ...r.trace] };
+        return { ...r, actions: [], trace: [{ step: "agent", detail: `agent unavailable (${why}): grounded pipeline` }, ...r.trace] };
     }
 }

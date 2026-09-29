@@ -21,8 +21,11 @@ const load = async () => {
 export default async function handler(req, res) {
     if (req.method === "GET") {
         const m = await load().catch(e => ({ via: "none", error: String(e?.message || e).slice(0, 200) }));
+        const { groqKey, probe } = await import("./_rag.js");
+        // ?probe=1 makes one tiny real call to Groq and reports its answer or its error message
+        const live = req.query?.probe || /[?&]probe=1/.test(req.url || "") ? (await limited("probe", ipOf(req), 10) ? { skipped: "rate limited" } : await probe()) : undefined;
         res.setHeader("Cache-Control", "no-store");
-        return res.status(200).json({ ok: m.via !== "none", groqKey: Boolean(process.env.GROQ_API_KEY), pipeline: m.via, ...(m.error ? { error: m.error } : {}), node: process.version });
+        return res.status(200).json({ ok: m.via !== "none", groqKey: Boolean(groqKey()), pipeline: m.via, ...(m.error ? { error: m.error } : {}), ...(live ? { groq: live } : {}), node: process.version });
     }
     if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
     if (await limited("chat", ipOf(req), 30)) return res.status(429).json({ error: "You're asking a lot of great questions! Please wait a few minutes and try again." });

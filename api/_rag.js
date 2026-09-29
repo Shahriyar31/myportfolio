@@ -22,6 +22,43 @@ import { inputShield, outputScan } from "./_guard.js";
 export const EMAIL = "shahriyarfarhan3101@gmail.com";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 export const MODELS = { answer: process.env.GROQ_MODEL || "llama-3.3-70b-versatile", fast: process.env.GROQ_FAST_MODEL || "llama-3.1-8b-instant" };
+/** the key as pasted into Vercel, without stray spaces, line breaks or quotes */
+export const groqKey = () => (process.env.GROQ_API_KEY || "").trim().replace(/^["']+|["']+$/g, "");
+
+/*
+ * Groq retires models from time to time. Once per cold start, ask Groq which models this key can use and pick
+ * the first available one from each preference list, so a retired model never takes the assistant down.
+ */
+const PREFER = {
+    answer: [process.env.GROQ_MODEL, "llama-3.3-70b-versatile", "openai/gpt-oss-120b", "moonshotai/kimi-k2-instruct-0905", "moonshotai/kimi-k2-instruct", "meta-llama/llama-4-maverick-17b-128e-instruct", "qwen/qwen3-32b"],
+    fast: [process.env.GROQ_FAST_MODEL, "llama-3.1-8b-instant", "openai/gpt-oss-20b", "meta-llama/llama-4-scout-17b-16e-instruct"],
+};
+let resolved = null;
+export function ready() {
+    if (resolved) return resolved;
+    resolved = (async () => {
+        const key = groqKey(); if (!key) return { ok: false, status: 0, error: "GROQ_API_KEY is not set" };
+        const ac = new AbortController(), t = setTimeout(() => ac.abort(), 4000);
+        try {
+            const r = await fetch("https://api.groq.com/openai/v1/models", { signal: ac.signal, headers: { Authorization: `Bearer ${key}` } });
+            if (!r.ok) { const j = await r.json().catch(() => ({})); resolved = null; return { ok: false, status: r.status, error: String(j?.error?.message || r.statusText).slice(0, 200) }; }
+            const ids = new Set(((await r.json())?.data || []).filter(m => m.active !== false).map(m => m.id));
+            for (const k of ["answer", "fast"]) { const pick = PREFER[k].find(m => m && ids.has(m)); if (pick) MODELS[k] = pick; }
+            if (!ids.has(MODELS.fast)) MODELS.fast = MODELS.answer;
+            return { ok: true, status: 200, models: { ...MODELS } };
+        } catch (e) { resolved = null; return { ok: false, status: 0, error: e?.name === "AbortError" ? "Groq did not answer in time" : String(e?.message || e).slice(0, 200) }; }
+        finally { clearTimeout(t); }
+    })();
+    return resolved;
+}
+
+/** for the health check: one tiny real completion, reporting Groq's own error if it fails (never the key) */
+export async function probe() {
+    const models = await ready();
+    const t0 = Date.now();
+    try { const { model } = await groq({ model: MODELS.answer, messages: [{ role: "user", content: "Say OK." }], max_tokens: 5, timeout: 8000 }); return { models, completion: { ok: true, model, ms: Date.now() - t0 } }; }
+    catch (e) { return { models, completion: { ok: false, status: e.status || 0, error: String(e.detail || e.message).slice(0, 240) } }; }
+}
 
 /* ── retrieval: BM25 (k1 1.4, b 0.72) ── */
 export function retrieve(query, k = 4) {
@@ -44,13 +81,13 @@ export function retrieve(query, k = 4) {
 
 /* ── Groq, with a timeout and one retry on a fallback model ── */
 async function groq({ model, messages, max_tokens = 320, temperature = 0.5, timeout = 12000 }) {
-    const key = process.env.GROQ_API_KEY;
+    const key = groqKey();
     if (!key) throw Object.assign(new Error("GROQ_API_KEY is not set"), { code: "nokey" });
     const tryOnce = async m => {
         const ac = new AbortController(), t = setTimeout(() => ac.abort(), timeout);
         try {
             const r = await fetch(GROQ_URL, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` }, body: JSON.stringify({ model: m, messages, max_tokens, temperature }) });
-            if (!r.ok) throw Object.assign(new Error(`groq ${r.status}`), { status: r.status });
+            if (!r.ok) { const j = await r.json().catch(() => ({})); throw Object.assign(new Error(`groq ${r.status}`), { status: r.status, detail: j?.error?.message }); }
             const j = await r.json(), text = j?.choices?.[0]?.message?.content?.trim();
             if (!text) throw new Error("empty completion");
             return { text, model: m };
@@ -166,6 +203,7 @@ export const graph = new StateGraph(State)
 
 /** one question in, one grounded answer out */
 export async function answer(question, history = []) {
+    await ready();
     const s = await graph.invoke({ question, history, trace: [] });
     const seen = new Set(), sources = (s.docs || []).filter(d => !seen.has(d.file) && seen.add(d.file)).map(d => ({ title: d.title, section: d.section, file: d.file }));
     return { answer: s.answer, sources, model: s.model, trace: s.trace };
