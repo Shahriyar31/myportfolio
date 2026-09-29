@@ -195,7 +195,7 @@ function Bubble({ ui }) {
     const flying = ui.chapter === "journey" && journeyStop(ui.journey ?? 0) === 2;
     useEffect(() => { // type it out
         if (reducedMotion()) { setShown(text); return; }
-        setShown(""); let i = 0; const id = setInterval(() => { i += 2; setShown(text.slice(0, i)); if (i >= text.length) clearInterval(id); }, 28); return () => clearInterval(id);
+        setShown(""); let i = 0; const id = setInterval(() => { i += text.length > 90 ? 4 : 2; setShown(text.slice(0, i)); if (i >= text.length) clearInterval(id); }, 28); return () => clearInterval(id);
     }, [text]);
     useEffect(() => {
         let raf = 0;
@@ -210,7 +210,7 @@ function Bubble({ ui }) {
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, [flying, text]);
-    return <div ref={el} className="pl-bubble" aria-live="polite" role="status">{shown}<span className="pl-caret" aria-hidden="true" /></div>;
+    return <div ref={el} className={`pl-bubble ${text.length > 90 ? "is-long" : ""}`} aria-live="polite" role="status">{shown}<span className="pl-caret" aria-hidden="true" /></div>;
 }
 
 /* the first time someone visits: a short, honest hello */

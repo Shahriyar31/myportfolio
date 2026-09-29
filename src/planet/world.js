@@ -32,7 +32,7 @@ export const SKIES = [  // calm Nord / Catppuccin moods: no hot reds, neon green
     S("#6f8fb8", "#d8e1ec", "#f3f1ea", 2.4, "#eceff4", "#56694a", 0, 0, 0, 0),        // 4 projects, soft day
     S("#6b7894", "#d9c3b3", "#eedfd2", 2.0, "#ece2da", "#5a5646", 0, 0, 0, 0.3),      // 5 West Bengal, a gentle golden hour
     S("#5d6878", "#aeb8c5", "#dfe4ea", 1.4, "#d8dee9", "#3e4a40", 0, 1, 0, 0.4),      // 6 Hamburg, rain
-    S("#6c8cb6", "#dde5ef", "#ffffff", 2.4, "#eceff4", "#56694a", 0, 0, 0, 0),        // 7 skills, noon
+    S("#161a26", "#2e3650", "#a9b6d3", 0.8, "#b4befe", "#1e2330", 1, 0, 0.4, 1),     // 7 skills, a clear starry night
     S("#1e2230", "#3b3f58", "#b4befe", 0.8, "#b4befe", "#20232e", 1, 0, 1, 1),        // 8 photography, night
     S("#2f3446", "#8a7f9e", "#e0d4e6", 1.6, "#ddd3e4", "#3a3d34", 0.3, 0, 0.3, 1),    // 9 my desk, a quiet evening
 ];

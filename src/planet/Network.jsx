@@ -76,59 +76,56 @@ function Logo({ ic, color }) {
 const tint = ([, ic, color]) => (typeof ic === "string" ? color : `#${ic.hex}`);
 
 const GROUPS = [["AI & LLMs", 0, 9], ["Governance & security", 9, 19], ["Data", 19, 29], ["Cloud & DevSecOps", 29, 42]];
+/* four constellations; the name is what I do with those skills */
+const SKY = [["Build AI", "AI & LLMs"], ["Govern", "Governance & security"], ["Move data", "Data"], ["Ship & secure", "Cloud & DevSecOps"]];
+// a star's place inside its constellation: two loose columns, gently jittered so it reads like a star chart
+const spotOne = (i, n) => ({ x: 6 + (i % 2) * 16 + Math.sin(i * 5.1) * 4, y: 2 + (i / Math.max(1, n - 1)) * 94 });
+const spot = (i, n) => { const row = Math.floor(i / 2), rows = Math.ceil(n / 2), col = i % 2, j = Math.sin(i * 12.9898 + n * 3.1) * 0.5; return { x: 8 + col * 48 + j * 8, y: 4 + (row / Math.max(1, rows - 1)) * 86 + (col ? 5 : 0) + Math.cos(i * 7.3) * 2 }; };
+
 export default function Network() {
-    const ui = useUI(), [role, setRole] = useState(ROLES[0]), [hover, setHover] = useState(null), [hint, setHint] = useState(false);
-    const box = useRef(null), nodes = useRef({}), groups = useRef([]), [lines, setLines] = useState({ w: 0, h: 0, e: [] });
-    const lit = new Set(role.skills), hidOn = new Set(HID.filter(([id]) => role.w[id] >= 0.5).map(([id]) => id));
-    // measure where things are, then draw: lit skills → what I do → the role (only the path that matters)
+    const ui = useUI(), [role, setRole] = useState(ROLES[0]), [hover, setHover] = useState(null), [hint, setHint] = useState(false), [drawn, setDrawn] = useState(0);
+    const board = useRef(null), stars = useRef({}), [pts, setPts] = useState({ w: 0, h: 0, at: {} });
+    const lit = new Set(role.skills), [one, setOne] = useState(false);
+    useEffect(() => { const mq = matchMedia("(max-width: 860px), (max-width: 1180px) and (orientation: portrait)"), f = () => setOne(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
+    // measure where every star is, so the constellation lines join them exactly
     useLayoutEffect(() => {
-        const el = box.current; if (!el) return;
-        const measure = () => {
-            const b = el.getBoundingClientRect(), rc = n => n.getBoundingClientRect();
-            const c = id => { const n = nodes.current[id]; if (!n) return null; const r = rc(n); return [r.left - b.left + r.width / 2, r.top - b.top + r.height / 2]; };
-            const e = [];
-            GROUPS.forEach(([, from, to], gi) => { const g = groups.current[gi]; if (!g) return; const gr = rc(g); S.slice(from, to).forEach(([name, , , hs]) => { const n = nodes.current[`s:${name}`]; if (!n) return; const r = rc(n); hs.forEach(h => { const t = c(`h:${h}`); if (t) e.push({ k: `${name}>${h}`, a: [gr.right - b.left, r.top - b.top + r.height / 2], b: t, from: name, to: h }); }); }); });
-            HID.forEach(([h]) => ROLES.forEach(r => { const a = c(`h:${h}`), t = nodes.current[`r:${r.id}`]; if (!a || !t) return; const tr = rc(t); e.push({ k: `${h}>${r.id}`, a, b: [tr.left - b.left, tr.top - b.top + tr.height / 2], from: h, to: r.id }); }));
-            setLines({ w: b.width, h: b.height, e });
-        };
-        measure(); const ro = new ResizeObserver(measure); ro.observe(el); document.fonts?.ready.then(measure);
-        return () => ro.disconnect();
-    }, []);
-    useEffect(() => { const el = box.current; const io = new IntersectionObserver(([e]) => World.scene?.setRole(e.isIntersecting ? role.color : null), { threshold: 0.2 }); io.observe(el); return () => io.disconnect(); }, [role]);
-    const pick = r => { setRole(r); World.scene?.setRole(r.color); World.scene?.once("emote-yes"); };
-    const path = ({ a: [x1, y1], b: [x2, y2] }) => `M${x1} ${y1} C${x1 + (x2 - x1) * 0.5} ${y1}, ${x1 + (x2 - x1) * 0.5} ${y2}, ${x2} ${y2}`;
+        const el = board.current; if (!el) return;
+        const measure = () => { const b = el.getBoundingClientRect(), at = {}; Object.entries(stars.current).forEach(([k, n]) => { if (!n) return; const r = n.querySelector(".pl-star-dot")?.getBoundingClientRect(); if (r) at[k] = [r.left - b.left + r.width / 2, r.top - b.top + r.height / 2]; }); setPts({ w: b.width, h: b.height, at }); };
+        measure(); const ro = new ResizeObserver(measure); ro.observe(el); document.fonts?.ready.then(measure); return () => ro.disconnect();
+    }, [one]);
+    useEffect(() => { const el = board.current; const io = new IntersectionObserver(([e]) => { World.scene?.setRole(e.isIntersecting ? role.color : null); if (e.isIntersecting) setDrawn(d => d + 1); }, { threshold: 0.3 }); io.observe(el); return () => io.disconnect(); }, [role]);
+    const pick = r => { setRole(r); setDrawn(d => d + 1); World.scene?.setRole(r.color); World.scene?.once("emote-yes"); };
+    const line = names => names.map(n => pts.at[n]).filter(Boolean).map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+    const roleOrder = S.map(x => x[0]).filter(n => lit.has(n)); // the role's own constellation, drawn across the sky
     const hs = hover && S.find(x => x[0] === hover);
-    const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "near the photographer's tripod" };
+    const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "close to my desk" };
     return (
-        <div className="pl-netcard" style={{ "--rc": role.color }}>
+        <div className="pl-skyboard" style={{ "--rc": role.color }}>
             <div className="pl-net-head">
-                <div><span className="pl-kick mono">07 · My toolkit · a neural network of skills</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
-                <p className="pl-p">Pick a role. The skills it needs light up, and the signal flows through what I do with them, all the way to the job.</p>
+                <div><span className="pl-kick mono">07 · My toolkit · the skill constellations</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
+                <p className="pl-p">Every skill is a star, grouped by what I do with it. Pick a role and I'll draw its constellation across the sky, with where I've really used each one.</p>
             </div>
-            <div className="pl-net" ref={box}>
-                <svg className="pl-net-svg" width={lines.w} height={lines.h} aria-hidden="true">
-                    {lines.e.map(x => { const on = (lit.has(x.from) && hidOn.has(x.to)) || (hidOn.has(x.from) && x.to === role.id), hov = hover === x.from; if (!on && !hov) return null; return <path key={x.k} d={path(x)} className={on ? "is-on" : "is-hov"} />; })}
+            <div className="pl-sky" ref={board}>
+                <svg className="pl-sky-lines" width={pts.w} height={pts.h} aria-hidden="true">
+                    {GROUPS.map(([g, a, b]) => <path key={g} d={line(S.slice(a, b).map(x => x[0]))} className="pl-cline" />)}
+                    <path key={role.id + drawn} d={line(roleOrder)} className="pl-rline" pathLength="1" />
                 </svg>
-                <div className="pl-net-in">
-                    {GROUPS.map(([g, from, to], gi) => (
-                        <div key={g} className="pl-cluster" ref={el => { groups.current[gi] = el; }}>
-                            <span className="mono">{g}</span>
-                            <div>{S.slice(from, to).map(sk => (
-                                <button key={sk[0]} ref={el => { nodes.current[`s:${sk[0]}`] = el; }} className={`pl-skill ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }}
-                                    onPointerEnter={() => setHover(sk[0])} onPointerLeave={() => setHover(null)} onFocus={() => setHover(sk[0])} onBlur={() => setHover(null)} onClick={() => setHover(sk[0])}>
-                                    <span className="pl-skill-ic"><Logo ic={sk[1]} color={sk[2]} /></span>{sk[0]}
-                                </button>))}
-                            </div>
+                {GROUPS.map(([g, a, b], gi) => { const list = S.slice(a, b); return (
+                    <div key={g} className="pl-const">
+                        <div className="pl-const-name"><b>✦ {SKY[gi][0]}</b><span className="mono">{SKY[gi][1]}</span></div>
+                        <div className="pl-const-field" style={{ "--n": list.length }}>
+                            {list.map((sk, i) => { const { x, y } = (one ? spotOne : spot)(i, list.length), on = lit.has(sk[0]); return (
+                                <button key={sk[0]} ref={el => { stars.current[sk[0]] = el; }} className={`pl-star ${on ? "is-on" : ""} ${hover === sk[0] ? "is-hover" : ""}`} style={{ left: `${x}%`, top: `${y}%`, "--c": tint(sk), "--tw": `${(i * 0.37 + gi * 0.9) % 3}s` }}
+                                    onPointerEnter={() => setHover(sk[0])} onPointerLeave={() => setHover(null)} onFocus={() => setHover(sk[0])} onBlur={() => setHover(null)} onClick={() => setHover(sk[0])} aria-label={`${sk[0]}${sk[4] ? `: used at ${sk[4]}` : ""}`}>
+                                    <span className="pl-star-dot"><Logo ic={sk[1]} color={sk[2]} /></span><span className="pl-star-name">{sk[0]}</span>
+                                </button>); })}
                         </div>
-                    ))}
-                </div>
-                <div className="pl-net-hid">{HID.map(([id, name]) => <div key={id} className={`pl-hidden ${hidOn.has(id) ? "is-on" : ""}`}><i ref={el => { nodes.current[`h:${id}`] = el; }} /><span>{name}</span></div>)}</div>
-                <div className="pl-net-out">
-                    <span className="mono">Hiring for…</span>
-                    <div role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} ref={el => { nodes.current[`r:${r.id}`] = el; }} className={`pl-role ${r.id === role.id ? "is-on" : ""}`} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}</div>
-                    <div className="pl-focus" aria-live="polite">{hs ? <><b>{hs[0]}</b><span>{hs[4] ? `Used at: ${hs[4]}` : "In my toolkit"}</span></> : <><b>{role.name} · {role.skills.length} skills</b><span>Hover a skill to see where I used it.</span></>}</div>
-                    <div className="pl-proofs" key={role.id}>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.1 + k * 0.08}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
-                </div>
+                    </div>); })}
+            </div>
+            <div className="pl-sky-foot">
+                <div className="pl-net-out"><span className="mono">Hiring for…</span><div role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} className={`pl-role ${r.id === role.id ? "is-on" : ""}`} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}</div></div>
+                <div className="pl-focus" aria-live="polite">{hs ? <><b>{hs[0]}</b><span>{hs[4] ? `Used at: ${hs[4]}` : "In my toolkit"}</span></> : <><b>{role.name} · {role.skills.length} stars</b><span>Hover a star to see where I used it.</span></>}</div>
+                <div className="pl-proofs" key={role.id}>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.1 + k * 0.08}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
             </div>
             <div className="pl-orbline">
                 <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} title={o.name}><i /></span>)}</div>

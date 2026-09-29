@@ -219,13 +219,15 @@ export default class PlanetScene {
             const half = (word.length - 1) / 2, g = this.spot(theta + (i - half) * 5.4 + Math.sign(i - half) * 3.2, back), holder = new THREE.Group(); g.add(holder);
             const m = new THREE.Mesh(geo, mat); m.castShadow = !this.mobile; m.receiveShadow = true; holder.add(m); m.userData.letter = i; this.clickables.push(m);
             holder.rotation.y = (i - (word.length - 1) / 2) * -0.06;
-            return { holder, m, t0: -10 };
+            return { holder, m, t0: -10, drop: null, hov: 0 };
         });
     }
+    /** the intro: my name falls from the sky, letter by letter, and bounces into place */
+    dropLetters() { if (this.dropped) return; this.dropped = true; const t = this.clock.elapsedTime; (this.letters || []).forEach((L, i) => { L.drop = t + 0.15 + i * 0.13; }); }
     kick(i) { const L = this.letters?.[i]; if (!L || this.clock.elapsedTime - L.t0 < 1.2) return; L.t0 = this.clock.elapsedTime; L.dir = Math.random() > 0.5 ? 1 : -1; }
     /** where the camera looks: dy lifts the world, fx slides it, zoom leans in, focus flies to a point */
     setView(v = {}) { this.viewGoal = { dy: 0, fx: 0, zoom: 0, focus: null, ...v }; }
-    focusPoint(f) { if (!f) return null; if (f.floor !== undefined) return this.floors?.[f.floor]?.getWorldPosition(V(0, 0, 0)); if (f.what === "lab") return this.labHolo?.getWorldPosition(V(0, 0, 0)); return null; }
+    focusPoint(f) { if (!f) return null; if (f.floorF !== undefined && this.floors) { const a = Math.floor(f.floorF), b = Math.min(3, a + 1), t = f.floorF - a, e = t * t * (3 - 2 * t); return this.floors[a].getWorldPosition(V(0, 0, 0)).lerp(this.floors[b].getWorldPosition(V(0, 0, 0)), e); } if (f.floor !== undefined) return this.floors?.[f.floor]?.getWorldPosition(V(0, 0, 0)); if (f.what === "lab") return this.labHolo?.getWorldPosition(V(0, 0, 0)); return null; }
     /** a flat sign with text (canvas texture) */
     sign(lines, w, h, { bg = "#f7f1e6", fg = "#1a2230", band, font = "'Clash Display', Arial Black, sans-serif" } = {}) {
         const cv = document.createElement("canvas"), W = 1024, H = Math.round(1024 * h / w); cv.width = W; cv.height = H; const x = cv.getContext("2d");
@@ -551,10 +553,20 @@ export default class PlanetScene {
             }
         }
         if (this.bag) { this.bagK += ((this.prep && this.me?.visible ? 1 : 0) - this.bagK) * 0.1; this.bag.visible = this.bagK > 0.01; this.bag.scale.setScalar(Math.max(0.001, this.bagK)); this.bag.rotation.y = Math.sin(t * 0.8) * 0.05; }
-        (this.letters || []).forEach(L => { const k = (t - L.t0) / 1.1; if (k < 0 || k > 1) { L.holder.position.y = 0; L.holder.rotation.x = 0; L.holder.scale.set(1, 1, 1); return; } const e = Math.sin(k * Math.PI); L.holder.position.y = e * 1.8; L.holder.rotation.x = k * Math.PI * 2 * L.dir; const sq = k > 0.85 ? 1 - Math.sin((k - 0.85) / 0.15 * Math.PI) * 0.25 : 1; L.holder.scale.set(1 + (1 - sq) * 0.5, sq, 1); });
+        // letters: hover lift (the cursor over a letter), intro drop, click flip
+        if (this.letters && this.dropped && (this.frameN = (this.frameN || 0) + 1) % 3 === 0 && Math.abs(((this.angle % 360) + 540) % 360 - 180) > 150) {
+            this.ray.setFromCamera(this.pointer, this.camera); const hit = this.ray.intersectObjects(this.letters.map(L => L.m), false)[0];
+            this.hovLetter = hit ? hit.object.userData.letter : -1; this.canvas.style.cursor = hit ? "pointer" : "";
+        }
+        (this.letters || []).forEach((L, i) => {
+            L.hov += ((this.hovLetter === i ? 1 : 0) - L.hov) * 0.15;
+            if (!this.dropped) { L.holder.position.y = 14; return; }
+            const kd = L.drop === null ? 1 : (t - L.drop) / 1.1;
+            if (kd < 1) { if (kd < 0) { L.holder.position.y = 14; return; } const b = kd < 0.55 ? 1 - Math.pow(kd / 0.55, 2) : kd < 0.8 ? Math.sin((kd - 0.55) / 0.25 * Math.PI) * 0.16 : Math.sin((kd - 0.8) / 0.2 * Math.PI) * 0.05; L.holder.position.y = b * 14; L.holder.rotation.z = (1 - kd) * 0.5 * (i % 2 ? 1 : -1); const sq = kd > 0.52 && kd < 0.62 ? 0.78 : 1; L.holder.scale.set(2 - sq, sq, 1); return; }
+            const k = (t - L.t0) / 1.1; if (k < 0 || k > 1) { L.holder.position.y = L.hov * 0.35; L.holder.rotation.x = 0; L.holder.rotation.z = Math.sin(t * 9) * 0.05 * L.hov; L.holder.scale.set(1, 1, 1); return; } const e = Math.sin(k * Math.PI); L.holder.position.y = e * 1.8; L.holder.rotation.x = k * Math.PI * 2 * L.dir; const sq = k > 0.85 ? 1 - Math.sin((k - 0.85) / 0.15 * Math.PI) * 0.25 : 1; L.holder.scale.set(1 + (1 - sq) * 0.5, sq, 1); });
         // project beacons and the skills garden
         (this.beacons || []).forEach((b, k) => { b.k += ((k === this.projOn ? 1 : 0) - b.k) * 0.08; b.ring.material.opacity = b.k * 0.9; b.beam.material.opacity = b.k * 0.32; b.ring.material.color.copy(this.projCol); b.beam.material.color.copy(this.projCol); b.ring.scale.setScalar(1 + Math.sin(t * 2.2) * 0.05); });
-        this.roleK += ((this.roleOn ? 1 : 0) - this.roleK) * 0.08; this.pedMat.emissive.copy(this.roleCol).multiplyScalar(this.roleK * 0.9);
+        this.roleK += ((this.roleOn ? 1 : 0) - this.roleK) * 0.08; this.M.cloud.opacity = 0.95 * (1 - this.roleK * 0.9); this.cloudG.visible = this.roleK < 0.98; this.pedMat.emissive.copy(this.roleCol).multiplyScalar(this.roleK * 0.9);
         this.roleBeams.forEach((b, i) => { b.material.color.copy(this.roleCol); b.material.opacity = this.roleK * (0.35 + Math.sin(t * 3 + i) * 0.1); });
         // the flight: plane lifts off, flies high over the ocean, lands in Hamburg
         if (this.planeG) {

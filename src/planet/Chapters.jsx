@@ -53,27 +53,57 @@ export function H({ as: Tag = "h2", text, className = "", accent }) {
 const Kick = ({ children }) => <span className="pl-kick mono">{children}</span>;
 
 /** how far (in slots) the page has scrolled into a section, as a number that updates while visible */
-function useSlots(ref, fn) {
+function useSlots(ref, fn, smooth = 0) {
     const f = useRef(fn); f.current = fn;
-    useEffect(() => { let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const el = ref.current; if (!el) return; const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return; f.current(slotsInto(el)); }; raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf); }, [ref]);
+    useEffect(() => {
+        let raf = 0, sm = null, last = performance.now();
+        const loop = now => {
+            raf = requestAnimationFrame(loop); const dt = Math.min(0.25, (now - last) / 1000); last = now;
+            const el = ref.current; if (!el) return; const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) { sm = null; return; }
+            const raw = slotsInto(el);
+            // smoothing: the value glides after the scroll instead of jumping with it
+            sm = sm === null || !smooth || reducedMotion() ? raw : sm + (raw - sm) * (1 - Math.exp(-dt * smooth));
+            f.current(sm, raw);
+        };
+        raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+    }, [ref, smooth]);
+}
+/** when the visitor stops scrolling inside a pinned section, glide to the nearest stop */
+function useSnap(ref, points) {
+    const pts = useRef(points); pts.current = points;
+    useEffect(() => {
+        let t = 0, busy = false;
+        const idle = () => {
+            const el = ref.current, L = window.__lenis; if (!el || busy || reducedMotion()) return;
+            const r = el.getBoundingClientRect(); if (r.top > 1 || r.bottom < innerHeight - 1) return;
+            const p = slotsInto(el), n = pts.current.reduce((a, b) => (Math.abs(b - p) < Math.abs(a - p) ? b : a), pts.current[0]), d = Math.abs(n - p);
+            if (d < 0.02 || d > 0.45) return;
+            const y = r.top + scrollY + innerHeight * (+el.dataset.slot || 1) * n; busy = true;
+            L ? L.scrollTo(y, { duration: 0.9, easing: x => 1 - Math.pow(1 - x, 3), onComplete: () => { busy = false; } }) : scrollTo({ top: y, behavior: "smooth" });
+            setTimeout(() => { busy = false; }, 1100);
+        };
+        const onScroll = () => { clearTimeout(t); t = setTimeout(idle, 170); };
+        addEventListener("scroll", onScroll, { passive: true }); return () => { clearTimeout(t); removeEventListener("scroll", onScroll); };
+    }, [ref]);
 }
 
 /* ── 1 · meet me ── */
 const PICKS = ["What are your strongest skills?", "Are you open to work?", "What is Argus AI?"];
 function AskMe() {
-    const { msgs, typing, busy } = useChat();
-    const [q, setQ] = useState(""), [asked, setAsked] = useState(false);
-    const go = text => { if (!text.trim() || busy) return; setAsked(true); setQ(""); ask(text); World.scene?.once("emote-yes"); };
+    const { msgs, busy } = useChat();
+    const [q, setQ] = useState(""), asked = useRef(false);
+    const go = text => { if (!text.trim() || busy) return; asked.current = true; setQ(""); ask(text); World.scene?.once("emote-yes"); say("Hmm, let me think… 🤔", 30000); };
     const last = [...msgs].reverse().find(m => m.r === "b");
+    // my answer comes out of my own speech bubble
+    useEffect(() => { if (asked.current && !busy && last?.t) say(last.t, Math.min(26000, 6000 + last.t.length * 45)); }, [busy, last?.t]);
     return (
         <div className="pl-ask">
             <form onSubmit={e => { e.preventDefault(); go(q); }}>
                 <span className="pl-ask-dot" aria-hidden="true" />
-                <input id="ask-me" value={q} onChange={e => setQ(e.target.value)} placeholder="Ask me anything…" aria-label="Ask my AI about Farhan" maxLength={300} />
+                <input id="ask-me" value={q} onChange={e => setQ(e.target.value)} placeholder="Ask me anything… I'll answer in my bubble" aria-label="Ask my AI about Farhan" maxLength={300} />
                 <button disabled={busy || !q.trim()}>{busy ? "Thinking…" : "Ask"}</button>
             </form>
             <div className="pl-picks">{PICKS.map(p => <button key={p} onClick={() => go(p)} disabled={busy}>{p}</button>)}</div>
-            {asked && <p className="pl-answer" aria-live="polite">{busy && !typing ? <span className="pl-think">Thinking…</span> : (typing || last?.t)}</p>}
         </div>
     );
 }
@@ -94,6 +124,8 @@ const STACK = ["Azure AI Foundry", "Azure OpenAI", "RAG", "LangGraph", "MCP", "E
 export function Hero({ ready, onQuick, onCv }) {
     const sec = useRef(null), copy = useRef(null);
     useFit(copy, c => c ? innerHeight * 0.34 : innerHeight - 104 - 230);
+    // when the page is revealed, my name drops onto the planet
+    useEffect(() => { if (!ready) return; let n = 0; const id = setInterval(() => { if (World.scene?.letters) { World.scene.dropLetters(); clearInterval(id); } else if (++n > 60) clearInterval(id); }, 150); return () => clearInterval(id); }, [ready]);
     useEffect(() => { const f = () => { const el = sec.current; if (!el) return; const k = Math.max(0, Math.min(1, scrollY / (innerHeight * 0.55))); el.style.setProperty("--fade", String(1 - k)); }; f(); addEventListener("scroll", f, { passive: true }); return () => removeEventListener("scroll", f); }, []);
     return (
         <section id="home" ref={sec} className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
@@ -242,8 +274,15 @@ function Flow({ steps, color }) {
 export function Experience() {
     const job = EXPERIENCE[0], res = EXPERIENCE[1], sec = useRef(null), line = useRef(null), panel = useRef(null), cur = useRef(-1), [f, setF] = useState(-1);
     const E = PLACES.experience.theta, L = PLACES.lab.theta;
-    useSlots(sec, p => { const k = p < -0.35 ? -1 : Math.min(4, Math.max(0, Math.floor(p + 0.35))); if (k !== cur.current) { cur.current = k; setF(k); World.scene?.setFloor(Math.min(3, k)); setUI({ floor: Math.min(3, k) }); } });
-    useEffect(() => { Views.experience = () => (cur.current >= 0 && cur.current < 4 ? { focus: { floor: cur.current } } : cur.current === 4 ? { focus: { what: "lab" } } : {}); return () => { delete Views.experience; }; }, []);
+    const ps = useRef(-1), lift = useRef(null);
+    // the ride follows the scroll continuously (floor 1 at 0.15, floor 2 at 1.15 …, the lab at 4.15)
+    useSlots(sec, p => {
+        ps.current = p; const k = p < -0.35 ? -1 : Math.min(4, Math.max(0, Math.round(p - 0.15)));
+        lift.current?.style.setProperty("--lf", String(Math.min(1, Math.max(0, (p - 0.15) / 3))));
+        if (k !== cur.current) { cur.current = k; setF(k); World.scene?.setFloor(Math.min(3, k)); setUI({ floor: Math.min(3, k) }); }
+    }, 6);
+    useSnap(sec, [0.15, 1.15, 2.15, 3.15, 4.15]);
+    useEffect(() => { Views.experience = () => { const p = ps.current; return p < -0.35 ? {} : p < 3.65 ? { focus: { floorF: Math.min(3, Math.max(0, p - 0.15)) } } : { focus: { what: "lab" } }; }; return () => { delete Views.experience; }; }, []);
     // a light line from the floor's window to its panel
     useEffect(() => {
         let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); const ln = line.current, pn = panel.current, S = World.scene, k = cur.current; if (!ln || !pn || !S || k < 0) return;
@@ -258,7 +297,7 @@ export function Experience() {
         <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(5 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [3.55, E, 3], [4.05, L, 3], [5.2, L, 3]])}>
             <div className="pl-stage pl-left">
                 {f >= 0 && <svg className="pl-exp-line" aria-hidden="true"><path ref={line} /></svg>}
-                {f >= 0 && f < 4 && <div className="pl-lift" aria-hidden="true"><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
+                {f >= 0 && f < 4 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
                 {f < 0 && <div className="pl-exp-intro"><Kick>04 · Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor" data-fit="0">
@@ -322,25 +361,34 @@ function ProjectCard({ p, i }) {
         </article>
     );
 }
-/* the showroom: projects slide across the bottom of the screen; the one in the middle comes into focus */
+/* the showroom: projects stand on a slowly turning 3D carousel; scrolling turns it, stopping settles on a card */
 export function Projects() {
-    const sec = useRef(null), items = PLACES.projects.items, N = PROJECT_ORDER.length, nodes = useRef([]), [near, setNear] = useState(0), nearRef = useRef(0);
+    const sec = useRef(null), track = useRef(null), items = PLACES.projects.items, N = PROJECT_ORDER.length, nodes = useRef([]), [near, setNear] = useState(0), nearRef = useRef(0);
     useSlots(sec, raw => {
-        const c = Math.min(N - 1, Math.max(0, raw)), base = Math.floor(c), fr = c - base, g = fr < 0.35 ? 0 : fr > 0.85 ? 1 : (fr - 0.35) / 0.5, p = base + g * g * (3 - 2 * g), w = nodes.current[0]?.offsetWidth || 700, gap = !compact() ? w * 0.86 : w * 0.94;
-        nodes.current.forEach((n, k) => { if (!n) return; const o = k - p, a = Math.abs(o); n.style.visibility = a > 2.2 ? "hidden" : "visible";
-            n.style.transform = `translateX(${o * gap}px) perspective(1400px) rotateY(${-o * 24}deg) scale(${1 - Math.min(a, 1.6) * 0.16})`; n.style.opacity = String(Math.max(0, 1 - a * 0.42)); n.style.zIndex = String(20 - Math.round(a * 4)); n.style.filter = a > 0.3 ? `blur(${Math.min(3, (a - 0.3) * 2.5)}px) saturate(${1 - Math.min(a, 1) * 0.4})` : ""; n.classList.toggle("is-center", a < 0.3); });
+        const p = Math.min(N - 1, Math.max(0, raw)), tr = track.current, w = nodes.current[0]?.offsetWidth || 700, step = 42 * Math.PI / 180, R = (w / 2) / Math.tan(step / 2) * 1.04;
+        tr?.style.setProperty("--cw", `${w}px`);
+        nodes.current.forEach((n, k) => {
+            if (!n) return; const o = k - p, th = o * step, c = Math.cos(th);
+            if (c < 0.05) { n.style.visibility = "hidden"; return; } n.style.visibility = "visible";
+            n.style.transform = `translate3d(calc(-50% + ${Math.sin(th) * R}px), 0, ${(c - 1) * R}px) rotateY(${th}rad)`;
+            n.style.opacity = String(Math.min(1, Math.max(0, (c - 0.35) / 0.55))); n.style.zIndex = String(Math.round(c * 20));
+            n.style.filter = Math.abs(o) > 0.15 ? `blur(${Math.min(3, (1 - c) * 9)}px)` : ""; n.style.setProperty("--o", o.toFixed(3)); n.classList.toggle("is-center", Math.abs(o) < 0.3);
+        });
         const k = Math.round(p); if (k !== nearRef.current) { nearRef.current = k; setNear(k); }
-    });
+    }, 7);
+    useSnap(sec, PROJECT_ORDER.map((_, k) => k));
     useEffect(() => { Views.projects = () => ({ dy: !compact() ? -1.7 : -0.4, zoom: 0.3 }); return () => { delete Views.projects; }; }, []);
     const keys = [[-0.6, items[0].theta, 4], ...items.flatMap((it, k) => [[k - 0.1, it.theta, 4], [k + 0.4, it.theta, 4]])];
     return (
-        <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 110svh + 100svh)` }} data-slot="1.1" data-keys={JSON.stringify(keys)}>
+        <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
-                <div className="pl-show-head"><Kick>05 · The project park · {near + 1} / {N}</Kick><div className="pl-dots">{PROJECT_ORDER.map((id, k) => <button key={id} className={k === near ? "is-on" : ""} onClick={() => scrollToProject(k)} aria-label={`Project ${k + 1}`} />)}</div></div>
-                <div className="pl-show-track">
+                <div className="pl-show-head"><Kick>05 · The project park · {near + 1} / {N}</Kick></div>
+                <div className="pl-show-track" ref={track}>
                     {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-show-slot" ref={el => { nodes.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 2 && <ProjectCard p={p} i={k} />}</div>; })}
+                    <button className="pl-ring-nav is-prev" onClick={() => scrollToProject(Math.max(0, near - 1))} disabled={near === 0} aria-label="Previous project">←</button>
+                    <button className="pl-ring-nav is-next" onClick={() => scrollToProject(Math.min(N - 1, near + 1))} disabled={near === N - 1} aria-label="Next project">→</button>
+                    <div className="pl-ring-dots">{PROJECT_ORDER.map((id, k) => <button key={id} className={k === near ? "is-on" : ""} onClick={() => scrollToProject(k)} aria-label={`Project ${k + 1}: ${PROJECTS.find(x => x.id === id).title}`}><span>{PROJECTS.find(x => x.id === id).title}</span></button>)}</div>
                 </div>
-                <div className="pl-arrows pl-show-arrows"><button onClick={() => scrollToProject(Math.max(0, near - 1))} disabled={near === 0} aria-label="Previous project">←</button><button onClick={() => scrollToProject(Math.min(N - 1, near + 1))} disabled={near === N - 1} aria-label="Next project">→</button></div>
             </div>
         </section>
     );
@@ -353,38 +401,88 @@ function Count({ to, dec = 0, run }) {
     return <>{v.toFixed(dec)}</>;
 }
 const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Student visa", "Finances and paperwork", "Goodbye, West Bengal"];
-function Page({ stop, q }) {
+/* the left pages of the passport: the degree (or the year of getting ready) is the star */
+function Page({ stop, q, wide }) {
     const [bt, ms] = EDU_CHAPTERS, research = EXPERIENCE[1], ref = useRef(null);
-    useFit(ref, c => c ? innerHeight * 0.58 : innerHeight - 170, [stop]);
+    useFit(ref, c => c ? innerHeight * 0.58 : innerHeight - 170, [stop, wide]);
     if (stop === 0) return (
-        <div className="pl-page is-in" ref={ref}>
+        <div className="pl-page is-left" ref={ref}>
             <div className="pl-page-top mono" data-drop="2"><span>Republic of India · West Bengal</span><span>Page 1</span></div>
             <span className="pl-page-when mono">{bt.year} · where it started</span>
             <div className="pl-degree">B.Tech<small>Computer Science · CGPA 8.73 / 10</small></div>
             <p className="pl-page-school">{bt.school}<br /><span>Cooch Behar, West Bengal, India · Jul 2018 – Aug 2022</span></p>
             <div className="pl-page-stats" data-drop="3"><div><b><Count to={8.73} dec={2} run /></b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b><Count to={4} run /></b>years</div></div>
-            <div className="pl-tags" data-drop="1"><span>Teaching assistant</span><span>Student council</span></div>
-            <span className="pl-stamp-ink is-red mono">Graduated<br /><b>2022</b><br />Cooch Behar</span>
+            {!wide && <div className="pl-tags" data-drop="1"><span>Teaching assistant</span><span>Student council</span></div>}
+            {!wide && <span className="pl-stamp-ink is-red mono">Graduated<br /><b>2022</b><br />Cooch Behar</span>}
         </div>
     );
     if (stop === 1) { const n = Math.min(PREP.length, Math.floor(q * (PREP.length + 0.6))); return (
-        <div className="pl-page is-in" ref={ref}>
-            <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 2</span></div>
+        <div className="pl-page is-left" ref={ref}>
+            <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 3</span></div>
             <span className="pl-page-when mono">2022 – 2023 · at home in West Bengal</span>
             <div className="pl-degree is-small">One year<small>to get ready for Germany</small></div>
             <ul className="pl-prep">{PREP.map((t, k) => <li key={t} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{t}</li>)}</ul>
-            {n >= 3 && <span className="pl-stamp-ink is-green mono">Student<br /><b>visa</b><br />granted</span>}
+            {!wide && n >= 3 && <span className="pl-stamp-ink is-green mono">Student<br /><b>visa</b><br />granted</span>}
         </div>
     ); }
     return (
-        <div className="pl-page is-in" ref={ref}>
-            <div className="pl-page-top mono" data-drop="2"><span>Bundesrepublik Deutschland · Hamburg</span><span>Page 3</span></div>
+        <div className="pl-page is-left" ref={ref}>
+            <div className="pl-page-top mono" data-drop="2"><span>Bundesrepublik Deutschland · Hamburg</span><span>Page 5</span></div>
             <span className="pl-page-when mono">{ms.year} · landed in Hamburg</span>
             <div className="pl-degree">M.Sc.<small>Data Science</small></div>
             <p className="pl-page-school">{ms.school}<br /><span>Research: {research.role.split("—")[1]?.trim()} · working student at Nordex</span></p>
-            <div className="pl-tags" data-drop="1">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>
+            {!wide && <div className="pl-tags" data-drop="1">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>}
             <button className="pl-link" onClick={() => scrollToId("experience")}>See my research and work →</button>
-            <span className="pl-stamp-ink is-blue mono">Entry<br /><b>2023</b><br />Hamburg</span>
+            {!wide && <span className="pl-stamp-ink is-blue mono">Entry<br /><b>2023</b><br />Hamburg</span>}
+        </div>
+    );
+}
+/* the right pages: the stamps I've collected so far, and what each place gave me */
+const STAMPS = [["is-red", "Graduated", "2022", "Cooch Behar", -12], ["is-green", "Student", "visa", "granted", 9], ["is-blue", "Entry", "2023", "Hamburg", -6]];
+const LANG_BARS = [["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1 · learning every day", 0.4]];
+function StampPage({ stop, q }) {
+    const [bt] = EDU_CHAPTERS, got = stop === 0 ? 1 : stop === 1 ? (q > 0.45 ? 2 : 1) : 3;
+    return (
+        <div className="pl-page is-right">
+            <div className="pl-page-top mono"><span>Visas · stamps</span><span>Page {stop === 0 ? 2 : stop === 1 ? 4 : 6}</span></div>
+            <div className="pl-stamps-grid">{STAMPS.map(([c, a, b, d, r], k) => <span key={a} className={`pl-stamp-ink ${c} mono ${k < got ? "is-on" : "is-empty"}`} style={{ "--r": `${r}deg` }}>{k < got ? <>{a}<br /><b>{b}</b><br />{d}</> : "·"}</span>)}</div>
+            {stop === 0 && (<>
+                <span className="pl-page-when mono">What I took from it</span>
+                <div className="pl-stickers">{bt.pills.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
+                <div className="pl-tags"><span>Teaching assistant</span><span>Student council</span></div>
+            </>)}
+            {stop === 1 && (<>
+                <span className="pl-page-when mono">Next stop</span>
+                <div className="pl-stub"><div><b>CCB</b><small>Cooch Behar</small></div><i aria-hidden="true">✈</i><div><b>HAM</b><small>Hamburg</small></div><span className="mono">2023 · one way</span></div>
+                <p className="pl-page-school"><span>Admitted to TUHH for the M.Sc. Data Science.</span></p>
+            </>)}
+            {stop === 2 && (<>
+                <span className="pl-page-when mono">Languages</span>
+                <ul className="pl-langs">{LANG_BARS.map(([l, lv, v]) => <li key={l}><b>{l}</b><small>{lv}</small><i style={{ "--v": v }} /></li>)}</ul>
+                <span className="pl-page-when mono">Hamburg, now</span>
+                <ul className="pl-now"><li>M.Sc. Data Science at TUHH <small>Oct 2023 – now</small></li><li>Research on security threats in MCP</li><li>Working student at Nordex <small>Aug 2025 – now</small></li></ul>
+            </>)}
+        </div>
+    );
+}
+/* an open passport: on wide screens two pages side by side; the page turns with the scroll */
+function Passport({ stop, q, t, wide }) {
+    // t: 0..1 while turning from stop 0 to stop 1 (null when not turning)
+    if (t === null) return (
+        <div className={`pl-passport ${wide ? "is-spread" : ""}`} key={stop}>
+            <Page stop={stop} q={q} wide={wide} />{wide && <StampPage stop={stop} q={q} />}
+        </div>
+    );
+    return (
+        <div className={`pl-passport is-turning ${wide ? "is-spread" : ""}`} style={{ "--t": t }}>
+            {wide ? (<>
+                <Page stop={0} q={0} wide />
+                <StampPage stop={1} q={0} />
+                <div className="pl-leaf"><div className="pl-leaf-front"><StampPage stop={0} q={0} /></div><div className="pl-leaf-back"><Page stop={1} q={0} wide /></div></div>
+            </>) : (<>
+                <Page stop={1} q={0} />
+                <div className="pl-leaf is-single"><div className="pl-leaf-front"><Page stop={0} q={0} /></div><div className="pl-leaf-back"><div className="pl-page pl-page-blank" /></div></div>
+            </>)}
         </div>
     );
 }
@@ -405,21 +503,30 @@ function RouteMap() {
     );
 }
 export function Journey() {
-    const J = PLACES.journey, T = PLACES.tuhh.theta, sec = useRef(null), [stop, setStop] = useState(0), [q, setQ] = useState(0), cur = useRef(0), [s0, s1] = JOURNEY.spans;
-    useSlots(sec, p => { const k = p < s0 - 0.1 ? 0 : p < s0 + s1 - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; if (k !== cur.current) { cur.current = k; setStop(k); } if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3)))); });
-    const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = 7; // off: stand the building to the right, text on the left
+    const J = PLACES.journey, T = PLACES.tuhh.theta, sec = useRef(null), [stop, setStop] = useState(0), [q, setQ] = useState(0), [turn, setTurn] = useState(null), cur = useRef(0), tr = useRef(null), [s0, s1] = JOURNEY.spans;
+    const [wide, setWide] = useState(false);
+    useEffect(() => { const f = () => setWide(!compact() && innerWidth >= 1200 && innerHeight >= 640); f(); addEventListener("resize", f); return () => removeEventListener("resize", f); }, []);
+    useSlots(sec, p => {
+        const k = p < s0 - 0.1 ? 0 : p < s0 + s1 - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; if (k !== cur.current) { cur.current = k; setStop(k); }
+        if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3))));
+        // the page turns between the college and the year of getting ready
+        const t = (p - (s0 - 0.5)) / 0.45, tt = t > 0 && t < 1 ? Math.round(t * 60) / 60 : null; if (tt !== tr.current) { tr.current = tt; setTurn(tt); }
+    }, 7);
+    useSnap(sec, [0, s0 + 0.35, JOURNEY.land + 0.5]);
+    useEffect(() => { Views.journey = () => (wide && cur.current !== 2 ? { fx: -3.4 } : {}); return () => { delete Views.journey; }; }, [wide]);
+    const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = wide ? 2 : 7; // the building stands beside me, the passport has the rest
     const keys = [[-0.6, J.cgec - off, "WB"], [s0 - 0.35, J.cgec - off, "WB"], [s0 + 0.05, J.home - 4, 5], [t0 - 0.2, J.home - 4, 5], [JOURNEY.takeoff - 0.1, J.runway, 5], [JOURNEY.takeoff + 0.25, J.runway + 10, "N"], [JOURNEY.land - 0.15, J.to - 3, "N"], [JOURNEY.land, J.to, "N"], [JOURNEY.land + 0.35, T - off, 6], [total, T - off, 6]];
     return (
         <section id="journey" ref={sec} className="pl-deck pl-journey-sec" style={{ height: `calc(${total} * 95svh + 100svh)` }} data-slot="0.95" data-keys={JSON.stringify(keys)}>
             <div className="pl-stage pl-left">
-                {stop === 2 ? <RouteMap /> : <div className="pl-passport" key={stop}><Page stop={stop === 3 ? 2 : stop} q={q} /></div>}
+                {stop === 2 ? <RouteMap /> : <Passport stop={stop === 3 ? 2 : stop} q={q} t={stop === 0 || stop === 1 ? turn : null} wide={wide} />}
             </div>
         </section>
     );
 }
 
 /* ── 7 · skills: a neural network; pick the role you're hiring for and the path lights up ── */
-function useSkillsView() { useEffect(() => { Views.skills = () => (!compact() ? { dy: 2.2 } : {}); return () => { delete Views.skills; }; }, []); return undefined; }
+function useSkillsView() { useEffect(() => { Views.skills = () => ({ dy: !compact() ? 3.2 : 1.6 }); return () => { delete Views.skills; }; }, []); return undefined; }
 export function Skills() {
     return (
         <section id="skills" ref={useSkillsView()} className="pl-sec pl-skills-sec" data-angle={PLACES.skills.theta} data-sky="7">
