@@ -762,12 +762,22 @@ function useScaleFit(ref) {
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
             el.style.width = "";
-            if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); el.style.removeProperty("--avail"); return; }
+            if (!mq.matches) { ["--fs", "--fy", "--avail", "--stamps-x"].forEach(v => el.style.removeProperty(v)); return; }
             // the desk (and so the letter) may use the full height down to the footer
             el.style.setProperty("--avail", `${Math.max(420, innerHeight - (el.offsetParent?.offsetTop || 0) - el.offsetTop - 104)}px`);
             const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 104, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
             el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.min(70, Math.max(0, (avail - h * k) / 2)).toFixed(1)}px`);
             if (k < 1) el.style.width = `${(100 / k).toFixed(2)}%`; // lay out wider, then scale back: the desk still spans the whole width
+            // the stamp row sits centred on the screen, under me at my desk, but never over the letter
+            const st = el.querySelector(".pl-stamps.is-row"), env = el.querySelector(".pl-envelope");
+            if (st) {
+                const L = el.getBoundingClientRect().left, W = st.offsetWidth;
+                // only step aside when the letter actually reaches down to the stamp row
+                const reaches = env && env.offsetTop + env.offsetHeight + 16 > el.offsetHeight - st.offsetHeight;
+                const letterRight = reaches ? env.offsetLeft + env.offsetWidth + 28 : 0;
+                const x = Math.min(Math.max((innerWidth / 2 - L) / k - W / 2, letterRight), el.offsetWidth - W);
+                el.style.setProperty("--stamps-x", `${Math.max(0, x).toFixed(1)}px`);
+            }
         };
         const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
         return () => { ro.disconnect(); removeEventListener("resize", f); mq.removeEventListener("change", f); };
