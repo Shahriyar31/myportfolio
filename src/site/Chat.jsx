@@ -8,9 +8,9 @@ import { Lines } from "./Motion";
 const QUICK = ["How do you approach AI governance?", "What is Argus AI?", "Your stack?", "Open to work?"];
 
 function Screen({ tall }) {
-    const { msgs, typing, busy } = useChat();
+    const { msgs, typing, busy, status, steps } = useChat();
     const ref = useRef(null);
-    useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, typing, busy]);
+    useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, typing, busy, steps]);
     return (
         <div className={`screen neu-in ${tall ? "is-tall" : ""}`} ref={ref} aria-live="polite" data-lenis-prevent>
             {msgs.map((m, i) => <div key={i} className={`bubble-wrap ${m.r}`}>
@@ -20,7 +20,10 @@ function Screen({ tall }) {
                 {m.src?.length > 0 && <p className="bubble-src mono">from my notes: {m.src.map(x => x.title).join(" · ")}</p>}
             </div>)}
             {typing && <p className="bubble b">{typing}<span className="caret" /></p>}
-            {busy && !typing && <p className="bubble b dots" aria-label="Thinking"><i /><i /><i /></p>}
+            {busy && !typing && <div className="bubble b agent-live" aria-live="polite">
+                {steps.length > 1 && <ol>{steps.slice(0, -1).map((t, k) => <li key={k}>✓ {t}</li>)}</ol>}
+                <span className="agent-live-now"><i aria-hidden="true" />{status || "Working"}…</span>
+            </div>}
         </div>
     );
 }

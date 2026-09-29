@@ -14,7 +14,7 @@ const load = async () => {
     catch (e) {
         console.error("chat: agent failed to load:", e?.stack || e);
         const { answer } = await import("./_rag.js");
-        return { run: clean => answer(clean.at(-1).content.slice(0, 600), clean.slice(0, -1)).then(r => ({ ...r, actions: [] })), via: "rag", error: String(e?.message || e).slice(0, 200) };
+        return { run: (clean, _o, onStep) => answer(clean.at(-1).content.slice(0, 600), clean.slice(0, -1), onStep).then(r => ({ ...r, actions: [] })), via: "rag", error: String(e?.message || e).slice(0, 200) };
     }
 };
 
@@ -37,6 +37,23 @@ export default async function handler(req, res) {
     const last = clean[clean.length - 1];
     if (!last || last.role !== "user") return res.status(400).json({ error: "Please send a question." });
 
+    // { stream: true }: newline-delimited JSON, one {type:"step"} line per agent step as it happens, then {type:"done", …}
+    if (req.body?.stream) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+        res.setHeader("Cache-Control", "no-store, no-transform"); res.setHeader("X-Accel-Buffering", "no");
+        const line = o => { try { res.write(`${JSON.stringify(o)}\n`); } catch { /* client left */ } };
+        line({ type: "step", step: "start" });
+        try {
+            const { run } = await load();
+            const out = await run(clean, {}, st => line({ type: "step", ...st }));
+            line({ type: "done", ...out });
+        } catch (e) {
+            console.error("chat:", e?.stack || e);
+            line({ type: "error", error: "Something went wrong on my side. Please try again, or email shahriyarfarhan3101@gmail.com." });
+        }
+        return res.end();
+    }
     try {
         const { run } = await load();
         const out = await run(clean);

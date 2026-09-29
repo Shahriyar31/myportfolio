@@ -131,7 +131,8 @@ const State = Annotation.Root({
     answer: Annotation(), model: Annotation(), blocked: Annotation(),
     trace: Annotation({ reducer: (a, z) => a.concat(z), default: () => [] }),
 });
-const timed = (step, fn) => async s => { const t0 = Date.now(); const { detail = "", ...out } = await fn(s); return { ...out, trace: [{ step, ms: Date.now() - t0, detail }] }; };
+// each node reports its step as it finishes (config.configurable.onStep), so the page can show the pipeline live
+const timed = (step, fn) => async (s, cfg) => { const t0 = Date.now(); const { detail = "", ...out } = await fn(s); const t = { step, ms: Date.now() - t0, detail }; cfg?.configurable?.onStep?.(t); return { ...out, trace: [t] }; };
 
 const guard = timed("guard", async ({ question }) => {
     const r = inputShield(question);
@@ -213,9 +214,9 @@ export const graph = new StateGraph(State)
     .compile();
 
 /** one question in, one grounded answer out */
-export async function answer(question, history = []) {
+export async function answer(question, history = [], onStep) {
     await ready();
-    const s = await graph.invoke({ question, history, trace: [] });
+    const s = await graph.invoke({ question, history, trace: [] }, { configurable: { onStep } });
     const seen = new Set(), sources = (s.docs || []).filter(d => !seen.has(d.file) && seen.add(d.file)).map(d => ({ title: d.title, section: d.section, file: d.file }));
     return { answer: s.answer, sources, model: s.model, trace: s.trace };
 }
