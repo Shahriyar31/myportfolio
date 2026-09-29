@@ -43,6 +43,7 @@ let state = {
     open: false,
     trace: freshTrace(),
     ledger: [],
+    tools: [], // the agent tools used for the latest answer, from the server's real trace
 };
 const subs = new Set();
 const set = p => { state = { ...state, ...p }; subs.forEach(f => f()); };
@@ -82,7 +83,7 @@ function perform(actions) {
 export async function ask(text) {
     text = text.trim();
     if (!text || state.busy) return;
-    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace() });
+    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace(), tools: [] });
     history = [...history, { role: "user", content: text }].slice(-12);
     ["intent", "retrieve", "generate"].forEach(id => step(id, "run"));
 
@@ -97,6 +98,7 @@ export async function ask(text) {
     } catch { /* offline: handled below */ }
     if (!reply) reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`;
 
+    set({ tools: [...new Set(server.filter(s => s.step === "tools").flatMap(s => [...String(s.detail).matchAll(/\b([a-z_]+)\(/g)].map(m => m[1])))] });
     // replay the server's real trace, one step at a time
     const detail = { intent: [], retrieve: [], generate: [], policy: [] };
     server.forEach(s => SERVER_STEP[s.step] && detail[SERVER_STEP[s.step]].push(s.detail));
@@ -118,6 +120,15 @@ export async function ask(text) {
     await typeOut(reply, failed.length ? [] : sources);
     set({ busy: false });
     if (!failed.length) perform(actions);
+}
+
+/* "Paste a job ad": open the assistant ready for a job description */
+export function startJobFit() {
+    cancelDemo();
+    const hint = "Paste the job description below and press send. I'll compare it with my notes and tell you honestly what matches, and what my notes don't mention.";
+    if (state.msgs.at(-1)?.t !== hint) set({ msgs: [...state.msgs, { r: "b", t: hint }] });
+    openChat(true);
+    setTimeout(() => dispatchEvent(new Event("focus-dock")), 320);
 }
 
 /* Auto-demo: types two questions once, then hands over to the visitor.

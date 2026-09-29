@@ -135,9 +135,11 @@ export function ChatDock() {
     useEffect(() => { setHint(true); const t = setTimeout(() => setHint(false), 7000); return () => clearTimeout(t); }, [section]);
     useEffect(() => {
         if (open) setTimeout(() => inputRef.current?.focus(), 300);
+        const focus = () => inputRef.current?.focus();
+        addEventListener("focus-dock", focus);
         const esc = e => e.key === "Escape" && openChat(false);
         window.addEventListener("keydown", esc);
-        return () => window.removeEventListener("keydown", esc);
+        return () => { window.removeEventListener("keydown", esc); removeEventListener("focus-dock", focus); };
     }, [open]);
     const q = CONTEXT[section] || CONTEXT.home;
     return (

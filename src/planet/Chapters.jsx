@@ -4,7 +4,7 @@ import Network from "./Network";
 import { PLACES, ORBS } from "./world";
 import { NAME, TITLE, EMAIL } from "../data/profile";
 import { EXPERIENCE, PROJECTS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/constants";
-import { useChat, ask, openChat } from "../site/chat";
+import { useChat, ask, openChat, startJobFit } from "../site/chat";
 import { attack, settle, useAttack, LAYERS } from "../site/attack";
 import { useProgress, mark } from "../site/progress";
 import { scrollToId, reducedMotion, compact, COMPACT, lockScroll, unlockScroll, useFit } from "../site/hooks";
@@ -92,22 +92,31 @@ function useSnap(ref, points) {
 }
 
 /* ── 1 · meet me ── */
-const PICKS = ["What are your strongest skills?", "Are you open to work?", "What is Argus AI?"];
+/* the agent's real tools; each one lights up when the agent actually uses it for an answer */
+const TOOLS = [["search_notes", "search notes"], ["match_job", "match a job"], ["show_section", "scroll the page"], ["open_project", "open a project"], ["open_resume", "open résumé"], ["open_quick_read", "quick read"], ["draft_letter", "draft a letter"]];
+const PICKS = [["Show me Argus AI", "Show me Argus AI"], ["Help me write to Farhan", "I'd like to get in touch with Farhan about a role. Could you draft a short letter for me?"]];
 function AskMe() {
-    const { msgs, busy } = useChat();
+    const { msgs, busy, tools } = useChat();
     const [q, setQ] = useState(""), asked = useRef(false);
     const go = text => { if (!text.trim() || busy) return; asked.current = true; setQ(""); ask(text); World.scene?.once("emote-yes"); say("Hmm, let me think… 🤔", 30000); };
     const last = [...msgs].reverse().find(m => m.r === "b");
     // my answer comes out of my own speech bubble
-    useEffect(() => { if (asked.current && !busy && last?.t) say(last.t, Math.min(26000, 6000 + last.t.length * 45)); }, [busy, last?.t]);
+    useEffect(() => { if (asked.current && !busy && last?.t) { asked.current = false; say(last.t, Math.min(26000, 6000 + last.t.length * 45)); } }, [busy, last?.t]);
     return (
         <div className="pl-ask">
+            <div className={`pl-tools ${busy ? "is-busy" : ""}`} aria-label="Tools my AI agent can use">
+                <span className="pl-tools-k mono"><i aria-hidden="true" />{busy ? "agent working…" : "AI agent · 7 tools"}</span>
+                {TOOLS.map(([id, label]) => <span key={id} className={tools.includes(id) ? "is-on" : ""}>{label}</span>)}
+            </div>
             <form onSubmit={e => { e.preventDefault(); go(q); }}>
                 <span className="pl-ask-dot" aria-hidden="true" />
-                <input id="ask-me" value={q} onChange={e => setQ(e.target.value)} placeholder="Ask me anything… I'll answer in my bubble" aria-label="Ask my AI about Farhan" maxLength={300} />
+                <input id="ask-me" value={q} onChange={e => setQ(e.target.value)} placeholder="Ask me anything, or tell me what to show you…" aria-label="Ask my AI about Farhan" maxLength={300} />
                 <button disabled={busy || !q.trim()}>{busy ? "Thinking…" : "Ask"}</button>
             </form>
-            <div className="pl-picks">{PICKS.map(p => <button key={p} onClick={() => go(p)} disabled={busy}>{p}</button>)}</div>
+            <div className="pl-picks">
+                <button className="is-job" onClick={startJobFit}><b>Paste a job ad</b> see how I fit →</button>
+                {PICKS.map(([label, text]) => <button key={label} onClick={() => go(text)} disabled={busy}>{label}</button>)}
+            </div>
         </div>
     );
 }
