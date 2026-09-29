@@ -1671,3 +1671,75 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
   :root[data-theme="light"] .pl-desk-table .pl-sheet-cap { color: #6b4a2b; text-shadow: 0 0 8px rgba(255,255,255,.8); }
 }
 @media (min-width: 861px) and (orientation: landscape) { .pl-desk-table > .pl-trust.pl-log { align-content: space-evenly !important; } }
+/* ── handwriting, round 2 ── */
+/* Nordex: a handwritten margin note beside each floor card */
+.pl-floor-note { display: none; }
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-exp-sec .pl-floor { overflow: visible !important; }
+  .pl-floor-note { position: absolute; left: calc(100% + 14px); top: 26px; display: block; width: 210px; margin: 0; padding-top: 30px; font: 700 23px/1.1 var(--pl-hand); color: #f4ead2; text-shadow: 0 2px 10px rgba(0,0,0,.55); rotate: -3deg; pointer-events: none; animation: plNoteIn .6s .55s both; }
+  .pl-floor-note svg { position: absolute; left: -8px; top: 0; width: 58px; height: 38px; overflow: visible; }
+  .pl-floor-note path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: plInk .7s .45s cubic-bezier(.6,0,.3,1) forwards; }
+  :root[data-theme="light"] .pl-floor-note { color: #1f3b52; text-shadow: 0 0 10px rgba(255,255,255,.9); }
+}
+@keyframes plNoteIn { from { opacity: 0; transform: translateY(6px); } }
+/* the education diary writes in the same hand */
+.pl-diary2 .pl-diary-h, .pl-diary2 li, .pl-diary-sign { font-family: var(--pl-hand) !important; font-style: normal !important; }
+.pl-diary2 .pl-diary-h { font-size: 32px; font-weight: 700; } .pl-diary2 li { font-size: 23px; font-weight: 600; line-height: 30px; } .pl-diary-sign { font-size: 21px !important; font-weight: 600; }
+/* menu: 'you are here' is a handwritten note */
+.mn-item em { font: 700 20px var(--pl-hand) !important; letter-spacing: 0 !important; text-transform: none !important; rotate: -4deg; display: inline-block; }
+/* contact: the stamps are stuck on the envelope's corner; the postmark cancels them */
+.pl-envelope { position: relative; grid-area: letter; display: grid; }
+.pl-envelope > .pl-mailform { width: 100%; box-sizing: border-box; }
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-table { grid-template-areas: "letter log" !important; padding-top: 40px; }
+  .pl-envelope > .pl-mailform { min-height: min(430px, calc(100svh - 420px)) !important; }
+  .pl-stamps.is-stuck { position: absolute !important; top: -30px; right: -18px; z-index: 3; display: grid !important; grid-template-columns: repeat(3, 64px) !important; gap: 6px !important; padding: 0 !important; margin: 0; background: none !important; box-shadow: none !important; -webkit-mask: none !important; mask: none !important; rotate: 3deg !important; }
+  .pl-stamps.is-stuck .pl-post { width: 64px !important; height: 74px !important; padding: 4px; outline-width: 3px; border-width: 2px; box-shadow: 0 3px 6px rgba(0,0,0,.18); transform-origin: 100% 0; transition: transform .25s cubic-bezier(.3,1.4,.5,1), box-shadow .25s; }
+  .pl-stamps.is-stuck .pl-post b { font-size: 18px !important; } .pl-stamps.is-stuck .pl-post span { font-size: 9px !important; line-height: 1.1; }
+  .pl-stamps.is-stuck .pl-post:hover, .pl-stamps.is-stuck .pl-post:focus-visible { transform: perspective(300px) rotateX(10deg) rotateZ(-5deg) translateY(-3px); box-shadow: 0 12px 16px -8px rgba(0,0,0,.45); }
+  .pl-envelope .pl-postmark { top: 58px; right: 150px; z-index: 4; background: none; rotate: -12deg; mix-blend-mode: multiply; }
+  .pl-envelope .pl-mailform .pl-dear { margin-right: 220px; }
+  .pl-envelope .pl-mailform textarea { margin-top: 48px; }
+}
+.pl-stamp-slot { position: relative; display: grid; }
+.pl-stamp-slot::before { content: ""; position: absolute; inset: 3px; border: 1.5px dashed rgba(90,70,50,.3); border-radius: 3px; background: rgba(255,255,255,.18); opacity: 0; transition: opacity .2s; }
+.pl-stamp-slot:has(.is-peeling)::before { opacity: 1; }
+.pl-post.is-peeling { z-index: 5; }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-stamps.is-stuck { position: static; margin-top: 12px; } }
+/* the signature: my name writes itself on the delivered card */
+.pl-sig { position: relative; display: grid; justify-items: start; margin: 4px 0 8px; }
+.pl-sig-pre { font: 600 20px var(--pl-hand); color: #4c566a; opacity: 0; animation: plNoteIn .5s .3s forwards; }
+.pl-sig-name { font: 700 54px/1 var(--pl-hand); color: #1f3b52; rotate: -4deg; clip-path: inset(-10% 100% -10% 0); animation: plSign 1.5s .8s cubic-bezier(.45,.05,.4,1) forwards; }
+.pl-sig-fl { position: absolute; left: -6px; bottom: -8px; width: 170px; height: 20px; overflow: visible; }
+.pl-sig-fl path { fill: none; stroke: #1f3b52; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: plInk .6s 2.2s ease-out forwards; }
+@keyframes plSign { to { clip-path: inset(-10% 0 -10% 0); } }
+@media (prefers-reduced-motion: reduce) { .pl-sig-name { clip-path: none; animation: none; } .pl-sig-fl path, .pl-floor-note path { stroke-dashoffset: 0; animation: none; } .pl-sig-pre { opacity: 1; animation: none; } }
+/* contact v13: the whole screen is the desk: letter on the left, me at my desk in the middle, the visit card on the right */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-left { width: calc(100vw - 2 * var(--pl-gut) - var(--rail, 84px) - 24px) !important; max-width: 1640px !important; }
+  .pl-desk-table { grid-template-columns: minmax(380px, 40%) minmax(180px, 1fr) minmax(250px, 22%) !important; grid-template-areas: "letter . log" !important; gap: 0 28px !important; align-items: stretch !important; }
+  .pl-desk-table > .pl-envelope { grid-area: letter; max-width: 660px; }
+  .pl-desk-table > .pl-trust.pl-log { grid-area: log !important; justify-self: end; width: 100% !important; max-width: 330px !important; align-self: end !important; }
+}
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-envelope .pl-mailform textarea { margin-top: 84px !important; }
+  .pl-envelope .pl-postmark { right: 214px !important; top: 14px !important; }
+  .pl-desk-table > .pl-trust.pl-log { align-self: center !important; }
+}
+/* handwriting accents never get clipped: give each letter room for its loops and tails, and keep the underline below them */
+.pl-main .pl-w.is-accent .pl-l { line-height: 1.25 !important; padding: .1em .05em .18em; margin: -.1em -.05em -.18em; }
+.pl-lens .pl-w.is-accent { line-height: 1.25 !important; padding: .1em .06em .18em; margin: -.1em -.06em -.18em; }
+.pl-main .pl-w.is-accent, .pl-lens .pl-w.is-accent { margin-left: .12em; }
+.pl-main .pl-w.is-accent .pl-swoosh, .pl-lens .pl-w.is-accent .pl-swoosh { bottom: -.16em !important; }
+.pl-main .pl-h, .pl-lens .pl-h { padding-bottom: .12em; overflow: visible; }
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-exp-sec .pl-lift { top: 284px !important; }
+  .pl-exp-sec .pl-floor { top: 354px !important; max-height: calc(100svh - 390px); }
+}
+@media (min-width: 861px) and (orientation: landscape) { .pl-exp-sec .pl-floor { max-height: calc(100svh - 450px); } }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-envelope, .pl-envelope > .pl-mailform, .pl-mailform > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .pl-mailform .pl-btn.is-main { max-width: 100%; white-space: nowrap; }
+  .pl-stamps.is-stuck .pl-post span { font-size: 8.5px !important; overflow-wrap: anywhere; }
+}
+@media (min-width: 861px) and (orientation: landscape) { .pl-exp-sec .pl-floor { max-height: none !important; } }

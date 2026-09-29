@@ -280,10 +280,10 @@ export function Break() {
 
 /* ── 4 · experience: an elevator ride up the Nordex tower, floor by floor; then my research lab ── */
 const FLOORS = [
-    { tools: ["EU AI Act", "GDPR", "NIST AI RMF", "LLM guardrails"], flow: ["AI idea", "Risk & privacy check", "Approval gate", "Monitored in use"] },
-    { tools: ["OWASP LLM Top 10", "MCP", "Syft · Grype · Cosign", "CI/CD"], flow: ["Threat (OWASP LLM)", "Azure mitigation", "Pipeline checks", "Signed release"] },
-    { tools: ["Azure AI Foundry", "Azure OpenAI", "Hybrid search", "LLM-as-judge"], flow: ["Question", "Hybrid search", "LLM answer", "Judge scores it"] },
-    { tools: ["Stakeholders", "Azure networking", "API gateway"], flow: ["Blocker", "Weekly alignment", "Owner & timeline", "Resolved"] },
+    { note: "the rules every AI model follows, from idea to retirement", tools: ["EU AI Act", "GDPR", "NIST AI RMF", "LLM guardrails"], flow: ["AI idea", "Risk & privacy check", "Approval gate", "Monitored in use"] },
+    { note: "each LLM threat gets an Azure fix", tools: ["OWASP LLM Top 10", "MCP", "Syft · Grype · Cosign", "CI/CD"], flow: ["Threat (OWASP LLM)", "Azure mitigation", "Pipeline checks", "Signed release"] },
+    { note: "models compared on quality, speed and cost", tools: ["Azure AI Foundry", "Azure OpenAI", "Hybrid search", "LLM-as-judge"], flow: ["Question", "Hybrid search", "LLM answer", "Judge scores it"] },
+    { note: "many teams, one blocker at a time", tools: ["Stakeholders", "Azure networking", "API gateway"], flow: ["Blocker", "Weekly alignment", "Owner & timeline", "Resolved"] },
 ];
 function Flow({ steps, color }) {
     return (
@@ -312,7 +312,7 @@ export function Experience() {
         pn.animate([{ transform: `translate(${dx}px, ${dy}px) scale(.05) rotateY(-35deg)`, opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: "none", opacity: 1 }], { duration: 750, easing: "cubic-bezier(.2,.85,.25,1)" });
     }, [f]);
     const fl = f >= 0 ? job.focus[f] : null;
-    useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 330, [f]);
+    useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 450, [f]);
     return (
         <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(4 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [4.6, E, 3]])}>
             <div className="pl-stage pl-left">
@@ -320,6 +320,7 @@ export function Experience() {
                 <div className={`pl-exp-intro ${f >= 0 ? "is-riding" : ""}`}><Kick>{job.company} · {job.date}</Kick><H text="Work experience." accent={["experience."]} /><p className="pl-edu-sub">{job.role.split("—").pop().trim()}{job.location ? `, ${job.location}` : ""}. Ride the lift: one floor for each part of the job.</p></div>
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor" data-fit="0">
+                        <p className="pl-floor-note"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M56 6 C 40 4, 22 12, 8 30 M8 30 l2 -10 M8 30 l10 -3" pathLength="1" /></svg>{FLOORS[f].note}</p>
                         <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
                         <p className="pl-p">{fl.d}</p>
                         <div data-drop="2"><Flow steps={FLOORS[f].flow} color="#88c0d0" /></div>
@@ -778,7 +779,7 @@ function Letter() {
         <form ref={paper} className={`pl-mailform is-${st}`} onSubmit={send}>
             <span className="pl-postmark mono" aria-hidden="true">HAMBURG<br />✉</span>
             {st === "sent" ? (
-                <div className="pl-sent"><b>Delivered to my inbox ✓</b><p>Thank you{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}! I'll reply to {email.trim()} soon.</p><button type="button" className="pl-link" onClick={() => { setSt("idle"); setMsg(""); }}>Write another</button></div>
+                <div className="pl-sent"><b>Delivered to my inbox ✓</b><p>Thank you{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}! I'll reply to {email.trim()} soon.</p><div className="pl-sig" aria-label={`Signed, ${NAME.split(" ")[0]}`}><span className="pl-sig-pre" aria-hidden="true">talk soon,</span><span className="pl-sig-name" aria-hidden="true">{NAME.split(" ")[0]}</span><svg className="pl-sig-fl" viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 18 C 50 30, 120 4, 196 14" pathLength="1" /></svg></div><button type="button" className="pl-link" onClick={() => { setSt("idle"); setMsg(""); }}>Write another</button></div>
             ) : st === "failed" ? (
                 <div className="pl-sent"><b>The post office is closed right now.</b><p>{err || "It couldn't be delivered."} Your letter is still here: send it with your email app instead.</p><div className="pl-ctas"><a className="pl-btn is-main" href={mailto()}>Open my email app</a><button type="button" className="pl-link" onClick={() => setSt("idle")}>Try again</button></div></div>
             ) : (<>
@@ -796,10 +797,12 @@ export function Contact({ onCv, onQuick }) {
     const ui = useUI(), a = useAttack(), p = useProgress(), [copied, setCopied] = useState(false), desk = useRef(null), verified = p.verdict?.status === "solved";
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
-    useEffect(() => { Views.contact = () => ({ fx: standFx(), dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
+    useEffect(() => { Views.contact = () => ({ fx: 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     useScaleFit(desk);
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
+    // a stamp lifts at the corner, peels off the envelope, then quietly sticks back on
+    const peel = el => { if (reducedMotion()) return; el.classList.add("is-peeling"); el.animate([{ transform: "none" }, { transform: "perspective(400px) rotateX(18deg) rotateZ(-14deg) translate(-4px, -18px) scale(1.1)", offset: 0.35 }, { transform: "perspective(400px) rotateX(30deg) rotateZ(-34deg) translate(-40px, -80px) scale(.85)", opacity: 0, offset: 0.7 }, { transform: "none", opacity: 0, offset: 0.85 }, { transform: "none", opacity: 1 }], { duration: 1500, easing: "cubic-bezier(.3,.7,.2,1)" }).finished.then(() => el.classList.remove("is-peeling")); };
     const stamps = [
         ["LinkedIn", "in", "https://www.linkedin.com/in/farhanshahriyar", "#0a66c2"], ["GitHub", "gh", "https://github.com/Shahriyar31", "#24292f"],
         ["Résumé", "CV", onCv, "#a45e4d"], ["Quick read", "60s", onQuick, "#13804f"], [copied ? "Copied ✓" : "Copy email", "@", copy, "#6a4ad6"], ["Ask my AI", "AI", () => { openChat(true); ask("Is Farhan open to work?"); }, "#0a7fc0"],
@@ -813,8 +816,10 @@ export function Contact({ onCv, onQuick }) {
                 <p className="pl-p" data-drop="1">Open to AI engineering roles: RAG and agents, AI platforms on Azure, AI governance and security. Write me a letter, it flies straight into my mailbox.</p>
             </div>
             <div className="pl-desk-table" ref={desk}>
-                <Letter />
-                <div className="pl-stamps"><span className="pl-sheet-cap mono">Postage · tap a stamp</span>{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
+                <div className="pl-envelope">
+                    <Letter />
+                    <div className="pl-stamps is-stuck" aria-label="Links: LinkedIn, GitHub, résumé, quick read, copy email, ask my AI">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>, st = { "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }; return <span key={label} className="pl-stamp-slot">{typeof act === "string" ? <a className="pl-post" style={st} href={act} target="_blank" rel="noreferrer" onClick={e => peel(e.currentTarget)}>{inner}</a> : <button className="pl-post" style={st} onClick={e => { peel(e.currentTarget); setTimeout(act, reducedMotion() ? 0 : 420); }}>{inner}</button>}</span>; })}</div>
+                </div>
                 <div className="pl-trust pl-log">
                     <span className="pl-log-cap mono">Your visit · logged on this desk</span>
                     <div className="pl-log-dial"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${score} 100` }} /></svg><b>{score}%</b><small>of my world</small></div>
