@@ -1865,9 +1865,10 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
 /* contact, desktop: the letter runs the full height on the left; the visit card top right, the stamps in one row below it */
 @media (min-width: 861px) and (orientation: landscape) {
   .pl-desk-table { grid-template-areas: "letter . log" "letter stamps stamps" !important; grid-template-rows: minmax(0, 1fr) auto !important; min-height: var(--avail, 0px); align-items: stretch !important; }
-  .pl-desk-table > .pl-envelope { grid-area: letter !important; display: flex; flex-direction: column; }
-  .pl-desk-table > .pl-envelope > .pl-mailform { flex: 1 0 auto; min-height: 0 !important; display: flex; flex-direction: column; }
-  .pl-desk-table > .pl-envelope .pl-mailform textarea { flex: 1 0 auto; min-height: 150px !important; }
+  .pl-desk-table > .pl-envelope { grid-area: letter !important; align-self: start !important; display: flex; flex-direction: column; }
+  /* the letter hugs its message: about five lines when empty, one more line for every line of text */
+  .pl-desk-table > .pl-envelope > .pl-mailform { flex: none; min-height: 0 !important; display: flex; flex-direction: column; }
+  .pl-desk-table > .pl-envelope .pl-mailform textarea { flex: none; min-height: 150px !important; }
   .pl-desk-table > .pl-envelope .pl-mailform .pl-btn.is-main { margin-top: 14px; align-self: flex-end; width: auto !important; padding-inline: 26px; }
   .pl-desk-table > .pl-trust.pl-log { grid-area: log !important; align-self: start !important; }
   .pl-desk-table > .pl-stamps.is-row { grid-area: stamps !important; justify-self: center !important; align-self: end !important; }

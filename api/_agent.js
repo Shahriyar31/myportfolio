@@ -41,6 +41,9 @@ const esc = s => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 const has = (text, term) => new RegExp(`(^|[^a-z0-9])${esc(term.toLowerCase())}([^a-z0-9]|$)`).test(text);
 const ALL_NOTES = KB.chunks.map(c => `${c.title} ${c.section} ${c.text}`).join(" ").toLowerCase();
 
+// a name or email goes into the letter only if the visitor really wrote it: never an invented "John Doe"
+const saidBy = (sink, v) => { const words = String(v || "").toLowerCase().split(/[\s,;()]+/).filter(w => w.length > 1 && !["from", "at", "of", "and"].includes(w)); return words.length > 0 && words.every(w => sink.said.includes(w)); };
+
 function makeTools(sink) {
     const search_notes = tool(async ({ query }) => {
         const docs = retrieve(query, 4);
@@ -76,9 +79,9 @@ function makeTools(sink) {
     const open_resume = act("open_resume", "Open Farhan's résumé (CV) for the visitor.", z.object({}), () => ({ type: "resume", label: "open the résumé" }));
     const open_quick_read = act("open_quick_read", "Open the one-minute quick read summary of Farhan's profile.", z.object({}), () => ({ type: "quick_read", label: "open the quick read" }));
     const draft_letter = act("draft_letter", "Fill in the contact letter on the page with a short, friendly message written in the VISITOR's voice to Farhan. The letter already starts with 'Dear Farhan,', so do not add a greeting; end with the visitor's name if they gave it. The visitor reviews it and sends it themselves; nothing is sent automatically.",
-        z.object({ message: z.string().min(10).max(1200), name: z.string().max(80).optional().describe("the visitor's name and company, only if they said it"), email: z.string().max(120).optional().describe("the visitor's email, only if they gave it") }),
+        z.object({ message: z.string().min(10).max(1200), name: z.string().max(80).optional().describe("the visitor's name and company, ONLY if they wrote it in this chat; otherwise omit"), email: z.string().max(120).optional().describe("the visitor's email, ONLY if they wrote it in this chat; otherwise omit") }),
         // the letter already begins "Dear Farhan,": drop a second greeting the model may add
-        ({ message, name, email }) => ({ type: "letter", message: message.replace(/^\s*(?:hi|hello|hey|dear)\b[^\n,!]{0,30}farhan\s*[,!.:]?\s*/i, "").trim().slice(0, 1200), name: (name || "").slice(0, 80), email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "") ? email : "", label: "fill in the letter on the contact desk for you to review and send" }));
+        ({ message, name, email }) => ({ type: "letter", message: message.replace(/^\s*(?:hi|hello|hey|dear)\b[^\n,!]{0,30}farhan\s*[,!.:]?\s*/i, "").trim().slice(0, 1200), name: saidBy(sink, name) ? name.trim().slice(0, 80) : "", email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "") && saidBy(sink, email) ? email.trim() : "", label: "fill in the letter on the contact desk for you to review and send" }));
 
     return [search_notes, match_job, show_section, open_project, open_resume, open_quick_read, draft_letter];
 }
@@ -100,8 +103,8 @@ const State = Annotation.Root({
     trace: Annotation({ reducer: (a, z) => a.concat(z), default: () => [] }),
 });
 
-export function buildAgent({ apiKey = groqKey(), baseUrl, timeout = 15000 } = {}) {
-    const sink = { actions: [], sources: [] }, tools = makeTools(sink), byName = Object.fromEntries(tools.map(t => [t.name, t]));
+export function buildAgent({ apiKey = groqKey(), baseUrl, timeout = 15000, said = "" } = {}) {
+    const sink = { actions: [], sources: [], said: String(said || "").toLowerCase() }, tools = makeTools(sink), byName = Object.fromEntries(tools.map(t => [t.name, t]));
     const llm = new ChatGroq({ apiKey, model: MODELS.answer, temperature: 0.35, maxTokens: budget(MODELS.answer, 450), maxRetries: 1, ...modelOpts(MODELS.answer).lc, ...(baseUrl ? { baseUrl } : {}) });
     const withTools = llm.bindTools(tools), answerOnly = llm.bindTools(tools, { tool_choice: "none" });
 
@@ -160,7 +163,7 @@ export async function runAgent(history, opts = {}) {
     }
     try {
         if (!opts.baseUrl) await ready();
-        const { graph, sink } = buildAgent(opts);
+        const { graph, sink } = buildAgent({ ...opts, said: history.filter(m => m.role === "user").map(m => m.content).join("\n") });
         const s = await graph.invoke({ messages: msgs }, { recursionLimit: 2 * MAX_TURNS + 6 });
         const seen = new Set(), sources = sink.sources.filter(d => !seen.has(d.file) && seen.add(d.file)).map(d => ({ title: d.title, section: d.section, file: d.file }));
         return { answer: s.answer, sources, actions: sink.actions.map(({ label, ...a }) => a), model: s.model || "guard", trace: s.trace };
