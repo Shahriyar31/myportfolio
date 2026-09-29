@@ -1504,3 +1504,44 @@ body.is-locked .pl-bubble, body.qr-open .pl-bubble, body.is-locked .pl-vision, b
 .mn-item .pl-swoosh { transform: scaleX(0); transform-origin: 0 50%; transition: transform .45s cubic-bezier(.6,0,.2,1); } .mn-item .pl-swoosh path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none; }
 .mn-item.is-cur .pl-swoosh { transform: scaleX(1); }
 @media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-edu-sub { display: none; } }
+/* projects: a real heading that stays; the board sits under it */
+.pl-proj-head { position: absolute; left: var(--pl-gut); top: 92px; z-index: 6; display: grid; gap: 6px; max-width: min(640px, calc(var(--stand-x, 70vw) - 200px)); pointer-events: none; }
+.pl-proj-head .pl-h { font-size: clamp(26px, 2.6vw, 40px); text-shadow: 0 2px 14px rgba(0,0,0,.35); }
+@media (min-width: 861px) and (orientation: landscape) { .pl-blueprint { height: min(540px, calc(100svh - 64px - 250px)) !important; min-height: 300px; } }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-proj-head { top: 70px; left: 16px; right: 16px; } .pl-proj-head .pl-h { font-size: 22px; } .pl-proj-head .pl-edu-sub { display: none; } }
+:root[data-theme="light"] .pl-proj-head .pl-h { text-shadow: none; }
+/* the research highlight: a lab notebook that unfolds like the blueprints */
+.pl-fold.is-lab .pl-fp { color: #1f2a37; border: 0; background: linear-gradient(90deg, transparent 38px, rgba(208,135,112,.5) 38px 40px, transparent 40px), repeating-linear-gradient(#fbf8ef 0 27px, #dfe6ee 27px 28px); box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); padding-left: 52px; }
+.pl-fold.is-lab .pl-fp-a { border-radius: 14px 0 0 14px; box-shadow: 0 30px 60px -30px #000; }
+.pl-fold.is-lab .pl-fold-c > .pl-fp-c { border-radius: 0 14px 14px 0; }
+.pl-fold.is-lab .pl-fp-b, .pl-fold.is-lab .pl-fp-c { box-shadow: inset 14px 0 18px -14px rgba(0,0,0,.28); }
+.pl-lab-holes { position: absolute; left: 12px; top: 18px; bottom: 18px; width: 14px; background: radial-gradient(circle at 7px 7px, #3b4252 4px, transparent 4.5px) 0 0 / 14px 30px repeat-y; }
+.pl-lab-tape { position: absolute; top: -8px; left: 50%; width: 92px; height: 22px; transform: translateX(-50%) rotate(-3deg); background: rgba(235,203,139,.55); box-shadow: 0 2px 4px rgba(0,0,0,.12); }
+.pl-lab-stamp { padding: 3px 8px; border: 2px solid #b48ead; border-radius: 6px; color: #8a5f86; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; rotate: -4deg; }
+.pl-fold.is-lab .pl-count { color: #9a4d2b; }
+.pl-lab-kick { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #9a4d2b; }
+.pl-lab-h { margin: 2px 0 0; font: italic 700 clamp(24px, 2.1vw, 32px)/1.1 "Bradley Hand", "Segoe Script", "Comic Sans MS", cursive; color: #1f3b52; }
+.pl-lab-sub { margin: 0; font-weight: 600; color: #6b4f86; font-size: 14px; } .pl-lab-meta { margin: 0; font-size: 10.5px; letter-spacing: .06em; color: #6c7a80; }
+.pl-lab-p { margin: 0; font-size: 13.5px; line-height: 1.55; color: #33414f; }
+.pl-lab-list { display: grid; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; } .pl-lab-list li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; font-size: 13.5px; line-height: 1.45; color: #1f2a37; }
+.pl-lab-list i { font: italic 700 17px/1 "Bradley Hand", "Segoe Script", cursive; color: #2f7a5a; }
+.pl-lab-stickers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; } .pl-lab-stickers span { padding: 4px 9px; border-radius: 6px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); font: 600 11px var(--pl-mono); color: #3b4252; rotate: var(--r); }
+.pl-lab-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .pl-lab-notes div { display: grid; padding: 10px 12px; background: #f6e7a8; box-shadow: 0 6px 12px -6px rgba(0,0,0,.35); rotate: var(--r); font-size: 12px; color: #4c566a; } .pl-lab-notes b { font: 700 20px var(--pl-display); color: #2e3440; }
+.pl-fold.is-lab .pl-show-links .pl-btn.is-main { background: #6b4f86; border-color: #6b4f86; color: #fff; }
+:root:not([data-theme="light"]) .pl-fold.is-lab .pl-fp { filter: brightness(.95); }
+/* contact v9: one row across the whole width: letter | stamp sheet | visit log (upright); no box behind the heading */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-left { width: min(calc(var(--stand-x) - 160px - var(--pl-gut)), 1240px) !important; }
+  .pl-desk-copy { background: none !important; box-shadow: none !important; border: 0 !important; backdrop-filter: none !important; padding: 0 !important; }
+  .pl-desk-table { grid-template-columns: minmax(360px, 1.35fr) auto minmax(230px, .75fr) !important; grid-template-areas: "letter sheet log" !important; align-items: center !important; gap: 28px !important; }
+  .pl-desk-table > .pl-mailform { align-self: center !important; }
+  .pl-desk-table > .pl-trust.pl-log { grid-template-columns: 1fr !important; grid-template-areas: "cap" "dial" "list" "seal" !important; justify-items: stretch; gap: 14px !important; max-width: 300px; rotate: -1deg; }
+  .pl-desk-table > .pl-trust.pl-log .pl-log-dial { justify-self: center; width: 88px; } .pl-desk-table > .pl-trust.pl-log .pl-log-dial b { font-size: 20px; }
+  .pl-desk-table > .pl-trust.pl-log .pl-log-list { max-width: none; } .pl-desk-table > .pl-trust.pl-log .pl-log-seal { justify-self: center; }
+}
+/* menu: the side rail steps aside while the menu is open */
+html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 !important; pointer-events: none !important; transition: opacity .3s; }
+@media (min-width: 861px) and (orientation: landscape) { .pl-desk-left { width: min(calc(var(--stand-x) - 300px - var(--pl-gut)), 1240px) !important; } }
+:root[data-theme="light"] .pl-kick { color: #1f4f7a; text-shadow: 0 0 10px rgba(255,255,255,.85); }
+:root[data-theme="light"] .pl-proj-head .pl-edu-sub, :root[data-theme="light"] .pl-desk-copy .pl-p { color: #1f2a37; text-shadow: 0 0 12px rgba(255,255,255,.95), 0 0 4px rgba(255,255,255,.9); }
+.pl-proj-head .pl-edu-sub { text-shadow: 0 1px 12px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.5); }

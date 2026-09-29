@@ -125,11 +125,11 @@ const ABOUT = {
 export function Menu({ open, onClose, onOpenCv, onQuick }) {
     const [here, setHere] = useState("home"), [hover, setHover] = useState(null);
     useEffect(() => {
-        if (!open) return; lockScroll();
+        if (!open) return; lockScroll(); document.documentElement.classList.add("is-menu");
         const mid = innerHeight / 2, at = SECTIONS.map(([id]) => document.getElementById(id)).filter(Boolean).find(el => { const r = el.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
         if (at) setHere(at.id); setHover(null);
         const esc = e => e.key === "Escape" && onClose(); addEventListener("keydown", esc);
-        return () => { unlockScroll(); removeEventListener("keydown", esc); };
+        return () => { unlockScroll(); removeEventListener("keydown", esc); document.documentElement.classList.remove("is-menu"); };
     }, [open, onClose]);
     const cur = hover || here, [, curLabel, curIcon] = SECTIONS.find(([id]) => id === cur) || SECTIONS[0];
     const go = id => { onClose(); setTimeout(() => scrollToId(id), 320); };

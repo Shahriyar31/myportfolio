@@ -366,6 +366,28 @@ function ProjectCard({ p, i, fold }) {
     const C = (
         <div className="pl-fp pl-fp-c" ref={c}><span className="pl-fp-cap mono">Proof</span><div className="pl-show-stats">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div><div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div><div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></div>
     );
+    if (p.id === 2) { // my research: a lab notebook instead of a blueprint
+        const res = EXPERIENCE[1];
+        return (
+            <article className="pl-fold is-lab" ref={fold} style={{ "--pc": p.color }}>
+                <div className="pl-fp pl-fp-a">
+                    <span className="pl-lab-tape" aria-hidden="true" /><span className="pl-lab-holes" aria-hidden="true" />
+                    <div className="pl-proj-top"><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span><span className="pl-lab-stamp mono">Research highlight</span></div>
+                    <span className="pl-lab-kick mono">Lab notebook · {res.company}</span>
+                    <h3 className="pl-lab-h">{p.title}</h3>
+                    <p className="pl-lab-sub">{p.sub}</p>
+                    <p className="pl-lab-meta mono">{res.date}</p>
+                    <p className="pl-lab-p">{p.desc}</p>
+                </div>
+                <div className="pl-fold-b">
+                    <div className="pl-fp pl-fp-b"><span className="pl-lab-kick mono">What I did</span><ul className="pl-lab-list">{p.points.map(t => <li key={t}><i aria-hidden="true">✓</i>{t}</li>)}</ul><div className="pl-lab-stickers">{p.tags.map((t, k) => <span key={t} style={{ "--r": `${(k % 3 - 1) * 3}deg` }}>{t}</span>)}</div></div>
+                    <div className="pl-fold-c">
+                        <div className="pl-fp pl-fp-c" ref={c}><span className="pl-lab-kick mono">Results</span><div className="pl-lab-notes">{p.stats.map(([v, k], n) => <div key={k} style={{ "--r": `${n % 2 ? 2 : -2}deg` }}><b>{v}</b>{k}</div>)}</div><div className="pl-show-demo"><Preview id={p.id} /></div><div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></div>
+                    </div>
+                </div>
+            </article>
+        );
+    }
     return (
         <article className="pl-fold" ref={fold} style={{ "--pc": p.color }}>
             {A}
@@ -393,7 +415,7 @@ export function Projects() {
     return (
         <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
-                <div className="pl-show-head"><Kick>The project park · {near + 1} / {N}</Kick></div>
+                <div className="pl-proj-head"><Kick>Projects · {near + 1} of {N}</Kick><H text="Things I've built." accent={["built."]} /><p className="pl-edu-sub">From a live EU AI Act platform to my research and early NLP work. Scroll, or use the arrows.</p></div>
                 <div className="pl-blueprint" ref={board}>
                     <span className="pl-bp-grid" aria-hidden="true" />
                     {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-bp-slot" ref={el => { slots.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 1 && <ProjectCard p={p} i={k} fold={el => { folds.current[k] = el; }} />}</div>; })}
@@ -682,7 +704,7 @@ function useScaleFit(ref) {
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
             if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
-            const avail = innerHeight - 88 - 52, h = el.offsetHeight || 1, k = Math.min(1, avail / h);
+            const avail = innerHeight - 88 - 52, h = el.offsetHeight || 1, k = Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth));
             el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.max(0, (avail - h * k) / 2).toFixed(1)}px`);
         };
         const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
