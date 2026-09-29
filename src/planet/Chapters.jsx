@@ -406,76 +406,150 @@ function Count({ to, dec = 0, run }) {
     useEffect(() => { if (!run) return; if (reducedMotion()) { setV(to); return; } let raf = 0; const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / 1200); setV(to * (1 - Math.pow(1 - k, 3))); if (k < 1) raf = requestAnimationFrame(f); }; raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf); }, [to, run]);
     return <>{v.toFixed(dec)}</>;
 }
-/* a laptop on the table; its screen shows a terminal (college) or a Jupyter notebook (university) */
-function Laptop({ title, children, className = "" }) {
-    const body = useRef(null);
-    useEffect(() => { const b = body.current; if (b) b.scrollTop = b.scrollHeight; }); // follow the typing
-    return (
-        <div className={`pl-laptop ${className}`}>
-            <div className="pl-lap-lid"><div className="pl-lap-screen"><div className="pl-lap-bar"><i /><i /><i /><span className="mono">{title}</span></div><div className="pl-lap-body" ref={body} data-lenis-prevent>{children}</div></div></div>
-            <div className="pl-lap-base"><i /></div>
-        </div>
-    );
+/* one clock per scene: milliseconds since it mounted (throttled), so typing, runs and reveals share one timeline */
+function useClock(limit = 16000) {
+    const [t, setT] = useState(0);
+    useEffect(() => {
+        if (reducedMotion()) { setT(1e9); return; }
+        let raf = 0; const t0 = performance.now();
+        const f = now => { const v = now - t0; setT(Math.floor(v / 30) * 30); if (v < limit) raf = requestAnimationFrame(f); };
+        raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf);
+    }, [limit]);
+    return t;
 }
-/* type one short command, then show the (readable) result */
-function useCmd(cmd, run = true) {
-    const [n, setN] = useState(0);
-    useEffect(() => { if (!run) return; if (reducedMotion()) { setN(cmd.length + 1); return; } setN(0); let k = 0, t = 0; const f = () => { k += 1; setN(k); if (k <= cmd.length) t = setTimeout(f, k === cmd.length ? 260 : 32); }; t = setTimeout(f, 450); return () => clearTimeout(t); }, [cmd, run]);
-    return [cmd.slice(0, n), n > cmd.length];
+/* a small syntax highlighter for the code the laptops type */
+const TOK = /("[^"]*"?)|(\b\d+(?:\.\d+)?\b)|(\b(?:from|import)\b)|(\w+)(?==)|(\w+)(?=\()/g;
+function hl(line) {
+    const out = []; let last = 0;
+    for (const m of line.matchAll(TOK)) { if (m.index > last) out.push(line.slice(last, m.index)); out.push(<span key={m.index} className={`hl-${m[1] ? "s" : m[2] ? "n" : m[3] ? "k" : m[4] ? "a" : "f"}`}>{m[0]}</span>); last = m.index + m[0].length; }
+    out.push(line.slice(last)); return out;
 }
-function CgecLaptop() {
-    const [bt] = EDU_CHAPTERS, [typed, done] = useCmd("cat btech.md"), wrap = useRef(null);
-    useFit(wrap, cp => cp ? innerHeight * 0.62 : innerHeight - 150, [done]);
+/* a laptop: the lid opens, the screen boots, then it runs; on a mouse it tilts a little toward the cursor */
+function Mac({ title, className = "", foot, bodyRef, children }) {
+    const el = useRef(null);
+    const move = e => { if (e.pointerType !== "mouse") return; const r = el.current.getBoundingClientRect(); el.current.style.setProperty("--rx", ((e.clientY - r.top) / r.height - 0.5).toFixed(3)); el.current.style.setProperty("--ry", ((e.clientX - r.left) / r.width - 0.5).toFixed(3)); };
+    const leave = () => { el.current.style.setProperty("--rx", 0); el.current.style.setProperty("--ry", 0); };
     return (
-        <div className="pl-edu" ref={wrap}>
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
-            <Laptop title="farhan@cgec: ~/btech" className="is-term">
-                <p className="pl-lap-cmd"><span>~/btech $</span> {typed}{!done && <span className="pl-caret" />}</p>
-                {done && (
-                    <div className="pl-dv">
-                        <span className="pl-dv-kick mono">B.Tech. · Jul 2018 – Aug 2022</span>
-                        <h3>Computer Science</h3>
-                        <p className="pl-dv-sub">{bt.school} · West Bengal, India</p>
-                        <div className="pl-dv-stats"><div><b>8.73</b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b>4 yrs</b>2018 – 2022</div></div>
-                        <div className="pl-dv-chips" data-drop="1">{bt.pills.map(t => <span key={t}>{t}</span>)}</div>
-                        <p className="pl-dv-ok" data-drop="2">✓ Graduated 2022 · teaching assistant · student council</p>
+        <div className={`pl-mac pl-avoid ${className}`} ref={el} onPointerMove={move} onPointerLeave={leave}>
+            <div className="pl-mac-tilt">
+                <div className="pl-mac-lid">
+                    <div className="pl-mac-screen">
+                        <div className="pl-mac-bar"><i /><i /><i /><span className="mono">{title}</span></div>
+                        <div className="pl-mac-body" ref={bodyRef} data-lenis-prevent>{children}</div>
+                        {foot && <div className="pl-mac-foot mono">{foot}</div>}
+                        <span className="pl-mac-boot" aria-hidden="true"><b>FS</b></span>
+                        <span className="pl-mac-glare" aria-hidden="true" />
                     </div>
-                )}
-            </Laptop>
+                </div>
+                <div className="pl-mac-deck" aria-hidden="true"><i /></div>
+            </div>
         </div>
     );
 }
-/* the gap year: a diary that ticks itself off, then my passport opens and the visa is stamped */
+/* the college: code on the left types itself; the preview on the right renders each line as it lands */
+const CGEC_CODE = `from cgec import BTech
+
+degree = BTech(
+  major="Computer Science",
+  college="CGEC, West Bengal",
+  years=(2018, 2022),
+  cgpa=8.73,
+  rank="top 10%",
+  roles=["TA", "Council"],
+)
+degree.graduate()`;
+const BOOT = 1500, SPEED = 17;
+function CgecLaptop() {
+    const [bt] = EDU_CHAPTERS, t = useClock(), code = useRef(null), body = useRef(null);
+    const n = Math.max(0, Math.min(CGEC_CODE.length, Math.floor((t - BOOT) / SPEED))), typed = CGEC_CODE.slice(0, n), lines = typed.split("\n");
+    const all = n >= CGEC_CODE.length, done = lines.length - 1 + (all ? 1 : 0), on = k => (done > k ? "is-on" : ""), grad = t > BOOT + CGEC_CODE.length * SPEED + 500;
+    useEffect(() => { const c = code.current, b = body.current; if (c) c.scrollTop = c.scrollHeight; if (b && b.scrollHeight > b.clientHeight + 4) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [lines.length, grad]);
+    return (
+        <div className="pl-edu">
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
+            <Mac title="degree.py — btech" className="is-ide" bodyRef={body} foot={<><span>{grad ? "✓ build passed" : "● running"}</span><span>Python · UTF-8 · Ln {lines.length}, Col {lines[lines.length - 1].length + 1}</span></>}>
+                <div className="pl-ide">
+                    <pre className="pl-ide-code" ref={code} aria-hidden="true">{lines.map((l, k) => <div key={k}><i>{k + 1}</i><span>{hl(l)}{k === lines.length - 1 && !all && <span className="pl-caret" />}</span></div>)}</pre>
+                    <div className="pl-ide-pv" aria-label="B.Tech. Computer Science, Cooch Behar Government Engineering College, 2018 to 2022, CGPA 8.73 of 10, top 10 percent">
+                        <span className="pl-pv-tab mono">Preview</span>
+                        <span className={`pl-pv-b pl-pv-kick mono ${on(2)}`}>B.Tech. · Jul 2018 – Aug 2022</span>
+                        <h3 className={`pl-pv-b ${on(3)}`}>Computer Science</h3>
+                        <p className={`pl-pv-b pl-pv-sub ${on(4)}`}>{bt.school} · West Bengal, India</p>
+                        <div className={`pl-pv-b pl-pv-years ${on(5)}`}><span>2018</span><i /><span>2022</span></div>
+                        <div className="pl-pv-row">
+                            <div className={`pl-pv-b pl-pv-gauge ${on(6)}`}><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${done > 6 ? 87.3 : 0} 100` }} /></svg><b><Count to={8.73} dec={2} run={done > 6} /></b><small>CGPA / 10</small></div>
+                            <div className={`pl-pv-b pl-pv-badge ${on(7)}`}><b>Top 10%</b><small>of my class</small></div>
+                        </div>
+                        <div className={`pl-pv-b pl-pv-chips ${on(8)}`}><span>Teaching assistant</span><span>Student council</span></div>
+                        <div className={`pl-pv-b pl-pv-ok ${grad ? "is-on" : ""}`}>✓ Graduated · Aug 2022</div>
+                        <div className={`pl-pv-b pl-pv-ticker ${grad ? "is-on" : ""}`} aria-label={`Courses: ${bt.pills.join(", ")}`}><div>{[...bt.pills, ...bt.pills].map((x, k) => <span key={k}>{x}</span>)}</div></div>
+                    </div>
+                </div>
+            </Mac>
+        </div>
+    );
+}
+/* the gap year: a diary on one side ticks itself off; my passport on the other side opens, turns a page, and gets its visa */
 const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Finances and paperwork", "Student visa", "Goodbye, West Bengal"];
 const clamp01 = x => Math.min(1, Math.max(0, x));
-function GapYear({ q }) {
-    const n = Math.min(PREP.length, Math.floor(clamp01(q / 0.24) * (PREP.length + 0.4))), stamped = q > 0.8, ref = useRef(null);
-    // one small book on the left; each leaf turns over its left edge in turn: diary → cover → photo page → visa page
-    const t = [clamp01((q - 0.26) / 0.09), clamp01((q - 0.37) / 0.09), clamp01((q - 0.66) / 0.09)];
-    useFit(ref, cp => cp ? innerHeight * 0.6 : innerHeight - 160, []);
-    const leaf = (k, cls, kids) => <div className={`pl-bk-leaf ${cls}`} style={{ "--t": t[k], zIndex: 10 - k }} aria-hidden={t[k] >= 1}>{kids}</div>;
+const TICKS = [0.05, 0.12, 0.19, 0.26, 0.33], OPEN = 0.42, TURN = 0.6, STAMP = 0.76;
+/** a page that turns over its spine: eases from where it is to open or shut, shading as it lifts; the scroll only says which way */
+function useLeaf(ref, on, dur = 1500) {
+    const cur = useRef(on ? 1 : 0);
+    useLayoutEffect(() => {
+        const el = ref.current; if (!el) return;
+        const apply = v => { el.style.setProperty("--t", v.toFixed(4)); el.style.setProperty("--s", Math.sin(Math.PI * v).toFixed(4)); el.classList.toggle("is-over", v > 0.5); };
+        const to = on ? 1 : 0, from = cur.current;
+        if (reducedMotion() || from === to) { cur.current = to; apply(to); return; }
+        const ease = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2), D = dur * Math.max(0.35, Math.abs(to - from)), t0 = performance.now();
+        let raf = 0; const f = now => { const k = Math.min(1, (now - t0) / D); cur.current = from + (to - from) * ease(k); apply(cur.current); if (k < 1) raf = requestAnimationFrame(f); };
+        raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf);
+    }, [on, dur]);
+}
+function Leaf({ on, k, front, back }) {
+    const ref = useRef(null); useLeaf(ref, on);
+    return <div className="pl-leaf" ref={ref} style={{ "--z0": 10 - k, "--z1": 20 + k }}><div className="pl-face">{front}</div><div className="pl-face is-back">{back}</div></div>;
+}
+function Passport({ open, turned, stamped }) {
     return (
-        <div className="pl-gap" ref={ref}>
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
-            <div className="pl-book">
-                {leaf(0, "pl-diary", <>
-                    <span className="pl-diary-date mono">2022 – 2023 · at home in West Bengal</span>
-                    <b className="pl-diary-h">To do before Germany</b>
-                    <ul>{PREP.map((x, k) => <li key={x} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{x}</li>)}</ul>
-                </>)}
-                {leaf(1, "pl-bk-cover", <><span>भारत गणराज्य</span><i /><b>Republic of India</b><em>Passport</em></>)}
-                {leaf(2, "pl-bk-page", <>
-                    <div className="pl-pp-top mono"><span>Republic of India · Passport</span><span>illustration</span></div>
-                    <div className="pl-pp-bio"><img src="/images/profile-suit.jpg" alt="Farhan Shahriyar" loading="lazy" /><dl><dt>Name</dt><dd>{NAME.toUpperCase()}</dd><dt>Nationality</dt><dd>INDIAN</dd><dt>Home</dt><dd>West Bengal, India</dd><dt>No.</dt><dd>• • • • • • • •</dd></dl></div>
-                    <p className="pl-pp-mrz mono" aria-hidden="true">P&lt;IND&lt;SHAHRIYAR&lt;&lt;FARHAN&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</p>
-                </>)}
-                <div className="pl-bk-leaf pl-bk-page is-visa" style={{ zIndex: 1 }}>
-                    <div className="pl-pp-top mono"><span>Visas</span><span>page 7</span></div>
-                    <p className="pl-pp-note">Admitted to <b>TUHH</b> for the M.Sc. Data Science.</p>
-                    <dl className="pl-pp-visa"><dt>Country</dt><dd>Germany</dd><dt>Purpose</dt><dd>Study</dd><dt>Holder</dt><dd>{NAME}</dd></dl>
-                    <span className={`pl-stamp-ink is-green mono pl-visa ${stamped ? "is-on" : ""}`}>Student visa<br /><b>Germany</b><br />granted · 2023</span>
+        <div className={`pl-pass ${open ? "is-open" : ""}`}>
+            <div className="pl-pass-book pl-avoid">
+                <div className="pl-pg is-base">
+                    <div className="pl-pp-top mono"><span>Visas</span><span>7</span></div>
+                    <p className="pl-pg-hint">Germany · national visa (D) · study</p>
+                    <span className={`pl-visa2 mono ${stamped ? "is-on" : ""}`}><small>Bundesrepublik Deutschland</small><b>Student visa</b><em>granted · 2023</em><small>Hamburg · TUHH</small></span>
                 </div>
+                <Leaf k={1} on={turned}
+                    front={<div className="pl-pg">
+                        <div className="pl-pp-top mono"><span>Republic of India</span><span>2</span></div>
+                        <div className="pl-bio"><img src="/images/profile-suit.jpg" alt="Farhan Shahriyar" loading="lazy" /><dl><dt>Surname</dt><dd>SHAHRIYAR</dd><dt>Given name</dt><dd>FARHAN</dd><dt>Nationality</dt><dd>INDIAN</dd><dt>Place</dt><dd>WEST BENGAL</dd></dl></div>
+                        <p className="pl-pp-mrz mono" aria-hidden="true">P&lt;IND&lt;SHAHRIYAR&lt;&lt;FARHAN&lt;&lt;&lt;&lt;&lt;&lt;<br />• • • • • • • • &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</p>
+                    </div>}
+                    back={<div className="pl-pg is-left">
+                        <div className="pl-pp-top mono"><span>6</span><span>Visas</span></div>
+                        <p className="pl-pg-note">Admitted to <b>TUHH</b>, Hamburg, for the <b>M.Sc. Data Science</b>.</p>
+                        <dl className="pl-pp-visa"><dt>Country</dt><dd>Germany</dd><dt>Purpose</dt><dd>Study</dd><dt>Holder</dt><dd>{NAME}</dd><dt>Year</dt><dd>2023</dd></dl>
+                    </div>} />
+                <Leaf k={0} on={open}
+                    front={<div className="pl-cover"><span>भारत गणराज्य</span><i aria-hidden="true" /><b>Republic of India</b><em>Passport</em></div>}
+                    back={<div className="pl-pg is-left is-inside"><i className="pl-emblem" aria-hidden="true" /><p>An illustration of my passport, not a real document. Number hidden.</p></div>} />
             </div>
+        </div>
+    );
+}
+function Tick({ on }) { return <svg viewBox="0 0 24 24" className={`pl-tick ${on ? "is-on" : ""}`} aria-hidden="true"><path d="M4 13.5 9.5 18.5 20 5.5" /></svg>; }
+function GapYear({ q }) {
+    const n = TICKS.filter(x => q >= x).length, open = q >= OPEN, turned = q >= TURN, stamped = q >= STAMP;
+    return (
+        <div className={`pl-gap2 ${open ? "is-pass" : ""}`}>
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
+            <div className="pl-diary2 pl-avoid">
+                <span className="pl-diary-date mono">2022 – 2023 · at home in West Bengal</span>
+                <b className="pl-diary-h">To do before Germany</b>
+                <ul>{PREP.map((x, k) => <li key={x} className={k < n ? "is-ok" : ""}><span className="pl-box"><Tick on={k < n} /></span><span className="pl-diary-t"><span>{x}</span></span></li>)}</ul>
+                <span className="pl-diary-sign">{n === PREP.length ? "all done. next stop: Hamburg" : `${n} of ${PREP.length} done`}</span>
+            </div>
+            <Passport open={open} turned={turned} stamped={stamped} />
         </div>
     );
 }
@@ -500,23 +574,40 @@ function BoardingPass() {
         </div>
     );
 }
-/* the university: a notebook whose cells run one by one; big, readable outputs */
-function TuhhNotebook() {
-    const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], wrap = useRef(null), [typed, done] = useCmd('MSc("Data Science", at="TUHH")'), [k, setK] = useState(0);
-    useEffect(() => { if (!done) return; if (reducedMotion()) { setK(3); return; } setK(1); const a = setTimeout(() => setK(2), 650), b = setTimeout(() => setK(3), 1300); return () => { clearTimeout(a); clearTimeout(b); }; }, [done]);
-    useFit(wrap, cp => cp ? innerHeight * 0.62 : innerHeight - 150, [k]);
+/* the university: a Jupyter notebook; each cell types, runs [*], then prints a readable result */
+const NB = ['ms = MSc("Data Science", at="TUHH")', "ms.timeline().plot()", "ms.research"];
+const NB_T = (() => { let t = BOOT; return NB.map((c, k) => { const s = t, e = s + c.length * 26, o = e + 600; t = o + (k === 1 ? 1900 : 900); return { s, e, o }; }); })();
+const mon = (y, m) => (y - 2023) * 12 + (m - 10); // months since Oct 2023
+function Timeline() {
+    const now = new Date(), nowM = Math.min(40, Math.max(31, mon(now.getFullYear(), now.getMonth() + 1))), X = m => 24 + (m / nowM) * 356;
+    const ev = [[0, "M.Sc. starts", "Oct 2023", 34], [22, "Working student · Nordex", "Aug 2025", 64], [30, "Preprint", "Apr 2026", 34]];
     return (
-        <div className="pl-edu" ref={wrap}>
+        <figure className="pl-plot">
+            <svg viewBox="0 0 400 150" role="img" aria-label="Timeline: M.Sc. starts October 2023, working student at Nordex from August 2025, preprint April 2026">
+                <line className="pl-plot-ax" x1="16" y1="118" x2="392" y2="118" />
+                {[2024, 2025, 2026].map(y => { const x = X(mon(y, 1)); return <g key={y}><line className="pl-plot-tk" x1={x} y1="118" x2={x} y2="123" /><text className="pl-plot-yr" x={x} y="136">{y}</text></g>; })}
+                <path className="pl-plot-line" d={`M${X(0)} 118 H${X(nowM)}`} pathLength="100" />
+                {ev.map(([m, a, b, h], k) => <g key={a} className="pl-plot-ev" style={{ "--d": `${0.35 + k * 0.45}s` }}><line x1={X(m)} y1="118" x2={X(m)} y2={118 - h} /><circle cx={X(m)} cy={118 - h} r="4" /><text x={X(m) + (m === 0 ? -4 : m > 25 ? 4 : 0)} y={118 - h - 10} textAnchor={m === 0 ? "start" : m > 25 ? "end" : "middle"}><tspan className="b">{a}</tspan><tspan x={X(m) + (m === 0 ? -4 : m > 25 ? 4 : 0)} dy="-12" className="d">{b}</tspan></text></g>)}
+                <g className="pl-plot-now"><circle cx={X(nowM)} cy="118" r="4" /><circle className="pulse" cx={X(nowM)} cy="118" r="4" /><text x={X(nowM)} y="136" textAnchor="end">now</text></g>
+            </svg>
+            <figcaption className="mono">Figure 1 · my time at TUHH</figcaption>
+        </figure>
+    );
+}
+function TuhhNotebook() {
+    const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], t = useClock(14000), body = useRef(null);
+    const cell = k => { const { s, e, o } = NB_T[k], c = NB[k]; return { show: t >= s || k === 0, code: c.slice(0, Math.max(0, Math.floor((t - s) / 26))), typing: t >= s && t < e, run: t >= e && t < o, out: t >= o }; };
+    const cs = NB.map((_, k) => cell(k)), shown = cs.filter(c => c.out).length;
+    useEffect(() => { const b = body.current; if (b && b.scrollHeight > b.clientHeight) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [shown]);
+    const In = k => <div className="pl-cell-in"><span className="mono">In [{cs[k].run ? "*" : cs[k].out ? k + 1 : " "}]:</span><code>{hl(cs[k].code)}{cs[k].typing && <span className="pl-caret" />}</code></div>;
+    return (
+        <div className="pl-edu">
             <div className="pl-edu-cap"><Kick>06 · My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
-            <Laptop title="M.Sc._Data_Science.ipynb · Python 3" className="is-nb">
-                <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [1]:</span><code>{typed}{!done && <span className="pl-caret" />}</code></div>
-                    {k >= 1 && <div className="pl-cell-out"><span className="mono">Out[1]:</span><div className="pl-dv"><h3>M.Sc. Data Science</h3><p className="pl-dv-sub">{ms.school} · Hamburg · Oct 2023 – now</p></div></div>}</div>
-                {k >= 2 && <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [2]:</span><code>student.research</code></div>
-                    <div className="pl-cell-out"><span className="mono">Out[2]:</span><ul className="pl-nb-list"><li>{res.role.split("—")[1]?.trim()}</li><li>Security threats in the Model Context Protocol (MCP)</li><li data-drop="1">Preprint, {PAPER.when}: <i>{PAPER.title}</i></li></ul></div></div>}
-                {k >= 3 && <div className="pl-cell"><div className="pl-cell-in"><span className="mono">In [3]:</span><code>student.work, student.languages</code></div>
-                    <div className="pl-cell-out"><span className="mono">Out[3]:</span><div className="pl-nb-two"><p>Working student · <b>Nordex Group</b><br />Aug 2025 – now <button className="pl-link" onClick={() => scrollToId("experience")}>see it →</button></p>
-                        <div className="pl-nb-chart" data-drop="2">{[["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1", 0.4]].map(([l, lv, v]) => <div key={l}><span>{l}</span><i style={{ "--v": v }} /><small>{lv}</small></div>)}</div></div></div></div>}
-            </Laptop>
+            <Mac title="M.Sc._Data_Science.ipynb" className="is-nb2" bodyRef={body} foot={<><span>{shown < NB.length ? "● kernel busy" : "○ kernel idle"}</span><span>Python 3 · TUHH</span></>}>
+                <div className="pl-cell">{In(0)}{cs[0].out && <div className="pl-cell-out"><span className="mono">Out[1]:</span><div className="pl-nb-hero"><span className="mono">M.Sc. · Oct 2023 – now</span><h3>Data Science</h3><p>{ms.school} · Hamburg, Germany</p></div></div>}</div>
+                {cs[1].show && <div className="pl-cell">{In(1)}{cs[1].out && <div className="pl-cell-out is-plot"><Timeline /></div>}</div>}
+                {cs[2].show && <div className="pl-cell">{In(2)}{cs[2].out && <div className="pl-cell-out"><span className="mono">Out[3]:</span><ol className="pl-nb-res"><li><b>Research</b>{res.role.split("—")[1]?.trim() || res.role}</li><li><b>Security</b>Threats in the Model Context Protocol (MCP)</li><li><b>Preprint · {PAPER.when}</b><i>{PAPER.title}</i></li></ol></div>}</div>}
+            </Mac>
         </div>
     );
 }
@@ -553,6 +644,20 @@ export function Photos() {
     return <div className="pl-sec pl-lens" data-angle={PLACES.lens.theta} data-sky="8"><Lens /></div>;
 }
 
+/** desktop: scale the desk down (never scroll, never cut) so the last section is exactly one screen */
+function useScaleFit(ref) {
+    useEffect(() => {
+        const el = ref.current; if (!el) return;
+        const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
+        const f = () => {
+            if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
+            const avail = innerHeight - 88 - 52, h = el.offsetHeight || 1, k = Math.min(1, avail / h);
+            el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.max(0, (avail - h * k) / 2).toFixed(1)}px`);
+        };
+        const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
+        return () => { ro.disconnect(); removeEventListener("resize", f); mq.removeEventListener("change", f); };
+    }, [ref]);
+}
 /* ── 9 · contact: write me a letter; it folds into a paper plane and flies into my mailbox ── */
 function Letter() {
     const [name, setName] = useState(""), [email, setEmail] = useState(""), [msg, setMsg] = useState(""), [trap, setTrap] = useState(""), [st, setSt] = useState("idle"), [err, setErr] = useState(""), paper = useRef(null);
@@ -594,11 +699,12 @@ function Letter() {
     );
 }
 export function Contact({ onCv, onQuick }) {
-    const ui = useUI(), a = useAttack(), p = useProgress(), [copied, setCopied] = useState(false), verified = p.verdict?.status === "solved";
+    const ui = useUI(), a = useAttack(), p = useProgress(), [copied, setCopied] = useState(false), desk = useRef(null), verified = p.verdict?.status === "solved";
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
     useEffect(() => { Views.contact = () => ({ fx: !compact() ? -1.6 : 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
+    useScaleFit(desk);
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     const stamps = [
         ["LinkedIn", "in", "https://www.linkedin.com/in/farhanshahriyar", "#0a66c2"], ["GitHub", "gh", "https://github.com/Shahriyar31", "#24292f"],
@@ -606,7 +712,7 @@ export function Contact({ onCv, onQuick }) {
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
-            <div className="pl-desk-left">
+            <div className="pl-desk-left" ref={desk}>
             <div className="pl-desk-copy">
                 <Kick>08 · My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />

@@ -17,7 +17,7 @@ let sayTimer = 0;
 export function say(text, ms = 3200) { clearTimeout(sayTimer); setUI({ say: text }); sayTimer = setTimeout(() => setUI({ say: null }), ms); }
 
 /* the education story, in slots of scroll: college → getting ready → the flight → Hamburg */
-export const JOURNEY = { spans: [1, 1.6, 1.4, 1], prep: [0.75, 2.45], takeoff: 2.65, land: 3.75 };
+export const JOURNEY = { spans: [1, 2.3, 1.4, 1], prep: [0.75, 3.15], takeoff: 3.35, land: 4.45 };
 
 /* the project park: one stretch of scroll per project */
 export const PROJECT_ORDER = PLACES.projects.items.map(i => i.id);
@@ -205,7 +205,10 @@ function Bubble({ ui }) {
             if (!at || !text || state.neural || at.y < 40 || at.y > innerHeight + 10 || at.x < -20 || at.x > innerWidth + 20) { b.style.opacity = "0"; return; }
             const hit = document.elementFromPoint(Math.max(0, Math.min(innerWidth - 1, at.x)), Math.max(0, Math.min(innerHeight - 1, at.y + 18)));
             if (hit && hit.tagName !== "CANVAS" && !hit.matches?.("main, body, .pl-sec, .pl-deck, .pl-stage, .pl-show-stage, .pl-show-track, .pl-show-slot, .pl-what-sec, .pl-what-stage, .pl-hero, .pl-desk, .pl-in, .pl-sats-row, .pl-beams, .pl-exp-line, .pl-exp-line path")) { b.style.opacity = "0"; return; }
-            const w = b.offsetWidth, left = Math.max(12, Math.min(innerWidth - w - (!compact() ? 110 : 12), at.x - 26)), y = Math.max(80, at.y - 14);
+            const w = b.offsetWidth, h = b.offsetHeight, y = Math.max(80, at.y - 14), fit = x => Math.max(12, Math.min(innerWidth - w - (!compact() ? 110 : 12), x));
+            // sit on whichever side of me is free of panels (the diary, the passport, a laptop)
+            const R = [...document.querySelectorAll(".pl-avoid")].map(e => e.getBoundingClientRect()).filter(r => r.width), hits = x => R.some(r => x < r.right && x + w > r.left && y - h < r.bottom && y > r.top);
+            let left = fit(at.x - 26); if (hits(left)) { const l2 = fit(at.x - w + 26); if (!hits(l2)) left = l2; }
             b.style.opacity = "1"; b.style.transform = `translate(${left}px, ${y}px) translateY(-100%)`; b.style.setProperty("--tail", `${Math.min(w - 16, Math.max(16, at.x - left))}px`);
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
