@@ -22,6 +22,7 @@ export default function App() {
     const openQuick = useCallback(() => setQuick(true), []), closeQuick = useCallback(() => setQuick(false), []);
 
     useEffect(() => { addEventListener("quick-read", openQuick); return () => removeEventListener("quick-read", openQuick); }, [openQuick]);
+    useEffect(() => { addEventListener("open-cv", openCv); return () => removeEventListener("open-cv", openCv); }, [openCv]);
     // smooth scrolling (skipped for reduced-motion users)
     useEffect(() => {
         if (reducedMotion()) return;

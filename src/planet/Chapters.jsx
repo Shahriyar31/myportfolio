@@ -453,6 +453,10 @@ export function Projects() {
         const k = Math.round(p); if (k !== nearRef.current) { nearRef.current = k; setNear(k); }
     }, 7);
     useSnap(sec, PROJECT_ORDER.map((_, k) => k));
+    useEffect(() => {
+        const open = e => { const k = PROJECT_ORDER.indexOf(e.detail); if (k >= 0) scrollToProject(k); };
+        addEventListener("open-project", open); return () => removeEventListener("open-project", open);
+    }, []);
     useEffect(() => { Views.projects = () => ({ dy: !compact() ? -1.7 : -0.4, zoom: 0.3, fx: standFx() }); return () => { delete Views.projects; }; }, []);
     const keys = [[-0.6, items[0].theta, 4], ...items.flatMap((it, k) => [[k - 0.1, it.theta, 4], [k + 0.4, it.theta, 4]])];
     return (
@@ -759,6 +763,11 @@ function useScaleFit(ref) {
 /* ── 9 · contact: write me a letter; it folds into a paper plane and flies into my mailbox ── */
 function Letter() {
     const [name, setName] = useState(""), [email, setEmail] = useState(""), [msg, setMsg] = useState(""), [trap, setTrap] = useState(""), [st, setSt] = useState("idle"), [err, setErr] = useState(""), paper = useRef(null);
+    // the AI assistant can pre-fill the letter (never send it): the visitor reads it, edits it and sends it
+    useEffect(() => {
+        const fill = e => { const d = e.detail || {}; setSt("idle"); setErr(""); setMsg(d.message || ""); if (d.name) setName(d.name); if (d.email) setEmail(d.email); scrollToId("contact"); };
+        addEventListener("draft-letter", fill); return () => removeEventListener("draft-letter", fill);
+    }, []);
     const mailto = () => `mailto:${EMAIL}?subject=${encodeURIComponent(`Hello from ${name.trim() || "your portfolio"}`)}&body=${encodeURIComponent(`${msg.trim()}\n\n— ${name.trim()} ${email.trim()}`)}`;
     const deliver = () => fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, message: msg, website: trap }) })
         .then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Could not deliver right now"); return true; });

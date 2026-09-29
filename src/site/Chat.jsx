@@ -30,9 +30,9 @@ function Composer({ inputRef }) {
                 value={draft}
                 onFocus={cancelDemo}
                 onChange={e => { cancelDemo(); setDraft(e.target.value); }}
-                placeholder="Ask my agent anything…"
+                placeholder="Ask anything, or paste a job ad…"
                 aria-label="Message Farhan's agent"
-                maxLength={500}
+                maxLength={4000}
             />
             <button className="key key-accent send" type="submit" disabled={busy || !draft.trim()} aria-label="Send"><Icon n="arrow" size={18} /></button>
         </form>
@@ -101,7 +101,7 @@ export function AgentSection() {
                     <Composer inputRef={inputRef} />
                 </div>
                 <div className="console neu-lg">
-                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />RAG · LangGraph · Groq</span></div>
+                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />Agent · LangGraph · Groq</span></div>
                     <Trace />
                     <Ledger />
                 </div>

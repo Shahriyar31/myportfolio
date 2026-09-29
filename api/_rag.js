@@ -63,7 +63,7 @@ async function groq({ model, messages, max_tokens = 320, temperature = 0.5, time
 }
 
 /* ── prompts ── */
-const PERSONA = `You are the AI assistant on Farhan Shahriyar's portfolio website, speaking on Farhan's behalf in the first person ("I", "my").
+export const PERSONA = `You are the AI assistant on Farhan Shahriyar's portfolio website, speaking on Farhan's behalf in the first person ("I", "my").
 Tone: warm, polite, friendly and professional, like Farhan chatting with a visitor or a recruiter. Be concise and specific.
 
 Rules:
@@ -137,14 +137,16 @@ const generate = timed("generate", async ({ question, history, docs }) => {
 });
 
 const PRIVATE = /\b(password|passcode|api[ _-]?key|secret key|gsk_[a-z0-9]{8,}|sk-[a-z0-9]{12,})\b/i; // credentials never belong in an answer
-const verify = timed("verify", async ({ answer }) => {
-    const scan = outputScan(answer, PERSONA);
+/** the last line of defence, shared with the agent: returns { answer, detail } */
+export function checkAnswer(answer, prompt = PERSONA) {
+    const scan = outputScan(answer, prompt);
     const phone = /\+?\d[\d\s()-]{9,}\d/.test(answer), leak = PRIVATE.test(answer);
     if (scan.status === "block" || phone || leak) return { answer: `I'd rather not answer that one here. Please ask me directly at ${EMAIL}, I'm happy to help.`, detail: `replaced · ${scan.status === "block" ? scan.detail : phone ? "phone number" : "private detail"}` };
-    return { answer: answer.slice(0, 1400), detail: "passed" };
-});
+    return { answer: answer.slice(0, 1600), detail: "passed" };
+}
+const verify = timed("verify", async ({ answer }) => checkAnswer(answer));
 
-const REFUSAL = {
+export const REFUSAL = {
     LLM10: "That message is a bit too long for me. Could you ask it in a sentence or two?",
     "Secret extraction": "There's no secret for me to share here, only my work! Ask me about my projects, my research or my time at Nordex. (If you enjoy this kind of thing, the \"Break my AI\" section is built for it.)",
 };

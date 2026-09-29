@@ -47,22 +47,28 @@ This portfolio avoids standard static templates by building complex 2D and 3D vi
    ```
    The compiled assets will be strictly optimized and generated in the `/dist` directory.
 
-## 🤖 "Ask my AI": retrieval-augmented, grounded answers
+## 🤖 "Ask my AI": a grounded agent with tools
 
-The chat answers **only** from the Markdown knowledge base in `data/knowledge/`, through a LangGraph graph on the server (`api/_rag.js`):
+The chat is a **LangGraph agent** (`api/_agent.js`) using **LangChain** tools and Groq Llama 3.3 70B. It answers **only** from the Markdown knowledge base in `data/knowledge/`.
 
 ```
-guard → rewrite → retrieve → generate → verify
-  │        │          │          │          └ output scan: no secrets, prompt leaks or private data
-  │        │          │          └ Groq Llama 3.3 70B writes a warm, short answer from the retrieved notes
-  │        │          └ BM25 over every "## section" (index prebuilt into api/_kb.js)
-  │        └ a fast model (Llama 3.1 8B) turns follow-ups into standalone search queries
-  └ OWASP LLM Top 10 input shield; real attacks get a polite refusal
+guard ─┬─ attack ───────────────────────────→ refuse
+       └─ ok → agent ⇄ tools (max 4 turns) → verify
 ```
 
+| Tool | Runs on | What it does |
+|---|---|---|
+| `search_notes` | server | BM25 over every `## section` of the knowledge base (index prebuilt into `api/_kb.js`) |
+| `match_job` | server | a visitor pastes a job ad; it lists which requirements are in my notes and which are not mentioned, for an honest fit summary |
+| `show_section` | browser | scrolls the page to a section |
+| `open_project` | browser | scrolls to a project card |
+| `open_resume` / `open_quick_read` | browser | opens the résumé or the one-minute quick read |
+| `draft_letter` | browser | pre-fills the contact letter; the visitor reads, edits and sends it |
+
+- **Safe by design:** browser tools only return "actions" (at most two per answer) that the page performs: scroll, open, pre-fill. Nothing is ever sent on the visitor's behalf. The guard (OWASP LLM Top 10 input shield) runs first, and the output scan in `verify` replaces any answer with secrets, prompt leaks or private data (and drops its actions).
+- **Honest fallbacks:** if the agent can't run (no key, rate limit, bad tool call, timeout), the grounded RAG pipeline in `api/_rag.js` answers instead (guard → rewrite → retrieve → generate → verify), falling back to the small model and finally to an extractive answer from the best matching note.
 - **Update what it knows:** edit or add `data/knowledge/*.md` (one `## heading` = one searchable chunk, with `title` and `tags` in the front matter). `npm run dev` and `npm run build` rebuild the index automatically; `npm run kb` does it by hand.
 - **Keys:** set `GROQ_API_KEY` in `.env` for local dev (see `.env.example`) and in Vercel → Settings → Environment Variables for production. The key stays on the server.
-- **Honest fallbacks:** if a question isn't covered it says so and offers email; if the model is busy it falls back to the small model; with no model at all it answers from the best matching note.
 - **Local dev:** `npm run dev` serves the `api/` functions through a small Vite plugin, so the chat works on localhost exactly as on Vercel.
 
 ## 📁 Architecture Overview

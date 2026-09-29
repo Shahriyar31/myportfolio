@@ -1,12 +1,15 @@
 import { useSyncExternalStore } from "react";
+import { scrollToId } from "./hooks";
 
 /*
- * "Ask my AI": the browser side of a retrieval-augmented assistant.
+ * "Ask my AI": the browser side of a grounded agent.
  *
- *   server (api/chat.js → api/_rag.js, a LangGraph graph):
- *     guard → rewrite → retrieve (BM25 over data/knowledge) → generate (Groq Llama 3.3) → verify
+ *   server (api/chat.js → api/_agent.js, a LangGraph agent with LangChain tools):
+ *     guard → agent ⇄ tools (search_notes, match_job, show_section, open_project, open_resume,
+ *     open_quick_read, draft_letter) → verify; the RAG pipeline in api/_rag.js is the fallback
  *   browser: shows that trace, keeps a short history for follow-ups, re-checks the answer
- *   against a public-safety policy and appends it to a SHA-256 hash-chained audit ledger.
+ *   against a public-safety policy, appends it to a SHA-256 hash-chained audit ledger,
+ *   then performs the page actions the agent asked for. Nothing is ever sent for the visitor.
  */
 
 const EMAIL = "shahriyarfarhan3101@gmail.com";
@@ -33,7 +36,7 @@ const STEPS = [
 const freshTrace = () => STEPS.map(([id, label]) => ({ id, label, status: "idle", detail: "" }));
 
 let state = {
-    msgs: [{ r: "b", t: "Hi, I'm Farhan's AI assistant! I answer from his own notes, so ask me anything about his work, projects, research or whether he's open to roles." }],
+    msgs: [{ r: "b", t: "Hi, I'm Farhan's AI assistant! I answer from his own notes: ask about his work, projects or research, paste a job description to see how he fits, or ask me to show you something on the site." }],
     busy: false,
     typing: "",
     draft: "",
@@ -60,7 +63,22 @@ async function typeOut(text, src = []) {
     set({ typing: "", msgs: [...state.msgs, { r: "b", t: text, src }] });
 }
 
-const SERVER_STEP = { guard: "intent", rewrite: "intent", retrieve: "retrieve", generate: "generate", refuse: "generate", verify: "policy" };
+const SERVER_STEP = { guard: "intent", rewrite: "intent", agent: "intent", retrieve: "retrieve", tools: "retrieve", generate: "generate", refuse: "generate", verify: "policy" };
+
+/* page actions the agent may request; each one only scrolls, opens or pre-fills, never sends */
+const ACTIONS = {
+    section: a => typeof a.id === "string" && /^[a-z]+$/.test(a.id) && scrollToId(a.id),
+    project: a => Number.isInteger(a.id) && dispatchEvent(new CustomEvent("open-project", { detail: a.id })),
+    resume: () => dispatchEvent(new Event("open-cv")),
+    quick_read: () => dispatchEvent(new Event("quick-read")),
+    letter: a => typeof a.message === "string" && dispatchEvent(new CustomEvent("draft-letter", { detail: { message: a.message.slice(0, 1200), name: String(a.name || "").slice(0, 80), email: String(a.email || "").slice(0, 120) } })),
+};
+function perform(actions) {
+    const list = (Array.isArray(actions) ? actions : []).filter(a => ACTIONS[a?.type]).slice(0, 2);
+    if (!list.length) return;
+    if (innerWidth < 760 && list.some(a => a.type !== "quick_read" && a.type !== "resume")) openChat(false); // on a phone the panel would hide what we scroll to
+    list.forEach((a, i) => setTimeout(() => ACTIONS[a.type](a), 350 + i * 900));
+}
 export async function ask(text) {
     text = text.trim();
     if (!text || state.busy) return;
@@ -68,13 +86,13 @@ export async function ask(text) {
     history = [...history, { role: "user", content: text }].slice(-12);
     ["intent", "retrieve", "generate"].forEach(id => step(id, "run"));
 
-    let reply = null, sources = [], server = [], via = "fallback";
+    let reply = null, sources = [], server = [], actions = [], via = "fallback";
     try {
         const ac = new AbortController(), t = setTimeout(() => ac.abort(), 25000);
         const res = await fetch("/api/chat", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history }) });
         clearTimeout(t);
         const j = await res.json().catch(() => ({}));
-        if (res.ok && j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; via = j.model || "model"; }
+        if (res.ok && j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; actions = j.actions || []; via = j.model || "model"; }
         else if (j.error) reply = j.error;
     } catch { /* offline: handled below */ }
     if (!reply) reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`;
@@ -99,6 +117,7 @@ export async function ask(text) {
     history = [...history, { role: "assistant", content: reply }].slice(-12);
     await typeOut(reply, failed.length ? [] : sources);
     set({ busy: false });
+    if (!failed.length) perform(actions);
 }
 
 /* Auto-demo: types two questions once, then hands over to the visitor.

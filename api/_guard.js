@@ -25,8 +25,8 @@ const PII = [
 const OWN_EMAIL = "shahriyarfarhan3101@gmail.com";
 
 /** Layer 1 — input shield. Masks personal data, blocks known attack patterns. */
-export function inputShield(text) {
-    if (text.length > 600) return { status: "block", owasp: "LLM10", detail: "Too long — unbounded consumption" };
+export function inputShield(text, max = 600) {
+    if (text.length > max) return { status: "block", owasp: "LLM10", detail: "Too long — unbounded consumption" };
     let masked = text, found = [];
     PII.forEach(([k, re]) => { masked = masked.replace(re, m => (m.toLowerCase() === OWN_EMAIL ? m : (found.push(k), `[${k} masked]`))); });
     const hit = RULES.find(([, , re]) => re.test(text));
