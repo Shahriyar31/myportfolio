@@ -8,7 +8,7 @@ const SIZES = [
   ['laptop-s', 1280, 720, false], ['laptop', 1366, 768, false], ['mac14', 1512, 945, false], ['fhd', 1920, 1080, false], ['qhd', 2560, 1440, false],
 ];
 const STOPS = [['home', 0], ['what', 2.2], ['break', 0.05], ['experience', 1.1], ['experience', 4.2], ['projects', 0], ['projects', 4], ['journey', 0.2], ['journey', 1.5], ['journey', 2.6], ['journey', 4.2], ['skills', 0], ['contact', 0]];
-const PANELS = '.pl-hero-copy, .pl-hero-dock, .pl-what-head, .pl-sat.is-out, .pl-term, .pl-floor, .pl-notebook, .pl-exp-intro, .pl-show-slot.is-center .pl-show, .pl-page, .pl-route-map, .pl-desk-left > *';
+const PANELS = '.pl-hero-copy, .pl-hero-dock, .pl-what-head, .pl-sat.is-out, .pl-term, .pl-floor, .pl-notebook, .pl-exp-intro, .pl-bp-slot.is-center, .pl-edu, .pl-passport, .pl-bpass, .pl-desk-left > *';
 const b = await puppeteer.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });
 const W = ms => new Promise(r => setTimeout(r, ms));
 let bad = 0;

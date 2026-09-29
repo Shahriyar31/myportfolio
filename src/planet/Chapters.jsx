@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { World, useUI, setUI, toast, say, Views, PROJECT_ORDER, scrollToProject, slotsInto, JOURNEY } from "./Planet";
 import Network from "./Network";
 import { PLACES, ORBS } from "./world";
@@ -340,40 +340,45 @@ function ArgusTry() {
         </div>
     );
 }
-function ProjectCard({ p, i }) {
-    const early = EARLY.includes(p.id), N = PROJECT_ORDER.length, card = useRef(null);
-    useFit(card, c => c ? innerHeight * 0.58 : Math.min(innerHeight * 0.56, innerHeight - 250));
+/* a project card in three panels: what it is · what I did · proof. It unfolds like a blueprint. */
+function ProjectCard({ p, i, fold }) {
+    const early = EARLY.includes(p.id), N = PROJECT_ORDER.length, c = useRef(null);
+    // if the proof panel is too short for the live demo, leave the demo out (never cut off)
+    useLayoutEffect(() => { const el = c.current; if (!el) return; const f = () => { el.classList.remove("no-demo"); if (el.scrollHeight > el.clientHeight + 2) el.classList.add("no-demo"); }; f(); addEventListener("resize", f); const t = setTimeout(f, 400); return () => { removeEventListener("resize", f); clearTimeout(t); }; }, []);
+    const A = (
+        <div className="pl-fp pl-fp-a">
+            <div className="pl-proj-top"><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span><span className="pl-badge mono">{p.badge}</span><span className="pl-kind mono">{p.id === 2 ? "Research" : early ? "Earlier work" : "Main work"}</span></div>
+            <h3 className="pl-show-h">{p.title}</h3>
+            <p className="pl-sub">{p.sub}</p>
+            <p className="pl-p">{p.desc}</p>
+            <span className="pl-fp-no mono" aria-hidden="true">sheet {i + 1} · what it is</span>
+        </div>
+    );
+    const B = (
+        <div className="pl-fp pl-fp-b"><span className="pl-fp-cap mono">What I did</span><ul className="pl-points">{p.points.map(t => <li key={t}>{t}</li>)}</ul><div className="pl-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div></div>
+    );
+    const C = (
+        <div className="pl-fp pl-fp-c" ref={c}><span className="pl-fp-cap mono">Proof</span><div className="pl-show-stats">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div><div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div><div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></div>
+    );
     return (
-        <article className="pl-show" ref={card} style={{ "--pc": p.color }}>
-            <div className="pl-show-text">
-                <div className="pl-proj-top"><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span><span className="pl-badge mono">{p.badge}</span><span className="pl-kind mono">{p.id === 2 ? "Research" : early ? "Earlier work" : "Main work"}</span></div>
-                <h3 className="pl-show-h">{p.title}</h3>
-                <p className="pl-sub">{p.sub}</p>
-                <p className="pl-p" data-drop="3">{p.desc}</p>
-                <ul className="pl-points">{p.points.map((t, k) => <li key={t} data-drop={k === 2 ? "2" : undefined}>{t}</li>)}</ul>
-                <div className="pl-tags" data-drop="2">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
-            </div>
-            <div className="pl-show-side">
-                <div className="pl-show-stats" data-drop="3">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div>
-                <div className="pl-show-demo" data-drop="1">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div>
-                <div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div>
-            </div>
+        <article className="pl-fold" ref={fold} style={{ "--pc": p.color }}>
+            {A}
+            <div className="pl-fold-b">{B}<div className="pl-fold-c">{C}</div></div>
         </article>
     );
 }
-/* the showroom: projects stand on a slowly turning 3D carousel; scrolling turns it, stopping settles on a card */
+/* the drawing board: each project arrives as a folded blueprint, unfolds panel by panel, then folds itself away */
 export function Projects() {
-    const sec = useRef(null), track = useRef(null), items = PLACES.projects.items, N = PROJECT_ORDER.length, nodes = useRef([]), [near, setNear] = useState(0), nearRef = useRef(0);
+    const sec = useRef(null), items = PLACES.projects.items, N = PROJECT_ORDER.length, slots = useRef([]), folds = useRef([]), [near, setNear] = useState(0), nearRef = useRef(0), board = useRef(null);
     useSlots(sec, raw => {
-        const p = Math.min(N - 1, Math.max(0, raw)), tr = track.current, w = nodes.current[0]?.offsetWidth || 700, step = 42 * Math.PI / 180, R = (w / 2) / Math.tan(step / 2) * 1.04;
-        tr?.style.setProperty("--cw", `${w}px`);
-        nodes.current.forEach((n, k) => {
-            if (!n) return; const o = k - p, th = o * step, c = Math.cos(th);
-            if (c < 0.05) { n.style.visibility = "hidden"; return; } n.style.visibility = "visible";
-            n.style.transform = `translate3d(calc(-50% + ${Math.sin(th) * R}px), 0, ${(c - 1) * R}px) rotateY(${th}rad)`;
-            n.style.opacity = String(Math.min(1, Math.max(0, (c - 0.35) / 0.55))); n.style.zIndex = String(Math.round(c * 20));
-            n.style.filter = Math.abs(o) > 0.15 ? `blur(${Math.min(3, (1 - c) * 9)}px)` : ""; n.style.setProperty("--o", o.toFixed(3)); n.classList.toggle("is-center", Math.abs(o) < 0.3);
+        const p = Math.min(N - 1, Math.max(0, raw)), v = compact();
+        slots.current.forEach((n, k) => {
+            if (!n) return; const d = p - k, a = Math.abs(d), t = Math.min(1, Math.max(0, (a - 0.06) / 0.36)), u = 1 - t * t * (3 - 2 * t);
+            n.style.visibility = a > 0.5 ? "hidden" : "visible"; n.style.opacity = String(Math.min(1, Math.max(0, 1 - (a - 0.34) / 0.14)));
+            n.style.transform = `translateY(${d * (v ? 30 : 46)}px) scale(${0.92 + u * 0.08})`; n.style.zIndex = String(10 - Math.round(a * 10)); n.classList.toggle("is-center", a < 0.25);
+            const f = folds.current[k]; if (f) f.style.setProperty("--u", u.toFixed(4));
         });
+        board.current?.style.setProperty("--draw", String(1 - Math.abs(p - Math.round(p)) * 2));
         const k = Math.round(p); if (k !== nearRef.current) { nearRef.current = k; setNear(k); }
     }, 7);
     useSnap(sec, PROJECT_ORDER.map((_, k) => k));
@@ -383,8 +388,9 @@ export function Projects() {
         <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
                 <div className="pl-show-head"><Kick>05 · The project park · {near + 1} / {N}</Kick></div>
-                <div className="pl-show-track" ref={track}>
-                    {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-show-slot" ref={el => { nodes.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 2 && <ProjectCard p={p} i={k} />}</div>; })}
+                <div className="pl-blueprint" ref={board}>
+                    <span className="pl-bp-grid" aria-hidden="true" />
+                    {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-bp-slot" ref={el => { slots.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 1 && <ProjectCard p={p} i={k} fold={el => { folds.current[k] = el; }} />}</div>; })}
                     <button className="pl-ring-nav is-prev" onClick={() => scrollToProject(Math.max(0, near - 1))} disabled={near === 0} aria-label="Previous project">←</button>
                     <button className="pl-ring-nav is-next" onClick={() => scrollToProject(Math.min(N - 1, near + 1))} disabled={near === N - 1} aria-label="Next project">→</button>
                     <div className="pl-ring-dots">{PROJECT_ORDER.map((id, k) => <button key={id} className={k === near ? "is-on" : ""} onClick={() => scrollToProject(k)} aria-label={`Project ${k + 1}: ${PROJECTS.find(x => x.id === id).title}`}><span>{PROJECTS.find(x => x.id === id).title}</span></button>)}</div>
@@ -400,126 +406,132 @@ function Count({ to, dec = 0, run }) {
     useEffect(() => { if (!run) return; if (reducedMotion()) { setV(to); return; } let raf = 0; const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / 1200); setV(to * (1 - Math.pow(1 - k, 3))); if (k < 1) raf = requestAnimationFrame(f); }; raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf); }, [to, run]);
     return <>{v.toFixed(dec)}</>;
 }
+/* a laptop on the table; its screen shows a terminal (college) or a Jupyter notebook (university) */
+function Laptop({ title, children, className = "" }) {
+    const body = useRef(null);
+    useEffect(() => { const b = body.current; if (b) b.scrollTop = b.scrollHeight; }); // follow the typing
+    return (
+        <div className={`pl-laptop ${className}`}>
+            <div className="pl-lap-lid"><div className="pl-lap-screen"><div className="pl-lap-bar"><i /><i /><i /><span className="mono">{title}</span></div><div className="pl-lap-body" ref={body} data-lenis-prevent>{children}</div></div></div>
+            <div className="pl-lap-base"><i /></div>
+        </div>
+    );
+}
+/* type lines out one after the other: [prompt command, output] */
+function useTyping(lines, run) {
+    const [st, setSt] = useState({ i: 0, c: 0 });
+    useEffect(() => {
+        if (!run) return; if (reducedMotion()) { setSt({ i: lines.length, c: 0 }); return; }
+        setSt({ i: 0, c: 0 }); let i = 0, c = 0, t = 0;
+        const tick = () => { const cmd = lines[i]?.[0] || ""; if (c < cmd.length) { c += 1; setSt({ i, c }); t = setTimeout(tick, 26); } else { i += 1; c = 0; setSt({ i, c }); if (i < lines.length) t = setTimeout(tick, 380); } };
+        t = setTimeout(tick, 500); return () => clearTimeout(t);
+    }, [run, lines]);
+    return st;
+}
+const CGEC_LINES = (bt) => [
+    ["whoami", <span key="w">farhan-shahriyar · computer science undergrad</span>],
+    ["cat degree.txt", <dl key="d" className="pl-kv"><dt>degree</dt><dd><b>B.Tech. Computer Science</b></dd><dt>college</dt><dd>{bt.school}</dd><dt>where</dt><dd>Cooch Behar, West Bengal, India</dd><dt>when</dt><dd>Jul 2018 – Aug 2022</dd><dt>cgpa</dt><dd><b>8.73</b> / 10 <span className="pl-bar" style={{ "--v": 0.873 }} /> top 10%</dd></dl>],
+    ["ls courses/", <div key="c" className="pl-ls">{bt.pills.map(t => <span key={t}>{t.replace(/\s+/g, "-").replace(/\.$/, "")}/</span>)}</div>],
+    ["cat extra.txt", <span key="e">teaching assistant · student council</span>],
+    ["git tag", <span key="g" className="t-ok">v1.0-graduated-2022 ✓</span>],
+];
+function CgecLaptop() {
+    const [bt] = EDU_CHAPTERS, lines = useRef(CGEC_LINES(bt)).current, { i, c } = useTyping(lines, true), wrap = useRef(null);
+    useFit(wrap, cp => cp ? innerHeight * 0.6 : innerHeight - 150);
+    return (
+        <div className="pl-edu" ref={wrap}>
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018–2022</Kick><H text="Where it started." accent={["started."]} /></div>
+            <Laptop title="farhan@cgec: ~/btech">
+                <div className="pl-tty">{lines.map(([cmd, out], k) => k > i ? null : (
+                    <div key={cmd} className="pl-tty-row"><p><span className="pl-ps">~/btech $</span> {k === i ? cmd.slice(0, c) : cmd}{k === i && <span className="pl-caret" />}</p>{k < i && <div className="pl-tty-out">{out}</div>}</div>))}
+                    {i >= lines.length && <p><span className="pl-ps">~/btech $</span> <span className="pl-caret" /></p>}
+                </div>
+            </Laptop>
+        </div>
+    );
+}
+/* the year of getting ready: this one really is a passport */
 const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Student visa", "Finances and paperwork", "Goodbye, West Bengal"];
-/* the left pages of the passport: the degree (or the year of getting ready) is the star */
-function Page({ stop, q, wide }) {
-    const [bt, ms] = EDU_CHAPTERS, research = EXPERIENCE[1], ref = useRef(null);
-    useFit(ref, c => c ? innerHeight * 0.58 : innerHeight - 170, [stop, wide]);
-    if (stop === 0) return (
-        <div className="pl-page is-left" ref={ref}>
-            <div className="pl-page-top mono" data-drop="2"><span>Republic of India · West Bengal</span><span>Page 1</span></div>
-            <span className="pl-page-when mono">{bt.year} · where it started</span>
-            <div className="pl-degree">B.Tech<small>Computer Science · CGPA 8.73 / 10</small></div>
-            <p className="pl-page-school">{bt.school}<br /><span>Cooch Behar, West Bengal, India · Jul 2018 – Aug 2022</span></p>
-            <div className="pl-page-stats" data-drop="3"><div><b><Count to={8.73} dec={2} run /></b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b><Count to={4} run /></b>years</div></div>
-            {!wide && <div className="pl-tags" data-drop="1"><span>Teaching assistant</span><span>Student council</span></div>}
-            {!wide && <span className="pl-stamp-ink is-red mono">Graduated<br /><b>2022</b><br />Cooch Behar</span>}
-        </div>
-    );
-    if (stop === 1) { const n = Math.min(PREP.length, Math.floor(q * (PREP.length + 0.6))); return (
-        <div className="pl-page is-left" ref={ref}>
-            <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 3</span></div>
-            <span className="pl-page-when mono">2022 – 2023 · at home in West Bengal</span>
-            <div className="pl-degree is-small">One year<small>to get ready for Germany</small></div>
-            <ul className="pl-prep">{PREP.map((t, k) => <li key={t} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{t}</li>)}</ul>
-            {!wide && n >= 3 && <span className="pl-stamp-ink is-green mono">Student<br /><b>visa</b><br />granted</span>}
-        </div>
-    ); }
-    return (
-        <div className="pl-page is-left" ref={ref}>
-            <div className="pl-page-top mono" data-drop="2"><span>Bundesrepublik Deutschland · Hamburg</span><span>Page 5</span></div>
-            <span className="pl-page-when mono">{ms.year} · landed in Hamburg</span>
-            <div className="pl-degree">M.Sc.<small>Data Science</small></div>
-            <p className="pl-page-school">{ms.school}<br /><span>Research: {research.role.split("—")[1]?.trim()} · working student at Nordex</span></p>
-            {!wide && <div className="pl-tags" data-drop="1">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>}
-            <button className="pl-link" onClick={() => scrollToId("experience")}>See my research and work →</button>
-            {!wide && <span className="pl-stamp-ink is-blue mono">Entry<br /><b>2023</b><br />Hamburg</span>}
-        </div>
-    );
-}
-/* the right pages: the stamps I've collected so far, and what each place gave me */
 const STAMPS = [["is-red", "Graduated", "2022", "Cooch Behar", -12], ["is-green", "Student", "visa", "granted", 9], ["is-blue", "Entry", "2023", "Hamburg", -6]];
-const LANG_BARS = [["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1 · learning every day", 0.4]];
-function StampPage({ stop, q }) {
-    const [bt] = EDU_CHAPTERS, got = stop === 0 ? 1 : stop === 1 ? (q > 0.45 ? 2 : 1) : 3;
+function PrepPassport({ q, wide }) {
+    const n = Math.min(PREP.length, Math.floor(q * (PREP.length + 0.6))), got = n >= 3 ? 2 : 1, ref = useRef(null);
+    useFit(ref, cp => cp ? innerHeight * 0.58 : innerHeight - 170, [wide]);
     return (
-        <div className="pl-page is-right">
-            <div className="pl-page-top mono"><span>Visas · stamps</span><span>Page {stop === 0 ? 2 : stop === 1 ? 4 : 6}</span></div>
-            <div className="pl-stamps-grid">{STAMPS.map(([c, a, b, d, r], k) => <span key={a} className={`pl-stamp-ink ${c} mono ${k < got ? "is-on" : "is-empty"}`} style={{ "--r": `${r}deg` }}>{k < got ? <>{a}<br /><b>{b}</b><br />{d}</> : "·"}</span>)}</div>
-            {stop === 0 && (<>
-                <span className="pl-page-when mono">What I took from it</span>
-                <div className="pl-stickers">{bt.pills.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
-                <div className="pl-tags"><span>Teaching assistant</span><span>Student council</span></div>
-            </>)}
-            {stop === 1 && (<>
-                <span className="pl-page-when mono">Next stop</span>
-                <div className="pl-stub"><div><b>CCB</b><small>Cooch Behar</small></div><i aria-hidden="true">✈</i><div><b>HAM</b><small>Hamburg</small></div><span className="mono">2023 · one way</span></div>
-                <p className="pl-page-school"><span>Admitted to TUHH for the M.Sc. Data Science.</span></p>
-            </>)}
-            {stop === 2 && (<>
-                <span className="pl-page-when mono">Languages</span>
-                <ul className="pl-langs">{LANG_BARS.map(([l, lv, v]) => <li key={l}><b>{l}</b><small>{lv}</small><i style={{ "--v": v }} /></li>)}</ul>
-                <span className="pl-page-when mono">Hamburg, now</span>
-                <ul className="pl-now"><li>M.Sc. Data Science at TUHH <small>Oct 2023 – now</small></li><li>Research on security threats in MCP</li><li>Working student at Nordex <small>Aug 2025 – now</small></li></ul>
-            </>)}
+        <div className={`pl-passport ${wide ? "is-spread" : ""}`} ref={ref}>
+            <div className="pl-page is-left">
+                <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 3</span></div>
+                <span className="pl-page-when mono">06 · stop 2 of 4 · 2022 – 2023 · at home in West Bengal</span>
+                <div className="pl-degree is-small">One year<small>to get ready for Germany</small></div>
+                <ul className="pl-prep">{PREP.map((t, k) => <li key={t} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{t}</li>)}</ul>
+                {!wide && n >= 3 && <span className="pl-stamp-ink is-green mono">Student<br /><b>visa</b><br />granted</span>}
+            </div>
+            {wide && (
+                <div className="pl-page is-right">
+                    <div className="pl-page-top mono"><span>Visas · stamps</span><span>Page 4</span></div>
+                    <div className="pl-stamps-grid">{STAMPS.map(([c, a, b, d, r], k) => <span key={a} className={`pl-stamp-ink ${c} mono ${k < got ? "is-on" : "is-empty"}`} style={{ "--r": `${r}deg` }}>{k < got ? <>{a}<br /><b>{b}</b><br />{d}</> : "·"}</span>)}</div>
+                    <p className="pl-page-school"><span>Admitted to TUHH for the M.Sc. Data Science. Next: a one-way flight to Hamburg.</span></p>
+                </div>
+            )}
         </div>
     );
 }
-/* an open passport: on wide screens two pages side by side; the page turns with the scroll */
-function Passport({ stop, q, t, wide }) {
-    // t: 0..1 while turning from stop 0 to stop 1 (null when not turning)
-    if (t === null) return (
-        <div className={`pl-passport ${wide ? "is-spread" : ""}`} key={stop}>
-            <Page stop={stop} q={q} wide={wide} />{wide && <StampPage stop={stop} q={q} />}
-        </div>
-    );
+/* the flight: a boarding pass that fills in as the plane flies */
+function BoardingPass() {
+    const ui = useUI(), f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7000), st = f <= 0 ? "Boarding" : f < 1 ? "In the air" : "Landed";
     return (
-        <div className={`pl-passport is-turning ${wide ? "is-spread" : ""}`} style={{ "--t": t }}>
-            {wide ? (<>
-                <Page stop={0} q={0} wide />
-                <StampPage stop={1} q={0} />
-                <div className="pl-leaf"><div className="pl-leaf-front"><StampPage stop={0} q={0} /></div><div className="pl-leaf-back"><Page stop={1} q={0} wide /></div></div>
-            </>) : (<>
-                <Page stop={1} q={0} />
-                <div className="pl-leaf is-single"><div className="pl-leaf-front"><Page stop={0} q={0} /></div><div className="pl-leaf-back"><div className="pl-page pl-page-blank" /></div></div>
-            </>)}
+        <div className="pl-bpass" style={{ "--f": f }}>
+            <div className="pl-bpass-main">
+                <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>06 · stop 3 of 4 · 2023</span></div>
+                <div className="pl-bpass-route">
+                    <div><small className="mono">From</small><b>CCB</b><span>Cooch Behar, India</span></div>
+                    <div className="pl-bpass-track"><i /><em aria-hidden="true">✈</em></div>
+                    <div className="is-to"><small className="mono">To</small><b>HAM</b><span>Hamburg, Germany</span></div>
+                </div>
+                <div className="pl-bpass-fields">
+                    <div><small className="mono">Passenger</small><b>{NAME}</b></div><div><small className="mono">Purpose</small><b>M.Sc. Data Science · TUHH</b></div>
+                    <div><small className="mono">Travelling</small><b>Alone, at 22</b></div><div><small className="mono">Status</small><b className={f >= 1 ? "is-ok" : ""}>{st} · {km.toLocaleString("en-GB")} km</b></div>
+                </div>
+            </div>
+            <div className="pl-bpass-stub"><small className="mono">Admit one</small><b>HAM</b><span className="pl-barcode" aria-hidden="true" /><small className="mono">a new chapter</small></div>
         </div>
     );
 }
-function RouteMap() {
-    const ui = useUI(), f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7000);
-    const x = 40 + f * 920, y = 110 - Math.sin(f * Math.PI) * 80;
+/* the university: a Jupyter notebook whose cells run one by one */
+const NB_CELLS = (ms, res) => [
+    ["student = MSc(\"Data Science\", at=\"TUHH\")", <span key="a"><b>{ms.school}</b> · M.Sc. Data Science · Oct 2023 – now · Hamburg</span>],
+    ["student.research", <ul key="b" className="pl-nb-list"><li>{res.role.split("—")[1]?.trim()} <small>research project</small></li><li>Security threats in the Model Context Protocol (MCP)</li><li>Preprint · {PAPER.when}: <i>{PAPER.title}</i></li></ul>],
+    ["student.plot(\"languages\")", <div key="c" className="pl-nb-chart">{[["Bengali", "native", 1], ["English", "professional", 0.85], ["German", "A2/B1 · daily", 0.4]].map(([l, lv, v]) => <div key={l}><span>{l}</span><i style={{ "--v": v }} /><small>{lv}</small></div>)}</div>],
+    ["student.work", <span key="d">Working student · <b>Nordex Group</b> · Aug 2025 – now <button className="pl-link" onClick={() => scrollToId("experience")}>see it on the Nordex tower →</button></span>],
+];
+function TuhhNotebook() {
+    const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], cells = useRef(NB_CELLS(ms, res)).current, { i, c } = useTyping(cells, true), wrap = useRef(null);
+    useFit(wrap, cp => cp ? innerHeight * 0.6 : innerHeight - 150);
     return (
-        <div className="pl-route-map">
-            <div className="pl-route-top"><span className="pl-kick mono">06 · My journey · 2023 · the leap</span><b>Moved to Germany, alone, at 22.</b><span className="mono">{["Boarding", "In the air", "Landed"][f <= 0 ? 0 : f < 1 ? 1 : 2]} · {km.toLocaleString("en-GB")} km as the crow flies</span></div>
-            <svg viewBox="0 0 1000 150" aria-hidden="true">
-                <path d="M40 110 Q500 -50 960 110" className="pl-arc" />
-                <path d="M40 110 Q500 -50 960 110" className="pl-arc-done" style={{ strokeDashoffset: 1100 - f * 1100 }} pathLength="1100" />
-                <circle cx="40" cy="110" r="7" /><circle cx="960" cy="110" r="7" />
-                <text x="40" y="136" textAnchor="start">CCB · Cooch Behar</text><text x="960" y="136" textAnchor="end">HAM · Hamburg</text>
-                <g transform={`translate(${x} ${y}) rotate(${(0.5 - f) * -40})`}><text className="pl-arc-plane" textAnchor="middle" dy="8">✈</text></g>
-            </svg>
+        <div className="pl-edu" ref={wrap}>
+            <div className="pl-edu-cap"><Kick>06 · My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
+            <Laptop title="M.Sc._Data_Science.ipynb · Python 3" className="is-nb">
+                {cells.map(([code, out], k) => k > i ? null : (
+                    <div key={code} className="pl-cell"><div className="pl-cell-in"><span className="mono">In [{k < i ? k + 1 : " "}]:</span><code>{k === i ? code.slice(0, c) : code}{k === i && <span className="pl-caret" />}</code></div>
+                        {k < i && <div className="pl-cell-out"><span className="mono">Out[{k + 1}]:</span><div>{out}</div></div>}</div>))}
+            </Laptop>
         </div>
     );
 }
 export function Journey() {
-    const J = PLACES.journey, T = PLACES.tuhh.theta, sec = useRef(null), [stop, setStop] = useState(0), [q, setQ] = useState(0), [turn, setTurn] = useState(null), cur = useRef(0), tr = useRef(null), [s0, s1] = JOURNEY.spans;
+    const J = PLACES.journey, T = PLACES.tuhh.theta, sec = useRef(null), [stop, setStop] = useState(0), [q, setQ] = useState(0), cur = useRef(0), [s0, s1] = JOURNEY.spans;
     const [wide, setWide] = useState(false);
     useEffect(() => { const f = () => setWide(!compact() && innerWidth >= 1200 && innerHeight >= 640); f(); addEventListener("resize", f); return () => removeEventListener("resize", f); }, []);
     useSlots(sec, p => {
         const k = p < s0 - 0.1 ? 0 : p < s0 + s1 - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; if (k !== cur.current) { cur.current = k; setStop(k); }
         if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3))));
-        // the page turns between the college and the year of getting ready
-        const t = (p - (s0 - 0.5)) / 0.45, tt = t > 0 && t < 1 ? Math.round(t * 60) / 60 : null; if (tt !== tr.current) { tr.current = tt; setTurn(tt); }
     }, 7);
     useSnap(sec, [0, s0 + 0.35, JOURNEY.land + 0.5]);
-    useEffect(() => { Views.journey = () => (wide && cur.current !== 2 ? { fx: -3.4 } : {}); return () => { delete Views.journey; }; }, [wide]);
-    const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = wide ? 2 : 7; // the building stands beside me, the passport has the rest
+    const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = 7; // the building stands beside me, the laptop or passport on the left
     const keys = [[-0.6, J.cgec - off, "WB"], [s0 - 0.35, J.cgec - off, "WB"], [s0 + 0.05, J.home - 4, 5], [t0 - 0.2, J.home - 4, 5], [JOURNEY.takeoff - 0.1, J.runway, 5], [JOURNEY.takeoff + 0.25, J.runway + 10, "N"], [JOURNEY.land - 0.15, J.to - 3, "N"], [JOURNEY.land, J.to, "N"], [JOURNEY.land + 0.35, T - off, 6], [total, T - off, 6]];
     return (
         <section id="journey" ref={sec} className="pl-deck pl-journey-sec" style={{ height: `calc(${total} * 95svh + 100svh)` }} data-slot="0.95" data-keys={JSON.stringify(keys)}>
             <div className="pl-stage pl-left">
-                {stop === 2 ? <RouteMap /> : <Passport stop={stop === 3 ? 2 : stop} q={q} t={stop === 0 || stop === 1 ? turn : null} wide={wide} />}
+                <div className="pl-edu-swap" key={stop}>{stop === 0 ? <CgecLaptop /> : stop === 1 ? <PrepPassport q={q} wide={wide} /> : stop === 2 ? <BoardingPass /> : <TuhhNotebook />}</div>
             </div>
         </section>
     );
@@ -585,8 +597,6 @@ export function Contact({ onCv, onQuick }) {
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
     useEffect(() => { Views.contact = () => ({ fx: !compact() ? -1.6 : 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
-    const desk = useRef(null);
-    useFit(desk, c => c ? 99999 : innerHeight - 160);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     const stamps = [
@@ -595,7 +605,7 @@ export function Contact({ onCv, onQuick }) {
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
-            <div className="pl-desk-left" ref={desk}>
+            <div className="pl-desk-left">
             <div className="pl-desk-copy">
                 <Kick>08 · My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />

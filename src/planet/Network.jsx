@@ -76,56 +76,76 @@ function Logo({ ic, color }) {
 const tint = ([, ic, color]) => (typeof ic === "string" ? color : `#${ic.hex}`);
 
 const GROUPS = [["AI & LLMs", 0, 9], ["Governance & security", 9, 19], ["Data", 19, 29], ["Cloud & DevSecOps", 29, 42]];
-/* four constellations; the name is what I do with those skills */
+/* what I do with each group of skills */
 const SKY = [["Build AI", "AI & LLMs"], ["Govern", "Governance & security"], ["Move data", "Data"], ["Ship & secure", "Cloud & DevSecOps"]];
-// a star's place inside its constellation: two loose columns, gently jittered so it reads like a star chart
-const spotOne = (i, n) => ({ x: 6 + (i % 2) * 16 + Math.sin(i * 5.1) * 4, y: 2 + (i / Math.max(1, n - 1)) * 94 });
-const spot = (i, n) => { const row = Math.floor(i / 2), rows = Math.ceil(n / 2), col = i % 2, j = Math.sin(i * 12.9898 + n * 3.1) * 0.5; return { x: 8 + col * 48 + j * 8, y: 4 + (row / Math.max(1, rows - 1)) * 86 + (col ? 5 : 0) + Math.cos(i * 7.3) * 2 }; };
+const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const groupOf = name => { const i = S.findIndex(x => x[0] === name); return GROUPS.findIndex(([, a, b]) => i >= a && i < b); };
 
+/*
+ * The skill terminal: run `farhan install --role …` and my skills install one by one,
+ * each with where I've really used it. The logos on the right light up as they install.
+ * `farhan info <skill>` explains one skill. Type, or click.
+ */
 export default function Network() {
-    const ui = useUI(), [role, setRole] = useState(ROLES[0]), [hover, setHover] = useState(null), [hint, setHint] = useState(false), [drawn, setDrawn] = useState(0);
-    const board = useRef(null), stars = useRef({}), [pts, setPts] = useState({ w: 0, h: 0, at: {} });
-    const lit = new Set(role.skills), [one, setOne] = useState(false);
-    useEffect(() => { const mq = matchMedia("(max-width: 860px), (max-width: 1180px) and (orientation: portrait)"), f = () => setOne(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
-    // measure where every star is, so the constellation lines join them exactly
-    useLayoutEffect(() => {
-        const el = board.current; if (!el) return;
-        const measure = () => { const b = el.getBoundingClientRect(), at = {}; Object.entries(stars.current).forEach(([k, n]) => { if (!n) return; const r = n.querySelector(".pl-star-dot")?.getBoundingClientRect(); if (r) at[k] = [r.left - b.left + r.width / 2, r.top - b.top + r.height / 2]; }); setPts({ w: b.width, h: b.height, at }); };
-        measure(); const ro = new ResizeObserver(measure); ro.observe(el); document.fonts?.ready.then(measure); return () => ro.disconnect();
-    }, [one]);
-    useEffect(() => { const el = board.current; const io = new IntersectionObserver(([e]) => { World.scene?.setRole(e.isIntersecting ? role.color : null); if (e.isIntersecting) setDrawn(d => d + 1); }, { threshold: 0.3 }); io.observe(el); return () => io.disconnect(); }, [role]);
-    const pick = r => { setRole(r); setDrawn(d => d + 1); World.scene?.setRole(r.color); World.scene?.once("emote-yes"); };
-    const line = names => names.map(n => pts.at[n]).filter(Boolean).map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-    const roleOrder = S.map(x => x[0]).filter(n => lit.has(n)); // the role's own constellation, drawn across the sky
-    const hs = hover && S.find(x => x[0] === hover);
+    const ui = useUI(), [role, setRole] = useState(null), [log, setLog] = useState([]), [busy, setBusy] = useState(false), [cmd, setCmd] = useState(""), [lit, setLit] = useState(new Set()), [hint, setHint] = useState(false);
+    const box = useRef(null), screen = useRef(null), started = useRef(false), timers = useRef([]);
+    const push = line => setLog(l => [...l.slice(-60), line]);
+    const clear = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+    const later = (ms, fn) => timers.current.push(setTimeout(fn, ms));
+    useEffect(() => () => clear(), []);
+    useEffect(() => { const sc = screen.current; if (sc) sc.scrollTop = sc.scrollHeight; }, [log]);
+    const install = r => {
+        clear(); setBusy(true); setRole(r); setLit(new Set()); World.scene?.setRole(r.color); World.scene?.once("emote-yes");
+        push({ k: "cmd", t: `farhan install --role ${slug(r.name)}` }); push({ k: "dim", t: `resolving ${r.name} · ${r.skills.length} skills` });
+        const t0 = performance.now();
+        r.skills.forEach((name, i) => later(260 + i * 230, () => {
+            const sk = S.find(x => x[0] === name); setLit(s => new Set([...s, name]));
+            push({ k: "ok", name, ic: sk, t: slug(name), where: sk?.[4] || "in my toolkit", n: i + 1, of: r.skills.length, c: r.color });
+        }));
+        later(260 + r.skills.length * 230 + 200, () => { push({ k: "done", t: `installed ${r.skills.length} skills in ${((performance.now() - t0) / 1000).toFixed(1)}s`, proof: r.proof, c: r.color }); setBusy(false); });
+    };
+    const info = name => {
+        const sk = S.find(x => x[0] === name); if (!sk) return; clear(); setBusy(false);
+        push({ k: "cmd", t: `farhan info ${slug(name)}` }); push({ k: "info", name, ic: sk, group: SKY[groupOf(name)]?.[0], where: sk[4] || "in my toolkit (no public project yet)" });
+    };
+    const run = e => {
+        e.preventDefault(); const q = cmd.trim().toLowerCase(); if (!q) return; setCmd("");
+        const words = q.replace(/^farhan\s+/, "").replace(/^(install|--role|info)\s*/g, "").replace(/^--role\s*/, "");
+        const r = ROLES.find(x => slug(x.name).includes(slug(words)) || slug(words).includes(slug(x.name)) || x.id === words);
+        if (r) return install(r);
+        const sk = S.find(x => slug(x[0]).includes(slug(words)) || slug(words) === slug(x[0]));
+        if (sk) return info(sk[0]);
+        push({ k: "cmd", t: cmd.trim() }); push({ k: "err", t: `not found: try a role (${ROLES.map(x => slug(x.name)).join(", ")}) or a skill like "rag" or "kafka"` });
+    };
+    // start on its own the first time the chapter is on screen
+    useEffect(() => { const el = box.current; const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && !started.current) { started.current = true; push({ k: "dim", t: "welcome to my toolkit · pick a role, or type a skill" }); later(700, () => install(ROLES[0])); } if (!e.isIntersecting) World.scene?.setRole(null); else if (role) World.scene?.setRole(role.color); }, { threshold: 0.3 }); io.observe(el); return () => io.disconnect(); }, [role]);
     const where = { azure: "near the AI tower", databricks: "by the Nordex tower", rag: "at the end of the project park", euaiact: "on the TUHH campus", python: "close to my desk" };
     return (
-        <div className="pl-skyboard" style={{ "--rc": role.color }}>
+        <div className="pl-skillterm" ref={box} style={{ "--rc": role?.color || "#88c0d0" }}>
             <div className="pl-net-head">
-                <div><span className="pl-kick mono">07 · My toolkit · the skill constellations</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
-                <p className="pl-p">Every skill is a star, grouped by what I do with it. Pick a role and I'll draw its constellation across the sky, with where I've really used each one.</p>
+                <div><span className="pl-kick mono">07 · My toolkit · the skill installer</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
+                <p className="pl-p">Pick the role you're hiring for and my skills install one by one, each with where I've really used it. Or type a skill, like <code>rag</code> or <code>kafka</code>.</p>
             </div>
-            <div className="pl-sky" ref={board}>
-                <svg className="pl-sky-lines" width={pts.w} height={pts.h} aria-hidden="true">
-                    {GROUPS.map(([g, a, b]) => <path key={g} d={line(S.slice(a, b).map(x => x[0]))} className="pl-cline" />)}
-                    <path key={role.id + drawn} d={line(roleOrder)} className="pl-rline" pathLength="1" />
-                </svg>
-                {GROUPS.map(([g, a, b], gi) => { const list = S.slice(a, b); return (
-                    <div key={g} className="pl-const">
-                        <div className="pl-const-name"><b>✦ {SKY[gi][0]}</b><span className="mono">{SKY[gi][1]}</span></div>
-                        <div className="pl-const-field" style={{ "--n": list.length }}>
-                            {list.map((sk, i) => { const { x, y } = (one ? spotOne : spot)(i, list.length), on = lit.has(sk[0]); return (
-                                <button key={sk[0]} ref={el => { stars.current[sk[0]] = el; }} className={`pl-star ${on ? "is-on" : ""} ${hover === sk[0] ? "is-hover" : ""}`} style={{ left: `${x}%`, top: `${y}%`, "--c": tint(sk), "--tw": `${(i * 0.37 + gi * 0.9) % 3}s` }}
-                                    onPointerEnter={() => setHover(sk[0])} onPointerLeave={() => setHover(null)} onFocus={() => setHover(sk[0])} onBlur={() => setHover(null)} onClick={() => setHover(sk[0])} aria-label={`${sk[0]}${sk[4] ? `: used at ${sk[4]}` : ""}`}>
-                                    <span className="pl-star-dot"><Logo ic={sk[1]} color={sk[2]} /></span><span className="pl-star-name">{sk[0]}</span>
-                                </button>); })}
-                        </div>
-                    </div>); })}
-            </div>
-            <div className="pl-sky-foot">
-                <div className="pl-net-out"><span className="mono">Hiring for…</span><div role="tablist" aria-label="Pick a role">{ROLES.map(r => <button key={r.id} role="tab" aria-selected={r.id === role.id} className={`pl-role ${r.id === role.id ? "is-on" : ""}`} style={{ "--c": r.color }} onClick={() => pick(r)}>{r.name}</button>)}</div></div>
-                <div className="pl-focus" aria-live="polite">{hs ? <><b>{hs[0]}</b><span>{hs[4] ? `Used at: ${hs[4]}` : "In my toolkit"}</span></> : <><b>{role.name} · {role.skills.length} stars</b><span>Hover a star to see where I used it.</span></>}</div>
-                <div className="pl-proofs" key={role.id}>{role.proof.map(([t, go], k) => <button key={t} style={{ "--d": `${0.1 + k * 0.08}s` }} onClick={() => scrollToId(go)}><i>✓</i>{t}<em>→</em></button>)}</div>
+            <div className="pl-st-grid">
+                <div className="pl-st-term">
+                    <div className="pl-st-bar"><i /><i /><i /><span className="mono">farhan@toolkit · zsh</span></div>
+                    <div className="pl-st-chips">{ROLES.map(r => <button key={r.id} className={role?.id === r.id ? "is-on" : ""} style={{ "--c": r.color }} onClick={() => install(r)} disabled={busy && role?.id === r.id}><span className="mono">install</span>{r.name}</button>)}</div>
+                    <div className="pl-st-screen" ref={screen} data-lenis-prevent aria-live="polite">
+                        {log.map((l, i) => l.k === "cmd" ? <p key={i} className="pl-st-cmd"><span>❯</span> {l.t}</p>
+                            : l.k === "ok" ? <p key={i} className="pl-st-ok" style={{ "--c": l.c }}><i>✓</i><span className="pl-st-ic"><Logo ic={l.ic[1]} color={l.ic[2]} /></span><b>{l.t}</b><em>{l.where}</em><small>{l.n}/{l.of}</small></p>
+                            : l.k === "done" ? <div key={i} className="pl-st-done" style={{ "--c": l.c }}><p>● {l.t}</p><ul>{l.proof.map(([t, go]) => <li key={t}><button onClick={() => scrollToId(go)}>{t} →</button></li>)}</ul></div>
+                            : l.k === "info" ? <div key={i} className="pl-st-info"><span className="pl-st-ic"><Logo ic={l.ic[1]} color={l.ic[2]} /></span><div><b>{l.name}</b><small>{l.group} · used at: {l.where}</small></div></div>
+                            : <p key={i} className={`pl-st-${l.k}`}>{l.t}</p>)}
+                        {busy && <p className="pl-st-dim"><span className="pl-st-spin" /> installing…</p>}
+                    </div>
+                    <form className="pl-st-input" onSubmit={run}><span>❯</span><input value={cmd} onChange={e => setCmd(e.target.value)} placeholder="farhan install --role data-engineer   ·   or a skill: rag" aria-label="Type a role or a skill" maxLength={60} /><button disabled={!cmd.trim()}>run</button></form>
+                </div>
+                <div className="pl-st-pkgs" aria-label="Installed skills">
+                    {GROUPS.map(([g, a, b], gi) => (
+                        <div key={g} className="pl-st-group"><span className="mono">{SKY[gi][0]} · {g}</span>
+                            <div>{S.slice(a, b).map(sk => <button key={sk[0]} className={`pl-st-pkg ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }} onClick={() => info(sk[0])} title={sk[4] ? `Used at: ${sk[4]}` : "In my toolkit"}><span className="pl-st-ic"><Logo ic={sk[1]} color={sk[2]} /></span>{sk[0]}</button>)}</div>
+                        </div>))}
+                </div>
             </div>
             <div className="pl-orbline">
                 <div className="pl-orbrow">{ORBS.map(o => <span key={o.id} className={ui.orbs.includes(o.id) ? "is-got" : ""} style={{ "--c": o.color }} title={o.name}><i /></span>)}</div>
