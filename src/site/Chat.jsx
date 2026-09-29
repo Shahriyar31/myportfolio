@@ -13,7 +13,7 @@ function Screen({ tall }) {
     useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, typing, busy]);
     return (
         <div className={`screen neu-in ${tall ? "is-tall" : ""}`} ref={ref} aria-live="polite" data-lenis-prevent>
-            {msgs.map((m, i) => <p key={i} className={`bubble ${m.r}`}>{m.t}</p>)}
+            {msgs.map((m, i) => <div key={i} className={`bubble-wrap ${m.r}`}><p className={`bubble ${m.r}`}>{m.t}</p>{m.src?.length > 0 && <p className="bubble-src mono">from my notes: {m.src.map(x => x.title).join(" · ")}</p>}</div>)}
             {typing && <p className="bubble b">{typing}<span className="caret" /></p>}
             {busy && !typing && <p className="bubble b dots" aria-label="Thinking"><i /><i /><i /></p>}
         </div>
@@ -101,7 +101,7 @@ export function AgentSection() {
                     <Composer inputRef={inputRef} />
                 </div>
                 <div className="console neu-lg">
-                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />running in your browser</span></div>
+                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />RAG · LangGraph · Groq</span></div>
                     <Trace />
                     <Ledger />
                 </div>

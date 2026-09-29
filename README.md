@@ -47,6 +47,24 @@ This portfolio avoids standard static templates by building complex 2D and 3D vi
    ```
    The compiled assets will be strictly optimized and generated in the `/dist` directory.
 
+## 🤖 "Ask my AI": retrieval-augmented, grounded answers
+
+The chat answers **only** from the Markdown knowledge base in `data/knowledge/`, through a LangGraph graph on the server (`api/_rag.js`):
+
+```
+guard → rewrite → retrieve → generate → verify
+  │        │          │          │          └ output scan: no secrets, prompt leaks or private data
+  │        │          │          └ Groq Llama 3.3 70B writes a warm, short answer from the retrieved notes
+  │        │          └ BM25 over every "## section" (index prebuilt into api/_kb.js)
+  │        └ a fast model (Llama 3.1 8B) turns follow-ups into standalone search queries
+  └ OWASP LLM Top 10 input shield; real attacks get a polite refusal
+```
+
+- **Update what it knows:** edit or add `data/knowledge/*.md` (one `## heading` = one searchable chunk, with `title` and `tags` in the front matter). `npm run dev` and `npm run build` rebuild the index automatically; `npm run kb` does it by hand.
+- **Keys:** set `GROQ_API_KEY` in `.env` for local dev (see `.env.example`) and in Vercel → Settings → Environment Variables for production. The key stays on the server.
+- **Honest fallbacks:** if a question isn't covered it says so and offers email; if the model is busy it falls back to the small model; with no model at all it answers from the best matching note.
+- **Local dev:** `npm run dev` serves the `api/` functions through a small Vite plugin, so the chat works on localhost exactly as on Vercel.
+
 ## 📁 Architecture Overview
 
 * `/src/components/` - The core logic of the UI.

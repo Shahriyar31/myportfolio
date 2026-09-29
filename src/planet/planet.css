@@ -1834,3 +1834,6 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
 .qr2-print-contact { display: none; }
 @media (max-width: 640px) { .qr2-proof { grid-template-columns: 1fr 1fr; } .qr2-skills dl div { grid-template-columns: 1fr; gap: 2px; } .qr.qr2 { padding: 0; } .qr2 .qr-page { max-height: 100svh; border-radius: 0; } }
 @media print { body.qr-open .qr2 .qr-page { max-height: none; overflow: visible; } .qr2-print-contact { display: block; margin-top: 12px; font-size: 12px; } .qr2-more { border: 0; } }
+/* chat: each answer shows which notes it came from */
+.bubble-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; } .bubble-wrap.u { align-items: flex-end; }
+.bubble-src { margin: 0 4px; font-size: 9.5px; letter-spacing: .06em; color: var(--pl-dim, #8a93a3); }

@@ -41,7 +41,7 @@ export function outputScan(reply, systemPrompt = "") {
     if (flat.includes(CANARY.replace(/-/g, "")) || /7731/.test(flat)) return { status: "block", owasp: "LLM02", detail: "Secret code detected in the answer" };
     const frag = systemPrompt.split("\n").map(s => s.trim()).filter(s => s.length > 40).find(s => reply.includes(s.slice(0, 40)));
     if (frag) return { status: "block", owasp: "LLM07", detail: "System prompt leaked into the answer" };
-    const mail = (reply.match(PII[0][1]) || []).find(m => m.toLowerCase() !== OWN_EMAIL);
+    const mail = (reply.match(PII[0][1]) || []).map(m => m.replace(/[.,;:!?)]+$/, "")).find(m => m.toLowerCase() !== OWN_EMAIL);
     if (mail) return { status: "block", owasp: "LLM02", detail: "Personal data in the answer" };
     return { status: "pass", detail: "Answer is clean" };
 }
