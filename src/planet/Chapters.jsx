@@ -180,6 +180,26 @@ function DemoModal({ item, onClose }) {
         </div>, document.body
     );
 }
+/* a looping preview of each demo, drawn from the demo's own content, so a visitor sees what they'll do before they click */
+function Teaser({ id }) {
+    if (id === "build") return (
+        <div className="pl-tz is-build" aria-hidden="true">
+            <p className="pl-tz-q">When is turbine T-07's next gearbox inspection due?</p>
+            <p className="pl-tz-a is-guess"><b>Guess</b> "Probably next year." <em>no sources</em></p>
+            <p className="pl-tz-a is-right"><b>Answer</b> "Due in 5 days." <em>[1] manual v3 · [2] T-07 log</em></p>
+        </div>);
+    if (id === "legal") return (
+        <div className="pl-tz is-legal" aria-hidden="true">
+            <div className="pl-tz-tiers">{["Limited", "High", "Prohibited"].map(t => <span key={t}>{t}</span>)}</div>
+            {["Customer chatbot", "CV screening", "Emotion recognition"].map((c, k) => <i key={c} className="pl-tz-card" style={{ "--k": k }}>{c}</i>)}
+        </div>);
+    return (
+        <div className="pl-tz is-ship" aria-hidden="true">
+            {[["Secret scan", "hard-coded key"], ["Dependency scan", "vulnerable package"], ["IaC scan", "public storage"]].map(([g, f], k) => <span key={g} className="pl-tz-gate" style={{ "--k": k }}><b>{g}</b><em>✕ {f}</em></span>)}
+            <strong className="pl-tz-done">3 problems caught before go-live</strong>
+        </div>);
+}
+
 /* desktop: the tower projects one module at a time. Its ring lights up, a blade of light leaves the ring and the
    module unfolds from it as a hologram. On the left, the module list says what is online. Phones: the three cards in a row. */
 export function What() {
@@ -213,7 +233,8 @@ export function What() {
                     <Kick>What I do · the AI tower</Kick>
                     <H text="Three things, done properly." accent={["properly."]} />
                     <p className="pl-p" data-drop="1">My AI tower runs three modules. Scroll to bring each one online; every module has a 1-minute hands-on demo.</p>
-                    {!small && <ol className="pl-mods pl-avoid">{WHAT.map((m, i) => <li key={m.id} className={i === act ? "is-on" : i < act ? "is-done" : ""}><button onClick={() => go(i)}><span className="mono">{m.n}</span><b>{m.title}</b><em className="mono">{i === act ? "online" : p[m.id]?.status === "solved" ? "✓ tried" : i < act ? "loaded" : "standby"}</em></button></li>)}</ol>}
+                    {!small && <p className="pl-mods-cap mono"><span>3 hands-on demos</span><b>{WHAT.filter(m => p[m.id]?.status === "solved").length} / 3 tried</b></p>}
+                    {!small && <ol className="pl-mods pl-avoid">{WHAT.map((m, i) => <li key={m.id} className={i === act ? "is-on" : i < act ? "is-done" : ""}><button onClick={() => go(i)}><span className="mono">{m.n}</span><b>{m.title}</b><em className="mono">{i === act ? "online" : p[m.id]?.status === "solved" ? "✓ tried" : i < act ? "loaded" : "standby"}</em></button><button className="pl-mods-try" onClick={() => setOpen(m)} aria-label={`Try the demo: ${m.demo}`}>▶ {p[m.id]?.status === "solved" ? "Replay" : "Try"}</button></li>)}</ol>}
                 </div>
                 {!small && w && (
                     <div className="pl-holo" ref={holo} key={w.id} aria-live="polite">
@@ -224,7 +245,11 @@ export function What() {
                             <h3>{w.title}</h3>
                             <p>{w.plain}</p>
                             <div className="pl-holo-tools">{w.tools.map((t, k) => <span key={t} style={{ "--d": `${0.95 + k * 0.08}s` }}>{t}</span>)}</div>
-                            <button className="pl-holo-try" onClick={() => setOpen(w)}><span className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span><b>{w.demo} →</b></button>
+                            <button className="pl-holo-demo" onClick={() => setOpen(w)} aria-label={`Play the demo: ${w.demo}`}>
+                                <span className="pl-holo-demo-cap mono"><span>Preview · what you'll do</span><span>1 min · in your browser</span></span>
+                                <Teaser id={w.id} />
+                                <span className="pl-holo-play"><i aria-hidden="true">▶</i><span><small className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Play the demo"}</small><b>{w.demo}</b></span></span>
+                            </button>
                         </div>
                     </div>
                 )}
