@@ -745,9 +745,11 @@ function useScaleFit(ref) {
         const el = ref.current; if (!el) return;
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
+            el.style.width = "";
             if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
             const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 104, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
             el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.min(70, Math.max(0, (avail - h * k) / 2)).toFixed(1)}px`);
+            if (k < 1) el.style.width = `${(100 / k).toFixed(2)}%`; // lay out wider, then scale back: the desk still spans the whole width
         };
         const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
         return () => { ro.disconnect(); removeEventListener("resize", f); mq.removeEventListener("change", f); };
@@ -800,6 +802,8 @@ export function Contact({ onCv, onQuick }) {
     useEffect(() => { Views.contact = () => ({ fx: 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     useScaleFit(desk);
+    // the visit card signs itself the moment the desk comes into view
+    useEffect(() => { const el = desk.current; if (!el) return; const io = new IntersectionObserver(([e]) => el.classList.toggle("is-in", e.isIntersecting), { threshold: 0.35 }); io.observe(el); return () => io.disconnect(); }, []);
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     // a stamp lifts at the corner, peels off the envelope, then quietly sticks back on
     const peel = el => { if (reducedMotion()) return; el.classList.add("is-peeling"); el.animate([{ transform: "none" }, { transform: "perspective(400px) rotateX(18deg) rotateZ(-14deg) translate(-4px, -18px) scale(1.1)", offset: 0.35 }, { transform: "perspective(400px) rotateX(30deg) rotateZ(-34deg) translate(-40px, -80px) scale(.85)", opacity: 0, offset: 0.7 }, { transform: "none", opacity: 0, offset: 0.85 }, { transform: "none", opacity: 1 }], { duration: 1500, easing: "cubic-bezier(.3,.7,.2,1)" }).finished.then(() => el.classList.remove("is-peeling")); };
@@ -818,8 +822,8 @@ export function Contact({ onCv, onQuick }) {
             <div className="pl-desk-table" ref={desk}>
                 <div className="pl-envelope">
                     <Letter />
-                    <div className="pl-stamps is-stuck" aria-label="Links: LinkedIn, GitHub, résumé, quick read, copy email, ask my AI">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>, st = { "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }; return <span key={label} className="pl-stamp-slot">{typeof act === "string" ? <a className="pl-post" style={st} href={act} target="_blank" rel="noreferrer" onClick={e => peel(e.currentTarget)}>{inner}</a> : <button className="pl-post" style={st} onClick={e => { peel(e.currentTarget); setTimeout(act, reducedMotion() ? 0 : 420); }}>{inner}</button>}</span>; })}</div>
                 </div>
+                <div className="pl-stamps is-row" aria-label="Links: LinkedIn, GitHub, résumé, quick read, copy email, ask my AI">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>, st = { "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }; return <span key={label} className="pl-stamp-slot">{typeof act === "string" ? <a className="pl-post" style={st} href={act} target="_blank" rel="noreferrer" onClick={e => peel(e.currentTarget)}>{inner}</a> : <button className="pl-post" style={st} onClick={e => { peel(e.currentTarget); setTimeout(act, reducedMotion() ? 0 : 420); }}>{inner}</button>}</span>; })}</div>
                 <div className="pl-trust pl-log">
                     <span className="pl-log-cap mono">Your visit · logged on this desk</span>
                     <div className="pl-log-dial"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${score} 100` }} /></svg><b>{score}%</b><small>of my world</small></div>
@@ -828,6 +832,7 @@ export function Contact({ onCv, onQuick }) {
                         <li className={a.tries ? "ok" : ""}><i aria-hidden="true">⛨</i><span>Break my AI</span><b className="mono">{a.tries ? `${a.tries} · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try it</button>}</b></li>
                         <li className={demos ? "ok" : ""}><i aria-hidden="true">▶</i><span>Demos solved</span><b className="mono">{demos}/3</b></li>
                     </ul>
+                    <div className="pl-sig is-log" aria-label={`Thanks for stopping by, ${NAME.split(" ")[0]}`}><span className="pl-sig-pre" aria-hidden="true">thanks for stopping by,</span><span className="pl-sig-name" aria-hidden="true">{NAME.split(" ")[0]}</span><svg className="pl-sig-fl" viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 18 C 50 30, 120 4, 196 14" pathLength="1" /></svg></div>
                     <div className="pl-log-seal">{verified ? <span className="pl-stamp mono">Verified<small>by you ✓</small></span> : <button className="pl-rubber" onClick={() => { mark("verdict", "solved"); say("Thank you! That means a lot 🙏"); }}>Stamp me: trustworthy</button>}</div>
                 </div>
             </div>

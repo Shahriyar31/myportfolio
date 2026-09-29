@@ -1743,3 +1743,36 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
   .pl-stamps.is-stuck .pl-post span { font-size: 8.5px !important; overflow-wrap: anywhere; }
 }
 @media (min-width: 861px) and (orientation: landscape) { .pl-exp-sec .pl-floor { max-height: none !important; } }
+/* contact v14: letter big on the left · me at my desk in the middle · visit card at the far right · the stamps in one row, bottom middle */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-table { padding-top: 0 !important; grid-template-columns: minmax(440px, 40%) minmax(120px, 1fr) minmax(250px, 300px) !important; grid-template-areas: "letter . log" "stamps stamps stamps" !important; gap: 22px 28px !important; align-items: stretch !important; }
+  .pl-desk-table > .pl-envelope { grid-area: letter !important; max-width: none !important; }
+  .pl-envelope > .pl-mailform { min-height: min(440px, calc(100svh - 470px)) !important; padding: 30px 34px 26px !important; }
+  .pl-envelope .pl-mailform textarea { margin-top: 10px !important; min-height: 150px !important; }
+  .pl-envelope .pl-mailform .pl-dear { margin-right: 80px !important; }
+  .pl-envelope .pl-postmark { top: 14px !important; right: 16px !important; rotate: -8deg; }
+  .pl-desk-table > .pl-trust.pl-log { grid-area: log !important; justify-self: end !important; align-self: stretch !important; width: 100% !important; max-width: 300px !important; }
+  .pl-desk-table > .pl-stamps.is-row { grid-area: stamps !important; justify-self: center !important; position: relative !important; top: auto; right: auto; display: grid !important; grid-template-columns: repeat(6, 92px) !important; gap: 12px !important; padding: 16px 20px 14px !important; rotate: 0deg !important; background: radial-gradient(circle at 12px 12px, rgba(0,0,0,.04), transparent 60%), #efe6cf !important; box-shadow: 0 18px 30px -18px rgba(0,0,0,.6) !important;
+    -webkit-mask: radial-gradient(circle 4px at 50% 0, transparent 97%, #000) 0 0 / 12px 100%, radial-gradient(circle 4px at 50% 100%, transparent 97%, #000) 0 0 / 12px 100% !important; -webkit-mask-composite: source-in !important; mask: radial-gradient(circle 4px at 50% 0, transparent 97%, #000) 0 0 / 12px 100%, radial-gradient(circle 4px at 50% 100%, transparent 97%, #000) 0 0 / 12px 100% !important; mask-composite: intersect !important; }
+  .pl-stamps.is-row .pl-post { width: 92px !important; height: 104px !important; } .pl-stamps.is-row .pl-post b { font-size: 24px !important; } .pl-stamps.is-row .pl-post span { font-size: 11.5px !important; }
+  .pl-stamps.is-row .pl-post:hover, .pl-stamps.is-row .pl-post:focus-visible { transform: perspective(300px) rotateX(10deg) rotateZ(-4deg) translateY(-4px); box-shadow: 0 14px 18px -8px rgba(0,0,0,.45); }
+  .pl-stamps.is-row .pl-post { transform-origin: 100% 0; transition: transform .25s cubic-bezier(.3,1.4,.5,1), box-shadow .25s; }
+}
+/* the visit card's signature writes itself when the desk comes into view */
+.pl-sig.is-log { justify-self: center; margin: 0; } .pl-sig.is-log .pl-sig-pre { font-size: 19px; } .pl-sig.is-log .pl-sig-name { font-size: 46px; }
+.pl-sig.is-log .pl-sig-pre, .pl-sig.is-log .pl-sig-name, .pl-sig.is-log .pl-sig-fl path { animation-play-state: paused; }
+.is-in .pl-sig.is-log .pl-sig-pre, .is-in .pl-sig.is-log .pl-sig-name, .is-in .pl-sig.is-log .pl-sig-fl path { animation-play-state: running; }
+.pl-desk-table > .pl-trust.pl-log { grid-template-areas: "cap" "dial" "list" "sig" "seal" !important; } .pl-sig.is-log { grid-area: sig; }
+/* handwriting never clips: generous room around every handwritten letter */
+.pl-main .pl-w.is-accent .pl-l { padding: .32em .14em .3em !important; margin: -.32em -.14em -.3em !important; line-height: 1.2 !important; }
+.pl-lens .pl-w.is-accent { padding: .32em .14em .3em !important; margin: -.32em -.14em -.3em .08em !important; }
+.pl-main .pl-w.is-accent .pl-swoosh, .pl-lens .pl-w.is-accent .pl-swoosh { bottom: -.22em !important; }
+.pl-main .pl-h, .pl-lens .pl-h { padding-top: .12em; }
+.pl-sig-name, .pl-sig-pre, .pl-floor-note, .mn-item em { padding: .15em .12em; }
+@keyframes plSigIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pl-sig-pre { animation-name: plSigIn !important; }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-desk-table > .pl-envelope, .pl-desk-table > .pl-stamps, .pl-desk-table > .pl-trust { grid-area: auto !important; grid-column: 1 / -1 !important; }
+  .pl-desk-table { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: none !important; }
+  .pl-stamps.is-row { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important; gap: 6px !important; }
+}
