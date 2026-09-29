@@ -193,18 +193,18 @@ const JOURNEY_LINES = ["Welcome to my college tour: Cooch Behar, where it all st
 function journeyStop(p) { const [a, b] = JOURNEY.spans; return p < a - 0.1 ? 0 : p < a + b - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; }
 /* a speech bubble above my head; it follows me (or the plane) around the screen */
 function Bubble({ ui }) {
-    const el = useRef(null), [shown, setShown] = useState(""), text = ui.say || (ui.chapter === "journey" ? JOURNEY_LINES[journeyStop(ui.journey ?? 0)] : LINES[ui.chapter]) || "";
+    const el = useRef(null), gone = useRef(false), [shown, setShown] = useState(""), text = ui.say || (ui.chapter === "journey" ? JOURNEY_LINES[journeyStop(ui.journey ?? 0)] : LINES[ui.chapter]) || "";
     const flying = ui.chapter === "journey" && journeyStop(ui.journey ?? 0) === 2;
     useEffect(() => { // type it out
         if (reducedMotion()) { setShown(text); return; }
-        setShown(""); let i = 0; const id = setInterval(() => { i += text.length > 90 ? 4 : 2; setShown(text.slice(0, i)); if (i >= text.length) clearInterval(id); }, 28); return () => clearInterval(id);
+        setShown(""); gone.current = false; let i = 0, t = 0; const id = setInterval(() => { i += text.length > 90 ? 4 : 2; setShown(text.slice(0, i)); if (i >= text.length) { clearInterval(id); t = setTimeout(() => { gone.current = true; }, 6500 + text.length * 25); } }, 28); return () => { clearInterval(id); clearTimeout(t); };
     }, [text]);
     useEffect(() => {
         let raf = 0;
         const loop = () => {
             raf = requestAnimationFrame(loop); const b = el.current, s = World.scene; if (!b) return;
             const at = s?.screenOf(flying ? "plane" : "me");
-            if (!at || !text || state.neural || at.y < 40 || at.y > innerHeight + 10 || at.x < -20 || at.x > innerWidth + 20) { b.style.opacity = "0"; return; }
+            if (!at || !text || gone.current || state.neural || at.y < 40 || at.y > innerHeight + 10 || at.x < -20 || at.x > innerWidth + 20) { b.style.opacity = "0"; return; }
             const hit = document.elementFromPoint(Math.max(0, Math.min(innerWidth - 1, at.x)), Math.max(0, Math.min(innerHeight - 1, at.y + 18)));
             if (hit && hit.tagName !== "CANVAS" && !hit.matches?.("main, body, .pl-sec, .pl-deck, .pl-stage, .pl-show-stage, .pl-show-track, .pl-show-slot, .pl-what-sec, .pl-what-stage, .pl-hero, .pl-desk, .pl-in, .pl-sats-row, .pl-beams, .pl-exp-line, .pl-exp-line path")) { b.style.opacity = "0"; return; }
             const w = b.offsetWidth, h = b.offsetHeight, y = Math.max(80, at.y - 14), fit = x => Math.max(12, Math.min(innerWidth - w - (!compact() ? 110 : 12), x));

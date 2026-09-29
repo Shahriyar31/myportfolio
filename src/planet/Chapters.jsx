@@ -294,44 +294,30 @@ function Flow({ steps, color }) {
     );
 }
 export function Experience() {
-    const job = EXPERIENCE[0], res = EXPERIENCE[1], sec = useRef(null), line = useRef(null), panel = useRef(null), cur = useRef(-1), [f, setF] = useState(-1);
-    const E = PLACES.experience.theta, L = PLACES.lab.theta;
-    const ps = useRef(-1), lift = useRef(null);
-    // the ride follows the scroll continuously (floor 1 at 0.15, floor 2 at 1.15 …, the lab at 4.15)
+    const job = EXPERIENCE[0], sec = useRef(null), panel = useRef(null), cur = useRef(-1), [f, setF] = useState(-1);
+    const E = PLACES.experience.theta, ps = useRef(-1), lift = useRef(null);
+    // the ride follows the scroll continuously (floor 1 at 0.15 … floor 4 at 3.15)
     useSlots(sec, p => {
-        ps.current = p; const k = p < -0.35 ? -1 : Math.min(4, Math.max(0, Math.round(p - 0.15)));
+        ps.current = p; const k = p < -0.35 ? -1 : Math.min(3, Math.max(0, Math.round(p - 0.15)));
         lift.current?.style.setProperty("--lf", String(Math.min(1, Math.max(0, (p - 0.15) / 3))));
-        if (k !== cur.current) { cur.current = k; setF(k); World.scene?.setFloor(Math.min(3, k)); setUI({ floor: Math.min(3, k) }); }
+        if (k !== cur.current) { cur.current = k; setF(k); World.scene?.setFloor(k); setUI({ floor: k }); }
     }, 6);
-    useSnap(sec, [0.15, 1.15, 2.15, 3.15, 4.15]);
-    useEffect(() => { Views.experience = () => { const p = ps.current; return p < -0.35 ? {} : p < 3.65 ? { focus: { floorF: Math.min(3, Math.max(0, p - 0.15)) } } : { focus: { what: "lab" } }; }; return () => { delete Views.experience; }; }, []);
-    // each panel comes out of its floor's window (the lab's hologram for the notebook) and slides back in as you ride on;
-    // a soft cone of window light joins them
+    useSnap(sec, [0.15, 1.15, 2.15, 3.15]);
+    useEffect(() => { Views.experience = () => { const p = ps.current; return p < -0.35 ? {} : { focus: { floorF: Math.min(3, Math.max(0, p - 0.15)) } }; }; return () => { delete Views.experience; }; }, []);
+    // each floor's panel slides out of that floor's window once, then stays put and readable
     useEffect(() => {
-        let raf = 0; const loop = () => {
-            raf = requestAnimationFrame(loop); const pn = panel.current, S = World.scene, k = cur.current, cone = line.current; if (!pn || !S || k < 0) return;
-            const at = S.screenOf(k < 4 ? "floor" : "lab", Math.min(3, k)); if (!at) return;
-            const e = clamp01(1 - Math.max(0, Math.abs(ps.current - (k + 0.15)) - 0.12) / 0.36), E = e * e * (3 - 2 * e);
-            if (compact() || reducedMotion()) { pn.style.opacity = String(Math.min(1, e * 2)); pn.style.translate = `0 ${(1 - E) * 24}px`; if (cone) cone.style.opacity = "0"; return; }
-            const par = pn.offsetParent?.getBoundingClientRect(); if (!par) return;
-            const L = par.left + pn.offsetLeft, T = par.top + pn.offsetTop, W = pn.offsetWidth, Hh = pn.offsetHeight, cx = L + W / 2, cy = T + Hh / 2;
-            const sc = 0.04 + 0.96 * E, dx = (at.x - cx) * (1 - E), dy = (at.y - cy) * (1 - E);
-            pn.style.transform = `translate(${dx}px, ${dy}px) scale(${sc}) rotateY(${(1 - E) * -38}deg)`; pn.style.opacity = String(Math.min(1, E * 2.4));
-            if (!cone) return;
-            const nx = cx + dx + (at.x < cx + dx ? -1 : 1) * (W * sc) / 2, top = cy + dy - (Hh * sc) / 2 + 18 * sc, bot = cy + dy + (Hh * sc) / 2 - 18 * sc, st = pn.closest(".pl-stage").getBoundingClientRect().top;
-            cone.setAttribute("points", `${at.x},${at.y - 9 - st} ${nx},${top - st} ${nx},${bot - st} ${at.x},${at.y + 9 - st}`);
-            cone.style.opacity = String(E * (0.22 + 0.6 * Math.sin(Math.PI * E)));
-        };
-        raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-    }, []);
-    const fl = f >= 0 && f < 4 ? job.focus[f] : null;
+        const pn = panel.current, at = World.scene?.screenOf("floor", f); if (!pn || f < 0) return;
+        if (!at || compact() || reducedMotion()) { pn.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 450, easing: "cubic-bezier(.2,.8,.2,1)" }); return; }
+        const r = pn.getBoundingClientRect(), dx = at.x - (r.left + r.width / 2), dy = at.y - (r.top + r.height / 2);
+        pn.animate([{ transform: `translate(${dx}px, ${dy}px) scale(.05) rotateY(-35deg)`, opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: "none", opacity: 1 }], { duration: 750, easing: "cubic-bezier(.2,.85,.25,1)" });
+    }, [f]);
+    const fl = f >= 0 ? job.focus[f] : null;
     useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 190, [f]);
     return (
-        <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(5 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [3.55, E, 3], [4.05, L, 3], [5.2, L, 3]])}>
+        <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(4 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [4.6, E, 3]])}>
             <div className="pl-stage pl-left">
-                {f >= 0 && <svg className="pl-exp-line" aria-hidden="true"><defs><linearGradient id="plWin" x1="1" x2="0"><stop offset="0" stopColor="#f5e6b8" stopOpacity=".85" /><stop offset=".35" stopColor="#88c0d0" stopOpacity=".35" /><stop offset="1" stopColor="#88c0d0" stopOpacity="0" /></linearGradient></defs><polygon ref={line} className="pl-exp-cone" fill="url(#plWin)" /></svg>}
-                {f >= 0 && f < 4 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
-                {f < 0 && <div className="pl-exp-intro"><Kick>Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
+                {f >= 0 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
+                {f < 0 && <div className="pl-exp-intro"><Kick>Work experience</Kick><H text="Nordex Group" accent={["Nordex"]} /><p className="pl-p">Working student in Enterprise Data Management & AI, Hamburg, since Aug 2025. Ride the lift up: one floor for each part of the job.</p></div>}
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor" data-fit="0">
                         <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
@@ -339,19 +325,6 @@ export function Experience() {
                         <div data-drop="2"><Flow steps={FLOORS[f].flow} color="#88c0d0" /></div>
                         <div className="pl-tags" data-drop="1">{FLOORS[f].tools.map(t => <span key={t}>{t}</span>)}</div>
                         {f === 3 && <p className="pl-note mono">{job.date} · {job.location}</p>}
-                    </div>
-                )}
-                {f === 4 && (
-                    <div ref={panel} className="pl-notebook" data-fit="0">
-                        <span className="pl-tape" aria-hidden="true" />
-                        <span className="pl-nb-kick mono">Lab notebook · {res.company}</span>
-                        <h3>{res.role.split("—")[1]?.trim() || res.role}</h3>
-                        <p className="pl-nb-meta">{res.role.split("—")[0].trim()} · {res.date}</p>
-                        <p data-drop="2">{res.summary}</p>
-                        <ul>{res.focus.map((x, i) => <li key={x.k} style={{ "--i": i }}><i>✓</i><b>{x.k}:</b> {x.d}</li>)}</ul>
-                        <div className="pl-stickers" data-drop="1">{res.tech.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
-                        <div className="pl-paper" data-drop="3"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where} · now researching security threats in the Model Context Protocol (MCP)</small></div>
-                        <button className="pl-link" onClick={() => scrollToProject(1)}>See it in the project park →</button>
                     </div>
                 )}
             </div>
@@ -504,7 +477,7 @@ function CgecLaptop() {
     useEffect(() => { const c = code.current, b = body.current; if (c) c.scrollTop = c.scrollHeight; if (b && b.scrollHeight > b.clientHeight + 4) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [lines.length, grad]);
     return (
         <div className="pl-edu">
-            <div className="pl-edu-cap"><Kick>My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
+            <div className="pl-edu-cap"><Kick>Education · 1 of 4 · 2018 – 2022</Kick><H text="Bachelor's in India." accent={["India."]} /><p className="pl-edu-sub">B.Tech in Computer Science at Cooch Behar Government Engineering College.</p></div>
             <Mac title="degree.py — btech" className="is-ide" bodyRef={body} foot={<><span>{grad ? "✓ build passed · 0 errors" : "● building…"}</span><span>Python · UTF-8 · Ln {lines.length}, Col {lines[lines.length - 1].length + 1}</span></>}>
                 <div className="pl-ide">
                     <div className="pl-ide-left">
@@ -589,7 +562,7 @@ function GapYear({ q }) {
     const open = step >= 1, turned = step >= 2, stamped = step >= 3;
     return (
         <div className={`pl-gap2 ${open ? "is-pass" : ""}`}>
-            <div className="pl-edu-cap"><Kick>My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
+            <div className="pl-edu-cap"><Kick>Education · 2 of 4 · 2022 – 2023</Kick><H text="A year to prepare." accent={["prepare."]} /><p className="pl-edu-sub">At home in West Bengal: applications, admission, finances and the student visa.</p></div>
             <div className="pl-diary2 pl-avoid">
                 <span className="pl-diary-date mono">2022 – 2023 · at home in West Bengal</span>
                 <b className="pl-diary-h">To do before Germany</b>
@@ -606,7 +579,7 @@ function BoardingPass() {
     return (
         <div className="pl-bpass" style={{ "--f": f }}>
             <div className="pl-bpass-main">
-                <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>My journey · stop 3 of 4 · 2023</span></div>
+                <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>Education · 3 of 4 · 2023</span></div>
                 <div className="pl-bpass-route">
                     <div><small className="mono">From</small><b>CCU</b><span>Kolkata, India</span></div>
                     <div className="pl-bpass-track"><i /><em aria-hidden="true">✈</em></div>
@@ -649,7 +622,7 @@ function TuhhNotebook() {
     const wait = <span className="pl-nb-wait mono">waiting for the kernel…</span>;
     return (
         <div className="pl-edu">
-            <div className="pl-edu-cap"><Kick>My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
+            <div className="pl-edu-cap"><Kick>Education · 4 of 4 · Oct 2023 – now</Kick><H text="Master's in Hamburg." accent={["Hamburg."]} /><p className="pl-edu-sub">M.Sc. Data Science at TUHH, alongside research and my job at Nordex.</p></div>
             <Mac title="M.Sc._Data_Science.ipynb — JupyterLab" className="is-nb3" bodyRef={body} foot={<><span>{shown < NB.length ? "● kernel busy" : "○ kernel idle"}</span><span>Python 3 · TUHH · Hamburg</span></>}>
                 <div className="pl-lab">
                     <div className="pl-lab-cells">

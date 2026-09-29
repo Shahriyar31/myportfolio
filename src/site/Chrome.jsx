@@ -6,7 +6,8 @@ import { CHAPTERS } from "../planet/world";
 
 /* ── Icons (24px, 1.6 stroke) ── */
 const I = {
-    home: <><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /><circle cx="12" cy="12" r="2.6" /></>,
+    home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5.5h4V20h3.5a1 1 0 0 0 1-1V9.5" /></>,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></>,
     agent: <><rect x="4" y="7" width="16" height="12" rx="3.5" /><path d="M12 7V4M9 12h.01M15 12h.01M9.5 15.5h5" /><circle cx="12" cy="3.5" r=".8" /></>,
     route: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" /></>,
     work: <><rect x="3" y="7" width="18" height="13" rx="2.5" /><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18" /></>,
@@ -115,20 +116,48 @@ export function Rail() {
     );
 }
 
-/* ── Mobile menu ── */
+/* ── Menu: a full-screen index of the planet; big chapter names on the left, a preview of the one you point at on the right ── */
+const ABOUT = {
+    home: "Who I am, in one screen.", what: "Three things I do, each with a 1-minute demo.", break: "Try to get past my AI's guardrails.",
+    experience: "Working student at Nordex Group, floor by floor.", projects: "Six projects, from Argus AI to NLP.", journey: "From a B.Tech in India to an M.Sc. in Hamburg.",
+    skills: "Pick the role you're hiring for, see the matching skills.", lens: "Street, mountains and wildlife.", contact: "Write me a letter. It lands in my inbox.",
+};
 export function Menu({ open, onClose, onOpenCv, onQuick }) {
-    useEffect(() => { if (!open) return; lockScroll(); return unlockScroll; }, [open]);
+    const [here, setHere] = useState("home"), [hover, setHover] = useState(null);
+    useEffect(() => {
+        if (!open) return; lockScroll();
+        const mid = innerHeight / 2, at = SECTIONS.map(([id]) => document.getElementById(id)).filter(Boolean).find(el => { const r = el.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
+        if (at) setHere(at.id); setHover(null);
+        const esc = e => e.key === "Escape" && onClose(); addEventListener("keydown", esc);
+        return () => { unlockScroll(); removeEventListener("keydown", esc); };
+    }, [open, onClose]);
+    const cur = hover || here, [, curLabel, curIcon] = SECTIONS.find(([id]) => id === cur) || SECTIONS[0];
+    const go = id => { onClose(); setTimeout(() => scrollToId(id), 320); };
     return (
-        <div className={`menu ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open}>
-            <nav className="menu-grid">
-                {SECTIONS.map(([id, label, icon], i) => (
-                    <button key={id} className="menu-item neu" style={{ transitionDelay: `${open ? 80 + i * 40 : 0}ms` }} onClick={() => { onClose(); setTimeout(() => scrollToId(id), 300); }}>
-                        <Icon n={icon} size={22} /><span>{label}</span><span className="mono">0{i + 1}</span>
+        <div className={`menu mn ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open} role="dialog" aria-label="Menu">
+            <i className="mn-glow" aria-hidden="true" />
+            <nav className="mn-list" aria-label="Chapters" onPointerLeave={() => setHover(null)}>
+                {SECTIONS.map(([id, label], i) => (
+                    <button key={id} className={`mn-item ${id === here ? "is-here" : ""} ${id === cur ? "is-cur" : ""}`} style={{ "--i": i }} onPointerEnter={() => setHover(id)} onFocus={() => setHover(id)} onClick={() => go(id)}>
+                        <span className="mn-name">{label}<svg className="pl-swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13 C 48 7, 118 3, 196 9" pathLength="1" /></svg></span>
+                        {id === here && <em className="mono">you are here</em>}
                     </button>
                 ))}
             </nav>
-            <button className="key" onClick={() => { onClose(); onQuick(); }}>Quick read · 60 s</button>
-            <button className="key key-accent" onClick={() => { onClose(); onOpenCv(); }}><Icon n="doc" size={16} />Résumé</button>
+            <aside className="mn-side">
+                <div className="mn-preview" key={cur}>
+                    <span className="mn-ic"><Icon n={curIcon} size={30} /></span>
+                    <b>{curLabel}</b>
+                    <p>{ABOUT[cur]}</p>
+                    <button className="mn-go" onClick={() => go(cur)}>Take me there <Icon n="arrow" size={16} /></button>
+                </div>
+                <div className="mn-actions">
+                    <button className="mn-act" onClick={() => { onClose(); onQuick(); }}><Icon n="bring" size={18} /><span>Quick read<small>60 seconds</small></span></button>
+                    <button className="mn-act" onClick={() => { onClose(); onOpenCv(); }}><Icon n="doc" size={18} /><span>Résumé<small>PDF</small></span></button>
+                    <a className="mn-act" href="https://www.linkedin.com/in/farhanshahriyar" target="_blank" rel="noreferrer"><Icon n="work" size={18} /><span>LinkedIn<small>let's connect</small></span></a>
+                    <a className="mn-act" href="https://github.com/Shahriyar31" target="_blank" rel="noreferrer"><Icon n="built" size={18} /><span>GitHub<small>the code</small></span></a>
+                </div>
+            </aside>
         </div>
     );
 }
