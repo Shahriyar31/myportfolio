@@ -118,7 +118,10 @@ export default function Planet() {
             const ids = CHAPTERS.map(c => c[0]), i = Math.max(0, ids.indexOf(state.chapter)), next = ids[Math.min(ids.length - 1, Math.max(0, i + dirn))];
             e.preventDefault(); scrollToId(next);
         };
-        const vis = () => (document.hidden ? scene?.stop() : scene?.start());
+        let covered = false; // a full-screen overlay hides the planet: no need to render it
+        const vis = () => (document.hidden || covered ? scene?.stop() : scene?.start());
+        const cover = e => { covered = e.detail; setTimeout(vis, covered ? 450 : 0); };
+        addEventListener("pl-cover", cover);
         import("./PlanetScene").then(({ default: PlanetScene }) => {
             if (!alive) return;
             try { scene = new PlanetScene(ref.current, { mobile }); } catch { return; }
@@ -128,7 +131,7 @@ export default function Planet() {
         });
         raf = requestAnimationFrame(loop);
         addEventListener("pointermove", move, { passive: true }); addEventListener("pointerdown", onDown); addEventListener("pointerup", onUp); addEventListener("keydown", key); document.addEventListener("visibilitychange", vis);
-        return () => { alive = false; cancelAnimationFrame(raf); removeEventListener("pointermove", move); removeEventListener("pointerdown", onDown); removeEventListener("pointerup", onUp); removeEventListener("keydown", key); document.removeEventListener("visibilitychange", vis); scene?.dispose(); World.scene = null; };
+        return () => { alive = false; cancelAnimationFrame(raf); removeEventListener("pointermove", move); removeEventListener("pointerdown", onDown); removeEventListener("pointerup", onUp); removeEventListener("keydown", key); document.removeEventListener("visibilitychange", vis); removeEventListener("pl-cover", cover); scene?.dispose(); World.scene = null; };
     }, []);
 
     useEffect(() => { World.scene?.setNeural(ui.neural); }, [ui.neural]);
@@ -201,7 +204,7 @@ function Bubble({ ui }) {
         setShown(""); gone.current = false; let i = 0, t = 0; const id = setInterval(() => { i += text.length > 90 ? 4 : 2; setShown(text.slice(0, i)); if (i >= text.length) { clearInterval(id); t = setTimeout(() => { gone.current = true; }, 6500 + text.length * 25); } }, 28); return () => { clearInterval(id); clearTimeout(t); };
     }, [text]);
     useEffect(() => {
-        let raf = 0;
+        let raf = 0, frame = 0, R0 = null;
         const loop = () => {
             raf = requestAnimationFrame(loop); const b = el.current, s = World.scene; if (!b) return;
             const at = s?.screenOf(flying ? "plane" : "me");
@@ -210,7 +213,8 @@ function Bubble({ ui }) {
             if (hit && hit.tagName !== "CANVAS" && !hit.matches?.("main, body, .pl-sec, .pl-deck, .pl-stage, .pl-show-stage, .pl-show-track, .pl-show-slot, .pl-what-sec, .pl-what-stage, .pl-hero, .pl-desk, .pl-in, .pl-sats-row, .pl-beams, .pl-exp-line, .pl-exp-line path")) { b.style.opacity = "0"; return; }
             const w = b.offsetWidth, h = b.offsetHeight, y = Math.max(80, at.y - 14), fit = x => Math.max(12, Math.min(innerWidth - w - (!compact() ? 110 : 12), x));
             // sit on whichever side of me is free of panels (the diary, the passport, a laptop)
-            const R = [...document.querySelectorAll(".pl-avoid")].map(e => e.getBoundingClientRect()).filter(r => r.width), hits = x => R.some(r => x < r.right && x + w > r.left && y - h < r.bottom && y > r.top);
+            if (!(frame = (frame + 1) % 8) || !R0) R0 = [...document.querySelectorAll(".pl-avoid")].map(e => e.getBoundingClientRect()).filter(r => r.width); // panels move slowly: re-measure every 8 frames
+            const R = R0, hits = x => R.some(r => x < r.right && x + w > r.left && y - h < r.bottom && y > r.top);
             let left = fit(at.x - 26); if (hits(left)) { const l2 = fit(at.x - w + 26); if (!hits(l2)) left = l2; }
             b.style.opacity = "1"; b.style.transform = `translate(${left}px, ${y}px) translateY(-100%)`; b.style.setProperty("--tail", `${Math.min(w - 16, Math.max(16, at.x - left))}px`);
         };

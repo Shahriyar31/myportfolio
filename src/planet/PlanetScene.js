@@ -34,7 +34,7 @@ export default class PlanetScene {
     constructor(canvas, { mobile = false } = {}) {
         this.canvas = canvas; this.mobile = mobile;
         const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-        this.pr = Math.min(devicePixelRatio, mobile ? 1.5 : 1.75); r.setPixelRatio(this.pr);
+        this.pr = Math.min(devicePixelRatio, mobile ? 1.5 : 1.5); r.setPixelRatio(this.pr);
         r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
         r.shadowMap.enabled = !mobile; r.shadowMap.type = THREE.PCFSoftShadowMap;
         this.scene = new THREE.Scene();
@@ -85,7 +85,7 @@ export default class PlanetScene {
     lights() {
         this.hemi = new THREE.HemisphereLight(0xdfe9ff, 0x3a4a2a, 0.9); this.scene.add(this.hemi);
         const s = this.sun = new THREE.DirectionalLight(0xffffff, 2.2); s.position.set(8, R + 14, 12);
-        s.castShadow = !this.mobile; s.shadow.mapSize.set(2048, 2048); const c = s.shadow.camera; c.left = c.bottom = -12; c.right = c.top = 12; c.near = 1; c.far = 60; s.shadow.bias = -0.0008;
+        s.castShadow = !this.mobile; s.shadow.mapSize.set(1024, 1024); const c = s.shadow.camera; c.left = c.bottom = -12; c.right = c.top = 12; c.near = 1; c.far = 60; s.shadow.bias = -0.0008;
         s.target.position.set(0, R, 0); this.scene.add(s, s.target);
         this.fill = new THREE.PointLight(0xd8b9a0, 0, 30); this.fill.position.set(-4, R + 3, 5); this.scene.add(this.fill);
     }

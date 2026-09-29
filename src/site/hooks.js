@@ -6,8 +6,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
  * scrolls again when nothing is holding it. (Separate locks used to fight each other.)
  */
 let locks = 0;
-export function lockScroll() { locks++; if (locks === 1) { window.__lenis?.stop(); document.body.classList.add("is-locked"); } }
-export function unlockScroll() { locks = Math.max(0, locks - 1); if (locks === 0) { window.__lenis?.start(); document.body.classList.remove("is-locked"); } }
+export function lockScroll() { locks++; if (locks === 1) { window.__lenis?.stop(); document.body.classList.add("is-locked"); dispatchEvent(new CustomEvent("pl-cover", { detail: true })); } }
+export function unlockScroll() { locks = Math.max(0, locks - 1); if (locks === 0) { window.__lenis?.start(); document.body.classList.remove("is-locked"); dispatchEvent(new CustomEvent("pl-cover", { detail: false })); } }
 
 /*
  * Fit: a panel measures itself against the space it has. If it is too tall it drops

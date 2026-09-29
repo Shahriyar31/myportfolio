@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { World, useUI, setUI, toast, say, Views, PROJECT_ORDER, scrollToProject, slotsInto, JOURNEY } from "./Planet";
 import Network from "./Network";
 import { PLACES, ORBS } from "./world";
@@ -10,10 +10,11 @@ import { useProgress, mark } from "../site/progress";
 import { scrollToId, reducedMotion, compact, COMPACT, lockScroll, unlockScroll, useFit } from "../site/hooks";
 import { createPortal } from "react-dom";
 import Preview from "../site/Previews";
-import BuildIt from "../site/BuildIt";
-import KeepLegal from "../site/KeepLegal";
-import ShipSafe from "../site/ShipSafe";
-import Lens from "../site/Lens";
+// the demos and the gallery load only when they are needed
+const BuildIt = lazy(() => import("../site/BuildIt"));
+const KeepLegal = lazy(() => import("../site/KeepLegal"));
+const ShipSafe = lazy(() => import("../site/ShipSafe"));
+const Lens = lazy(() => import("../site/Lens"));
 
 /* ── the shared pieces: one card, one headline style, everywhere ── */
 
@@ -164,7 +165,7 @@ function DemoModal({ item, onClose }) {
     const { Demo } = item;
     return createPortal(
         <div className="pl-modal" data-lenis-prevent role="dialog" aria-modal="true" aria-label={item.demo} onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="pl-modal-box pl-card is-drawn"><button className="pl-x" onClick={onClose} aria-label="Close demo">×</button><Demo /></div>
+            <div className="pl-modal-box pl-card is-drawn"><button className="pl-x" onClick={onClose} aria-label="Close demo">×</button><Suspense fallback={<p className="pl-p">Loading the demo…</p>}><Demo /></Suspense></div>
         </div>, document.body
     );
 }
@@ -736,7 +737,7 @@ export function Skills() {
 
 /* ── 8 · photography (under the night sky) ── */
 export function Photos() {
-    return <div className="pl-sec pl-lens" data-angle={PLACES.lens.theta} data-sky="8"><Lens /></div>;
+    return <div className="pl-sec pl-lens" data-angle={PLACES.lens.theta} data-sky="8"><Suspense fallback={<section style={{ minHeight: "100svh" }} />}><Lens /></Suspense></div>;
 }
 
 /** desktop: scale the desk down (never scroll, never cut) so the last section is exactly one screen */

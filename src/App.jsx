@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import Lenis from "lenis";
 import "./styles/global.css";
 import "./planet/planet.css";
 import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock } from "./site/Chat";
-import QuickRead from "./site/QuickRead";
+const QuickRead = lazy(() => import("./site/QuickRead"));
 import Planet from "./planet/Planet";
 import { Hero, What, Break, Experience, Research, Projects, Journey, Skills, Photos, Contact } from "./planet/Chapters";
 import { reducedMotion, lockScroll, unlockScroll } from "./site/hooks";
@@ -66,7 +66,7 @@ export default function App() {
             </main>
             <ChatDock />
             <CvModal open={cvOpen} onClose={closeCv} />
-            <QuickRead open={quick} onClose={closeQuick} onOpenCv={openCv} />
+            {quick && <Suspense fallback={null}><QuickRead open={quick} onClose={closeQuick} onOpenCv={openCv} /></Suspense>}
         </>
     );
 }
