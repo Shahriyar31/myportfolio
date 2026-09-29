@@ -1649,3 +1649,25 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
 @media (min-width: 861px) and (orientation: landscape) { .pl-desk-table { grid-template-columns: minmax(320px, 1.25fr) auto minmax(220px, .8fr) !important; } }
 .pl-rs-chart b { min-width: 150px; white-space: nowrap; }
 .pl-rs-pg .pl-show-links .pl-btn, .pl-rs-pg .pl-show-links .pl-btn.is-main { background: #6b4f86 !important; border-color: #6b4f86 !important; color: #fff !important; }
+/* ── handwriting as the signature accent: title accent words, my speech bubble, the letter ── */
+:root { --pl-hand: "Caveat", "Bradley Hand", "Segoe Script", cursive; }
+.pl-main .pl-w.is-accent .pl-l, .pl-lens .pl-w.is-accent { font-family: var(--pl-hand) !important; font-weight: 700; font-size: 1.3em; letter-spacing: 0; line-height: .8; }
+.pl-main .pl-w.is-accent .pl-swoosh, .pl-lens .pl-w.is-accent .pl-swoosh { bottom: -.02em; }
+.pl-bubble { font-family: var(--pl-hand) !important; font-size: 21px !important; font-weight: 600 !important; line-height: 1.15 !important; letter-spacing: .01em; }
+.pl-bubble.is-long { font-size: 19px !important; }
+.pl-mailform .pl-dear, .pl-mailform .pl-sign label { font-family: var(--pl-hand) !important; font-weight: 700; font-size: 26px; font-style: normal; }
+.pl-mailform .pl-sign label { font-size: 21px; }
+.pl-mailform textarea, .pl-mailform input { font-family: var(--pl-hand) !important; font-size: 21px !important; font-style: normal !important; }
+/* research: plain notebook paper, no ruled lines */
+.pl-rs-pg { background: radial-gradient(120% 90% at 20% 0%, #fffdf6 0%, #f8f3e6 60%, #f1ead8 100%) !important; }
+/* contact v12: a big letter with the visit card beside it; the stamps as one perforated strip, bottom middle */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-table { grid-template-columns: minmax(420px, 640px) minmax(250px, 300px) !important; grid-template-areas: "letter log" "stamps stamps" !important; justify-content: start !important; align-items: stretch !important; gap: 26px 34px !important; }
+  .pl-desk-table > .pl-mailform { grid-area: letter !important; width: 100% !important; max-width: none !important; min-height: min(400px, calc(100svh - 500px)) !important; padding: 28px 32px 24px !important; rotate: -1deg; }
+  .pl-desk-table > .pl-trust.pl-log { grid-area: log !important; align-self: stretch !important; max-width: none !important; width: auto !important; justify-content: space-between; rotate: 1.2deg; }
+  .pl-desk-table > .pl-stamps { grid-area: stamps !important; justify-self: center !important; align-self: start !important; position: relative; grid-template-columns: repeat(6, clamp(84px, 6vw, 100px)) !important; gap: 10px !important; padding: 16px 18px 14px !important; rotate: 0deg !important; }
+  .pl-desk-table .pl-post { width: clamp(84px, 6vw, 100px) !important; height: clamp(94px, 6.8vw, 112px) !important; }
+  .pl-desk-table .pl-sheet-cap { position: absolute; top: -22px; left: 4px; padding: 0; color: #d8c8a8; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+  :root[data-theme="light"] .pl-desk-table .pl-sheet-cap { color: #6b4a2b; text-shadow: 0 0 8px rgba(255,255,255,.8); }
+}
+@media (min-width: 861px) and (orientation: landscape) { .pl-desk-table > .pl-trust.pl-log { align-content: space-evenly !important; } }
