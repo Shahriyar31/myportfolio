@@ -50,7 +50,7 @@ export default function BuildIt() {
 
     return (
         <div className="demo-body">
-                <div className="inc-kick mono"><span className="inc-clock">Demo 1</span><span>Build it</span><span className="inc-tag">RAG · Databricks · governance</span></div>
+                <div className="inc-kick mono"><span className="inc-clock">Demo 1</span><span>Build it</span><span className="inc-tag">RAG · Azure AI Foundry · governance</span></div>
                 <h3 className="pane-title">The company's new AI agent knows nothing.</h3>
                 <p className="pane-lede sm">A technician asks it a question. Give it the right documents from the data lake, then ask again, and watch it stop guessing.</p>
 
@@ -96,8 +96,8 @@ export default function BuildIt() {
                     <div className="inc-proof">
                         <b>✓ Incident resolved{res?.kind === "right" ? ` in ${tries} ${tries === 1 ? "try" : "tries"}` : ""}.</b>
                         <p><span className="mono">In plain words</span>I build AI assistants that answer from your own documents, only the approved ones, and show sources you can check.</p>
-                        <p><span className="mono">Under the hood</span>RAG: chunking and embeddings on Databricks, vector search, catalogue metadata filters (approved / deprecated), top-k retrieval with citations, and answer quality measured with evals (RAGAS).</p>
-                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => goTo("projects")}>Argus AI · RAG over the EU AI Act</button><button onClick={() => goTo("experience")}>RAG prototypes at Nordex</button></div>
+                        <p><span className="mono">Under the hood</span>RAG: chunking and embeddings, hybrid vector search, metadata filters (approved / deprecated), top-k retrieval with citations, and answer quality checked with an LLM-as-judge evaluation.</p>
+                        <div className="dj-proof"><span className="mono">Proof</span><button onClick={() => goTo("projects")}>Argus AI · RAG over the EU AI Act</button><button onClick={() => goTo("experience")}>RAG knowledge agent at Nordex</button></div>
                     </div>
                 )}
         </div>

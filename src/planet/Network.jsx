@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { siLanggraph, siMlflow, siTensorflow, siScikitlearn, siDatabricks, siApachespark, siApachekafka, siApacheflink, siGooglecloud, siDocker, siKubernetes, siGithubactions, siTerraform, siPython, siGnubash, siPostgresql, siMongodb, siMysql } from "simple-icons";
+import { siLanggraph, siModelcontextprotocol, siTensorflow, siScikitlearn, siOwasp, siPython, siPandas, siApachekafka, siApacheflink, siInfluxdb, siDatabricks, siPlotly, siDocker, siGit, siLinux, siTerraform, siGnubash } from "simple-icons";
 import { World, useUI } from "./Planet";
 import { ORBS } from "./world";
 import { scrollToId } from "../site/hooks";
@@ -12,44 +12,52 @@ import { scrollToId } from "../site/hooks";
 const HID = [["build", "Build AI"], ["data", "Move data"], ["ship", "Ship & secure"], ["gov", "Govern"]];
 // [name, logo (simple-icons) or short mark, colour, hidden nodes it feeds, where I've used it]
 const S = [
-    ["RAG Pipelines", "RAG", "#a58cff", ["build"], "Argus AI · Nordex prototypes"],
-    ["LangGraph Agents", siLanggraph, null, ["build"], "Argus AI"],
-    ["LLM Evaluation", "Eval", "#5fd0ff", ["build", "gov"], "Nordex · LLM and RAG prototypes"],
-    ["MLflow", siMlflow, null, ["build", "ship"], ""],
+    ["RAG", "RAG", "#b48ead", ["build"], "Nordex knowledge agent · Argus AI"],
+    ["Azure AI Foundry", "AIF", "#81a1c1", ["build", "ship"], "Nordex knowledge agent"],
+    ["Azure OpenAI", "AOI", "#88c0d0", ["build"], "Nordex model evaluation"],
+    ["LLM-as-judge evals", "Eval", "#8fbcbb", ["build", "gov"], "Nordex model evaluation"],
+    ["LangGraph", siLanggraph, null, ["build"], "Argus AI"],
+    ["MCP", siModelcontextprotocol, null, ["build", "ship"], "Nordex security controls"],
     ["TensorFlow", siTensorflow, null, ["build"], "Poultry Shield"],
-    ["Scikit-learn", siScikitlearn, null, ["build"], "TUHH research"],
-    ["AI Governance", "⚖", "#f2c14e", ["gov"], "Nordex · Argus AI"],
-    ["Azure Databricks", siDatabricks, null, ["data", "gov"], "Nordex"],
-    ["Apache Spark", siApachespark, null, ["data"], "Nordex"],
-    ["Apache Kafka", siApachekafka, null, ["data"], "StockFlow · Radiation Tracker"],
-    ["Apache Flink", siApacheflink, null, ["data"], "Radiation Tracker"],
-    ["ETL Pipelines", "ETL", "#ff7a45", ["data"], "Nordex · StockFlow"],
-    ["Data Lineage", "⤳", "#3ee08f", ["data", "gov"], "Nordex"],
-    ["Azure", "Az", "#1f8fff", ["ship", "data"], "Nordex · Argus AI"],
-    ["AWS", "aws", "#ff9900", ["ship"], "StockFlow · Poultry Shield"],
-    ["GCP", siGooglecloud, null, ["ship"], "Radiation Tracker"],
-    ["Docker", siDocker, null, ["ship"], "TUHH research · Radiation Tracker"],
-    ["Kubernetes", siKubernetes, null, ["ship"], ""],
-    ["GitHub Actions", siGithubactions, null, ["ship"], "TUHH research"],
+    ["Scikit-learn", siScikitlearn, null, ["build"], ""],
+    ["EU AI Act", "EU", "#81a1c1", ["gov"], "Nordex AI policy · Argus AI · my paper"],
+    ["GDPR", "§", "#88c0d0", ["gov"], "Nordex AI policy · Argus AI"],
+    ["NIST AI RMF", "NIST", "#8fbcbb", ["gov"], "Nordex AI policy"],
+    ["ISO 42001", "ISO", "#b48ead", ["gov"], ""],
+    ["OWASP LLM Top 10", siOwasp, null, ["gov", "ship"], "Nordex AI security · my paper · this site"],
+    ["IEC 62443", "IEC", "#d08770", ["gov", "ship"], "Nordex AI security"],
+    ["DPIA", "DPIA", "#a3be8c", ["gov"], "Argus AI"],
+    ["NIS2", "NIS2", "#ebcb8b", ["gov"], ""],
+    ["Python", siPython, null, ["build", "data"], "Nordex · TUHH · all my projects"],
+    ["SQL", "SQL", "#88c0d0", ["data"], "StockFlow (Athena) · everyday querying"],
+    ["Pandas", siPandas, null, ["data"], "TUHH digital twin"],
+    ["Apache Kafka", siApachekafka, null, ["data"], "TUHH · StockFlow · Radiation Tracker"],
+    ["Apache Flink", siApacheflink, null, ["data"], "TUHH · Radiation Tracker"],
+    ["InfluxDB", siInfluxdb, null, ["data"], "TUHH digital twin"],
+    ["Azure Databricks", siDatabricks, null, ["data"], ""],
+    ["AWS Glue · Athena", "aws", "#d08770", ["data"], "StockFlow"],
+    ["Plotly Dash", siPlotly, null, ["data"], "TUHH digital twin"],
+    ["Azure APIM", "API", "#81a1c1", ["ship"], "Nordex integration work"],
+    ["Azure DevOps", "ADO", "#5e81ac", ["ship"], "Nordex"],
+    ["Docker", siDocker, null, ["ship", "data"], "TUHH · Radiation Tracker"],
+    ["CI/CD", "CI", "#a3be8c", ["ship"], "Nordex security pipeline"],
+    ["Git / GitHub", siGit, null, ["ship"], "All my projects"],
+    ["Linux · Bash", siLinux, null, ["ship"], ""],
+    ["IAM / RBAC", "IAM", "#b48ead", ["ship", "gov"], ""],
+    ["Syft · Grype · Cosign", "SBOM", "#8fbcbb", ["ship"], "Nordex DevSecOps tooling"],
     ["Terraform", siTerraform, null, ["ship"], "Argus AI"],
-    ["Python", siPython, null, ["build", "data"], "Nordex · TUHH · most projects"],
-    ["SQL", "SQL", "#5fd0ff", ["data"], "Nordex"],
-    ["Bash", siGnubash, null, ["ship"], ""],
-    ["PostgreSQL", siPostgresql, null, ["data"], "Argus AI (pgvector)"],
-    ["MongoDB", siMongodb, null, ["data"], ""],
-    ["MySQL", siMysql, null, ["data"], ""],
 ];
 const ROLES = [
-    { id: "ai", name: "AI Engineer", color: "#5fd0ff", w: { build: 1, ship: 0.6, data: 0.4, gov: 0.4 }, skills: ["RAG Pipelines", "LangGraph Agents", "LLM Evaluation", "MLflow", "Python", "Azure", "Docker"],
-        proof: [["Argus AI: RAG over the EU AI Act text, with a LangGraph agent", "projects"], ["Nordex: LLM and RAG prototypes, and how well they work", "experience"], ["TUHH: ML for anomaly detection and forecasting", "experience"]] },
-    { id: "agent", name: "Agentic AI", color: "#a58cff", w: { build: 1, gov: 0.7, ship: 0.4, data: 0.3 }, skills: ["LangGraph Agents", "RAG Pipelines", "LLM Evaluation", "AI Governance", "Python", "PostgreSQL"],
-        proof: [["Argus AI: an agent with a human approving each step", "projects"], ["This site: an AI you can attack, guarded by four layers", "break"], ["Demo: make an AI agent stop guessing", "what"]] },
-    { id: "data", name: "Data Engineer", color: "#ff7a45", w: { data: 1, ship: 0.5, gov: 0.5, build: 0.3 }, skills: ["Azure Databricks", "Apache Spark", "Apache Kafka", "Apache Flink", "ETL Pipelines", "Data Lineage", "SQL", "Python"],
-        proof: [["Nordex: data pipelines on Azure Databricks", "experience"], ["StockFlow and Radiation Tracker: real-time streaming", "projects"], ["TUHH: a live dashboard for a digital twin", "experience"]] },
-    { id: "gov", name: "AI & Data Governance", color: "#f2c14e", w: { gov: 1, data: 0.6, build: 0.5, ship: 0.3 }, skills: ["AI Governance", "Data Lineage", "LLM Evaluation", "Azure Databricks", "Python", "SQL"],
-        proof: [["Nordex: mapping AI use cases to the EU AI Act and GDPR", "experience"], ["Argus AI: compliance checks as code", "projects"], ["Break my AI: defences from the OWASP LLM Top 10", "break"]] },
-    { id: "ops", name: "DevSecOps & Cloud", color: "#3ee08f", w: { ship: 1, data: 0.4, gov: 0.4, build: 0.2 }, skills: ["Azure", "Terraform", "Docker", "Kubernetes", "GitHub Actions", "AWS", "GCP", "Bash"],
-        proof: [["Argus AI: on Azure Container Apps, built with Terraform", "projects"], ["TUHH: CI/CD with GitHub Actions and Docker", "experience"], ["Demo: catch 3 problems before go-live", "what"]] },
+    { id: "ai", name: "AI Engineer", color: "#88c0d0", w: { build: 1, ship: 0.6, data: 0.4, gov: 0.4 }, skills: ["RAG", "Azure AI Foundry", "Azure OpenAI", "LLM-as-judge evals", "LangGraph", "Python", "Docker"],
+        proof: [["Nordex: a RAG knowledge agent on Azure AI Foundry, with an LLM-as-judge evaluation", "experience"], ["Argus AI: RAG over the EU AI Act text, with a LangGraph agent", "projects"], ["Poultry Shield: VGG16 fine-tuned to 97.51% validation accuracy", "projects"]] },
+    { id: "agent", name: "Agentic AI", color: "#b48ead", w: { build: 1, gov: 0.7, ship: 0.5, data: 0.2 }, skills: ["LangGraph", "MCP", "RAG", "OWASP LLM Top 10", "IAM / RBAC", "Python"],
+        proof: [["Argus AI: an agent with a human approving each step", "projects"], ["Nordex: security controls for MCP tool access", "experience"], ["This site: an AI you can attack, guarded by four layers", "break"]] },
+    { id: "data", name: "Data Engineer", color: "#d08770", w: { data: 1, ship: 0.5, build: 0.3, gov: 0.2 }, skills: ["Apache Kafka", "Apache Flink", "InfluxDB", "Pandas", "SQL", "Python", "AWS Glue · Athena", "Docker"],
+        proof: [["TUHH: a real-time digital-twin dashboard on Kafka, Flink and InfluxDB", "experience"], ["StockFlow: Kafka → S3 → Glue → Athena, no warehouse", "projects"], ["Radiation Tracker: real-time streaming with Kafka and Flink", "projects"]] },
+    { id: "gov", name: "AI Governance & Security", color: "#ebcb8b", w: { gov: 1, ship: 0.6, build: 0.4, data: 0.2 }, skills: ["EU AI Act", "GDPR", "NIST AI RMF", "ISO 42001", "OWASP LLM Top 10", "IEC 62443", "DPIA", "NIS2"],
+        proof: [["Nordex: authored the AI lifecycle framework of the AI governance policy", "experience"], ["My paper: OWASP LLM Top 10 mapped to the EU AI Act", "experience"], ["Argus AI: EU AI Act risk tiers and GDPR DPIAs as code", "projects"]] },
+    { id: "ops", name: "DevSecOps & Cloud", color: "#a3be8c", w: { ship: 1, gov: 0.5, data: 0.3, build: 0.3 }, skills: ["Docker", "CI/CD", "Syft · Grype · Cosign", "Azure DevOps", "Azure APIM", "IAM / RBAC", "Terraform", "Git / GitHub"],
+        proof: [["Nordex: compared supply-chain security tools and delivered a CI/CD security pipeline", "experience"], ["TUHH: frontend image cut from ~900 MB to 150 MB", "experience"], ["Argus AI: on Azure Container Apps, built with Terraform", "projects"]] },
 ];
 const lum = h => { const n = parseInt(h.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255; return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
 function Logo({ ic, color }) {
@@ -59,7 +67,7 @@ function Logo({ ic, color }) {
 }
 const tint = ([, ic, color]) => (typeof ic === "string" ? color : `#${ic.hex}`);
 
-const GROUPS = [["AI & MLOps", 0, 7], ["Data Engineering", 7, 13], ["Cloud & DevOps", 13, 20], ["Languages & DBs", 20, 26]];
+const GROUPS = [["AI & LLMs", 0, 8], ["Governance & security", 8, 16], ["Data", 16, 25], ["Cloud & DevSecOps", 25, 34]];
 export default function Network() {
     const ui = useUI(), [role, setRole] = useState(ROLES[0]), [hover, setHover] = useState(null), [hint, setHint] = useState(false);
     const box = useRef(null), nodes = useRef({}), groups = useRef([]), [lines, setLines] = useState({ w: 0, h: 0, e: [] });

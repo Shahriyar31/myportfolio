@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { NAME, TITLE, FOCUS, EMAIL, AUDIT } from "../data/profile";
-import { EXPERIENCE, PROJECTS, SKILLS, EDU_CHAPTERS } from "../data/constants";
+import { EXPERIENCE, PROJECTS, SKILLS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/constants";
 
 /*
  * Quick read: the whole profile on one clean, printable page. For anyone who wants
@@ -33,18 +33,19 @@ export default function QuickRead({ open, onClose, onOpenCv }) {
                 <dl className="qr-facts">{AUDIT.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
 
                 <section><h3>Experience</h3>
-                    {EXPERIENCE.map(e => <div key={e.id} className="qr-item"><p><b>{e.role}</b></p><p className="qr-meta">{e.company} · {e.location} · {e.date}</p><ul>{e.focus.map(f => <li key={f.k}><b>{f.k}:</b> {f.d}</li>)}</ul></div>)}
+                    {EXPERIENCE.map(e => <div key={e.id} className="qr-item"><p><b>{e.role}</b></p><p className="qr-meta">{e.company} · {e.location} · {e.date}</p><ul>{e.focus.map(f => <li key={f.k}><b>{f.k}{f.when ? ` (${f.when})` : ""}:</b> {f.d}</li>)}</ul></div>)}
                 </section>
                 <section><h3>Selected projects</h3>
                     {main.map(p => <div key={p.id} className="qr-item"><p><b>{p.title}</b>, {p.sub}</p><p>{p.desc}</p><p className="qr-meta">{p.tags.join(" · ")}</p></div>)}
                     <p className="qr-meta">Earlier: {earlier.map(p => `${p.title} (${p.sub})`).join(" · ")}</p>
                 </section>
+                <section><h3>Publication</h3><div className="qr-item"><p><b>{PAPER.title}</b></p><p className="qr-meta">{PAPER.where} · {PAPER.when}</p></div></section>
                 <section><h3>Education</h3>
                     {EDU_CHAPTERS.slice().reverse().map(c => <div key={c.num} className="qr-item"><p><b>{c.degree}</b></p><p className="qr-meta">{c.school} · {c.year}{c.num === "01" ? " · CGPA 8.73 / 10" : ""}</p></div>)}
                 </section>
                 <section><h3>Skills</h3>
                     <dl className="qr-facts">{Object.entries(SKILLS).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v.join(" · ")}</dd></div>)}</dl>
-                    <p className="qr-meta">Languages: Bengali, English, basic German</p>
+                    <p className="qr-meta">Languages: {LANGUAGES.map(([l, v]) => `${l} (${v})`).join(" · ")}</p>
                 </section>
             </article>
         </div>

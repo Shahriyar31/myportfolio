@@ -24,29 +24,29 @@ export const PLACES = {
 
 /* the sky for each chapter, in page order (colours are the look of that moment) */
 const S = (top, bottom, sun, sunI, hemi, ground, stars = 0, rain = 0, fire = 0, lamp = 0) => ({ top, bottom, sun, sunI, hemi, ground, stars, rain, fire, lamp });
-export const SKIES = [
-    S("#27356f", "#f3a47e", "#ffc59a", 1.9, "#ffd9c2", "#3b4a2c", 0.15, 0, 0, 0.6), // 0 me, at dusk
-    S("#101c44", "#4e6fbd", "#b9c8ff", 1.3, "#c8d4ff", "#2a3a2a", 0.55, 0, 0, 1),    // 1 what I do, blue hour
-    S("#060a1a", "#1d2b52", "#8fa8ff", 0.9, "#9fb2ff", "#1c2a24", 1, 0, 0, 1),        // 2 break my AI, night
-    S("#86b9e8", "#eaf3f9", "#ffffff", 2.4, "#eaf2ff", "#4a5c3a", 0, 0, 0, 0),        // 3 Nordex, morning
-    S("#4a9de9", "#d3ebff", "#fff6e0", 2.6, "#f2f7ff", "#55703f", 0, 0, 0, 0),        // 4 projects, bright day
-    S("#f08a4b", "#ffe1b3", "#ffb36b", 2.2, "#ffe0c0", "#5a4a2a", 0, 0, 0, 0.3),      // 5 West Bengal, golden hour → flight at night
-    S("#6f7d8d", "#c7d0d9", "#e8eef5", 1.4, "#dfe6ee", "#3e4a40", 0, 1, 0, 0.4),      // 6 Hamburg, rain
-    S("#58a7ee", "#e0f1ff", "#ffffff", 2.5, "#f4f8ff", "#56713f", 0, 0, 0, 0),        // 7 skills, noon
-    S("#120a2c", "#3b2a6d", "#b8a8ff", 0.8, "#b6a8ff", "#1e2030", 1, 0, 1, 1),        // 8 photography, night
-    S("#2b1e52", "#ff9b6c", "#ffb58a", 1.7, "#ffd2bf", "#3a3a2a", 0.3, 0, 0.3, 1),    // 9 my desk, sunset
+export const SKIES = [  // calm Nord / Catppuccin moods: no hot reds, neon greens or strong yellows
+    S("#353c4d", "#a894b4", "#e5dcef", 1.9, "#e7e0f0", "#46553f", 0.15, 0, 0, 0.6), // 0 me, a lavender dusk
+    S("#272c38", "#5e6f8f", "#c7d2e6", 1.3, "#cdd6f4", "#34403a", 0.55, 0, 0, 1),    // 1 what I do, blue hour
+    S("#1f232b", "#363e50", "#9fb0cf", 0.9, "#a9b6d3", "#27302e", 1, 0, 0, 1),        // 2 break my AI, night
+    S("#7f95b5", "#dde3ec", "#ffffff", 2.3, "#e5e9f0", "#4d5c45", 0, 0, 0, 0),        // 3 Nordex, misty morning
+    S("#6f8fb8", "#d8e1ec", "#f3f1ea", 2.4, "#eceff4", "#56694a", 0, 0, 0, 0),        // 4 projects, soft day
+    S("#6b7894", "#d9c3b3", "#eedfd2", 2.0, "#ece2da", "#5a5646", 0, 0, 0, 0.3),      // 5 West Bengal, a gentle golden hour
+    S("#5d6878", "#aeb8c5", "#dfe4ea", 1.4, "#d8dee9", "#3e4a40", 0, 1, 0, 0.4),      // 6 Hamburg, rain
+    S("#6c8cb6", "#dde5ef", "#ffffff", 2.4, "#eceff4", "#56694a", 0, 0, 0, 0),        // 7 skills, noon
+    S("#1e2230", "#3b3f58", "#b4befe", 0.8, "#b4befe", "#20232e", 1, 0, 1, 1),        // 8 photography, night
+    S("#2f3446", "#8a7f9e", "#e0d4e6", 1.6, "#ddd3e4", "#3a3d34", 0.3, 0, 0.3, 1),    // 9 my desk, a quiet evening
 ];
-export const WB = S("#5aa9e6", "#fff0d2", "#fff1cf", 2.5, "#fff3e0", "#5f7a3a", 0, 0, 0, 0);             // a bright day in West Bengal
+export const WB = S("#7391b8", "#e9e1d6", "#f4ede4", 2.4, "#eee9e2", "#5a6c47", 0, 0, 0, 0);             // a bright day in West Bengal
 export const DAY = S("#6fb8f0", "#eef7ff", "#fff4dc", 2.6, "#f4f8ff", "#5a7a44", 0, 0, 0, 0);          // light theme leans towards this
-export const NIGHT = S("#03050d", "#101a3a", "#8fa8ff", 0.6, "#8fa0ff", "#10161e", 1, 0, 0, 0.6); // the flight
+export const NIGHT = S("#1a1d25", "#2e3445", "#a9b6d3", 0.6, "#a9b6d3", "#1c2028", 1, 0, 0, 0.6); // the flight
 
 /* five skills hidden around the planet: find them all */
 export const ORBS = [
-    { id: "azure", name: "Azure", color: "#3b9cff", theta: 40, back: -1 },
-    { id: "databricks", name: "Databricks", color: "#ff5b3a", theta: 108, back: -1 },
-    { id: "rag", name: "RAG & agents", color: "#a58cff", theta: 162, back: -1 },
-    { id: "euaiact", name: "EU AI Act", color: "#f2c14e", theta: 278, back: -1 },
-    { id: "python", name: "Python", color: "#3ee08f", theta: 330, back: -1 },
+    { id: "azure", name: "Azure", color: "#81a1c1", theta: 40, back: -1 },
+    { id: "databricks", name: "Databricks", color: "#d08770", theta: 108, back: -1 },
+    { id: "rag", name: "RAG & agents", color: "#b48ead", theta: 162, back: -1 },
+    { id: "euaiact", name: "EU AI Act", color: "#ebcb8b", theta: 278, back: -1 },
+    { id: "python", name: "Python", color: "#a3be8c", theta: 330, back: -1 },
 ];
 
 /* chapters in page order: section id, name for the navigation, icon */

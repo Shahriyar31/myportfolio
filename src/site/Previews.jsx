@@ -23,9 +23,9 @@ function Twin() {
     const d = data.current, hot = flag && t - flag.at < 25;
     return (
         <div className="pv">
-            <div className="pv-head"><span className="mono">particle sensor · live</span><b className={hot ? "pv-bad" : "pv-ok"}>{hot ? `Anomaly: z = ${flag.z}` : "Normal"}</b></div>
+            <div className="pv-head"><span className="mono">process sensor · live</span><b className={hot ? "pv-bad" : "pv-ok"}>{hot ? `Spike: z = ${flag.z}` : "Normal"}</b></div>
             <svg viewBox="0 0 300 70" preserveAspectRatio="none" className="pv-chart" aria-hidden="true"><path d={path(d, 300, 70, 12, 32)} className={hot ? "is-bad" : ""} /></svg>
-            <button className="pv-btn" onClick={() => { fault.current = 3; }}>Inject a fault</button>
+            <button className="pv-btn" onClick={() => { fault.current = 3; }}>Simulate a spike</button>
             <Note />
         </div>
     );
@@ -71,7 +71,7 @@ function Poultry() {
     const verdict = p => (Math.max(...p) < 0.75 ? "Unsure: send to a vet" : labels[p.indexOf(Math.max(...p))]);
     return (
         <div className="pv">
-            <div className="pv-head"><span className="mono">CNN · 97.51% test accuracy</span><b className={s !== null && !busy && Math.max(...SAMPLES[s][1]) < 0.75 ? "pv-warn" : "pv-ok"}>{busy ? "Classifying…" : s === null ? "Pick a sample" : verdict(SAMPLES[s][1])}</b></div>
+            <div className="pv-head"><span className="mono">VGG16 · 97.51% validation accuracy</span><b className={s !== null && !busy && Math.max(...SAMPLES[s][1]) < 0.75 ? "pv-warn" : "pv-ok"}>{busy ? "Classifying…" : s === null ? "Pick a sample" : verdict(SAMPLES[s][1])}</b></div>
             <div className="pv-picks">{SAMPLES.map(([n], i) => <button key={n} className={`pv-btn ${s === i ? "is-on" : ""}`} onClick={() => pick(i)}>{n}</button>)}</div>
             <ul className="pv-rows">{labels.map((l, k) => <li key={l}><span>{l}</span><i style={{ "--w": s === null ? 0 : SAMPLES[s][1][k] }} /><b className="mono">{s === null ? "—" : `${Math.round(SAMPLES[s][1][k] * 100)}%`}</b></li>)}</ul>
             <Note />

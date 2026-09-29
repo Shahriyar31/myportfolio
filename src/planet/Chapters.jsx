@@ -3,7 +3,7 @@ import { World, useUI, setUI, toast, say, Views, PROJECT_ORDER, scrollToProject,
 import Network from "./Network";
 import { PLACES, ORBS } from "./world";
 import { NAME, TITLE, EMAIL } from "../data/profile";
-import { EXPERIENCE, PROJECTS, EDU_CHAPTERS } from "../data/constants";
+import { EXPERIENCE, PROJECTS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/constants";
 import { useChat, ask, openChat } from "../site/chat";
 import { attack, settle, useAttack, LAYERS } from "../site/attack";
 import { useProgress, mark } from "../site/progress";
@@ -77,7 +77,7 @@ function AskMe() {
     );
 }
 /* what I build, one after another */
-const BUILDS = ["RAG assistants", "AI agents", "governed data platforms", "secure AI pipelines"];
+const BUILDS = ["RAG knowledge agents", "AI governance frameworks", "secure AI pipelines", "AI agents"];
 function Rotator({ words }) {
     const [i, setI] = useState(0);
     useEffect(() => { if (reducedMotion()) return; const id = setInterval(() => setI(v => (v + 1) % words.length), 2600); return () => clearInterval(id); }, [words.length]);
@@ -85,11 +85,11 @@ function Rotator({ words }) {
 }
 /* three facts a recruiter can check, each one walks you to its proof */
 const PROOF = [
-    { k: "Now", n: "Nordex Group", d: "AI & data engineering", go: "experience" },
+    { k: "Now", n: "Nordex Group", d: "Enterprise data management & AI", go: "experience" },
     { k: "Built", n: "Argus AI", d: "Live EU AI Act platform", go: "projects" },
     { k: "Study", n: "M.Sc. Data Science", d: "TUHH, Hamburg", go: "journey" },
 ];
-const STACK = ["Azure", "Databricks", "LangGraph", "RAG", "Python", "Spark", "Terraform", "EU AI Act", "GDPR", "OWASP LLM", "Docker", "Kafka", "GitHub Actions", "SQL"];
+const STACK = ["Azure AI Foundry", "Azure OpenAI", "RAG", "LangGraph", "MCP", "EU AI Act", "GDPR", "NIST AI RMF", "OWASP LLM Top 10", "Python", "SQL", "Kafka", "Docker", "DevSecOps"];
 export function Hero({ ready, onQuick, onCv }) {
     return (
         <section id="home" className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
@@ -112,9 +112,9 @@ export function Hero({ ready, onQuick, onCv }) {
 
 /* ── 2 · what I do (the AI tower) ── */
 const WHAT = [
-    { id: "build", n: "A", title: "Build AI that knows your business", plain: "Assistants and agents that answer from your own documents, with sources you can check.", tools: ["Databricks", "Azure", "LangGraph", "RAG"], demo: "Make an AI agent stop guessing", Demo: BuildIt },
-    { id: "legal", n: "B", title: "Keep it legal and trusted", plain: "I work out what the EU AI Act and GDPR require, then build it into the product.", tools: ["EU AI Act", "GDPR", "OWASP LLM", "Human review"], demo: "Sort AI ideas by legal risk", Demo: KeepLegal },
-    { id: "ship", n: "C", title: "Ship it safely", plain: "Secure pipelines: no leaked keys, no vulnerable parts, no data left open.", tools: ["Azure DevOps", "Terraform", "Docker", "GitHub Actions"], demo: "Catch 3 problems before go-live", Demo: ShipSafe },
+    { id: "build", n: "A", title: "Build AI that knows your business", plain: "Assistants and agents that answer from your own documents, with sources you can check.", tools: ["Azure AI Foundry", "Azure OpenAI", "RAG", "LangGraph"], demo: "Make an AI agent stop guessing", Demo: BuildIt },
+    { id: "legal", n: "B", title: "Keep it legal and trusted", plain: "I work out what the EU AI Act and GDPR require, then build it into the product.", tools: ["EU AI Act", "GDPR", "NIST AI RMF", "OWASP LLM"], demo: "Sort AI ideas by legal risk", Demo: KeepLegal },
+    { id: "ship", n: "C", title: "Ship it safely", plain: "Secure pipelines: no leaked keys, no vulnerable parts, no data left open.", tools: ["Azure DevOps", "Docker", "Syft · Grype", "Cosign"], demo: "Catch 3 problems before go-live", Demo: ShipSafe },
 ];
 function DemoModal({ item, onClose }) {
     useEffect(() => {
@@ -202,7 +202,7 @@ export function Break() {
                     <div className="pl-term-body">
                         <p className="t-dim">{"// 03 · the governance gate"}</p>
                         <h2 className="pl-term-h">Don't trust my CV.<br /><em>Try to break my AI.</em></h2>
-                        <p className="t-dim">It guards a secret code. Four real layers of defence decide. Pick an attack or write your own.</p>
+                        <p className="t-dim">It guards a secret code. Four real layers of defence decide, the same OWASP LLM Top 10 thinking as in my paper. Pick an attack or write your own.</p>
                         <div className="pl-presets">{PRESETS.map(([k, t]) => <button key={k} disabled={a.busy} onClick={() => go(t)} title={t}><b>$ {k.toLowerCase()}</b>{t}</button>)}</div>
                         <form className="pl-attack" onSubmit={e => { e.preventDefault(); go(draft); }}>
                             <span className="t-ok" aria-hidden="true">❯</span>
@@ -225,10 +225,10 @@ export function Break() {
 
 /* ── 4 · experience: an elevator ride up the Nordex tower, floor by floor; then my research lab ── */
 const FLOORS = [
-    { tools: ["EU AI Act", "GDPR", "Data catalogue"], flow: ["AI use case", "Risk check · EU AI Act", "Privacy check · GDPR", "Documented"] },
-    { tools: ["Azure Databricks", "Apache Spark", "Python", "SQL"], flow: ["Data sources", "Pipeline · Spark", "Clean tables", "Analytics"] },
-    { tools: ["Azure", "Azure DevOps"], flow: ["Code", "Azure DevOps", "Azure", "Running platform"] },
-    { tools: ["LLMs", "RAG", "Evaluation"], flow: ["Question", "Find the right docs", "LLM answer", "Check the answer"] },
+    { tools: ["EU AI Act", "GDPR", "NIST AI RMF", "LLM guardrails"], flow: ["AI idea", "Risk & privacy check", "Approval gate", "Monitored in use"] },
+    { tools: ["OWASP LLM Top 10", "MCP", "Syft · Grype · Cosign", "CI/CD"], flow: ["Threat (OWASP LLM)", "Azure mitigation", "Pipeline checks", "Signed release"] },
+    { tools: ["Azure AI Foundry", "Azure OpenAI", "Hybrid search", "LLM-as-judge"], flow: ["Question", "Hybrid search", "LLM answer", "Judge scores it"] },
+    { tools: ["Stakeholders", "Azure networking", "API gateway"], flow: ["Blocker", "Weekly alignment", "Owner & timeline", "Resolved"] },
 ];
 function Flow({ steps, color }) {
     return (
@@ -260,9 +260,9 @@ export function Experience() {
                 {f < 0 && <div className="pl-exp-intro"><Kick>04 · Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor">
-                        <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {job.role.split("—")[0].trim()}</Kick><h3>{fl.k}</h3></div></div>
+                        <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
                         <p className="pl-p">{fl.d}</p>
-                        <Flow steps={FLOORS[f].flow} color="#5fd0ff" />
+                        <Flow steps={FLOORS[f].flow} color="#88c0d0" />
                         <div className="pl-tags">{FLOORS[f].tools.map(t => <span key={t}>{t}</span>)}</div>
                         {f === 3 && <p className="pl-note mono">{job.date} · {job.location}</p>}
                     </div>
@@ -276,6 +276,7 @@ export function Experience() {
                         <p>{res.summary}</p>
                         <ul>{res.focus.map((x, i) => <li key={x.k} style={{ "--i": i }}><i>✓</i><b>{x.k}:</b> {x.d}</li>)}</ul>
                         <div className="pl-stickers">{res.tech.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
+                        <div className="pl-paper"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where}</small></div>
                         <button className="pl-link" onClick={() => scrollToProject(1)}>See it in the project park →</button>
                     </div>
                 )}
@@ -287,7 +288,7 @@ export function Experience() {
 /* ── 5 · projects (the project park): each card flies in, I sit and code, then it turns to dust ── */
 const EARLY = [4, 5, 3, 6];
 /* Argus AI, in miniature: pick an AI use case, see its EU AI Act risk tier */
-const CASES = [["CV screening", "High risk", "Needs risk management, human oversight and logging (Annex III).", "#ff8b3d"], ["Customer chatbot", "Limited risk", "Must tell people they're talking to an AI.", "#f2c14e"], ["Spam filter", "Minimal risk", "No extra duties. Good practice is enough.", "#3ee08f"], ["Social scoring", "Prohibited", "Banned in the EU since February 2025.", "#ff4d5e"]];
+const CASES = [["CV screening", "High risk", "Needs risk management, human oversight and logging (Annex III).", "#d08770"], ["Customer chatbot", "Limited risk", "Must tell people they're talking to an AI.", "#ebcb8b"], ["Spam filter", "Minimal risk", "No extra duties. Good practice is enough.", "#a3be8c"], ["Social scoring", "Prohibited", "Banned in the EU since February 2025.", "#bf616a"]];
 function ArgusTry() {
     const [c, setC] = useState(null), hit = CASES.find(x => x[0] === c);
     return (
@@ -351,8 +352,8 @@ function Page({ stop, q }) {
         <div className="pl-page is-in">
             <div className="pl-page-top mono"><span>Republic of India · West Bengal</span><span>Page 1</span></div>
             <span className="pl-page-when mono">{bt.year} · where it started</span>
-            <div className="pl-degree">B.Tech<small>Computer Science &amp; Engineering</small></div>
-            <p className="pl-page-school">{bt.school}<br /><span>Cooch Behar, West Bengal, India</span></p>
+            <div className="pl-degree">B.Tech<small>Computer Science · CGPA 8.73 / 10</small></div>
+            <p className="pl-page-school">{bt.school}<br /><span>Cooch Behar, West Bengal, India · Jul 2018 – Aug 2022</span></p>
             <div className="pl-page-stats"><div><b><Count to={8.73} dec={2} run /></b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b><Count to={4} run /></b>years</div></div>
             <div className="pl-tags"><span>Teaching assistant</span><span>Student council</span></div>
             <span className="pl-stamp-ink is-red mono">Graduated<br /><b>2022</b><br />Cooch Behar</span>
@@ -373,18 +374,18 @@ function Page({ stop, q }) {
             <span className="pl-page-when mono">{ms.year} · landed in Hamburg</span>
             <div className="pl-degree">M.Sc.<small>Data Science</small></div>
             <p className="pl-page-school">{ms.school}<br /><span>Research: {research.role.split("—")[1]?.trim()} · working student at Nordex</span></p>
-            <div className="pl-tags">{ms.pills.slice(0, 6).map(t => <span key={t}>{t}</span>)}</div>
+            <div className="pl-tags">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>
             <button className="pl-link" onClick={() => scrollToId("experience")}>See my research and work →</button>
             <span className="pl-stamp-ink is-blue mono">Entry<br /><b>2023</b><br />Hamburg</span>
         </div>
     );
 }
 function RouteMap() {
-    const ui = useUI(), f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7500);
+    const ui = useUI(), f = Math.min(1, Math.max(0, ui.flight)), km = Math.round(f * 7000);
     const x = 40 + f * 920, y = 110 - Math.sin(f * Math.PI) * 80;
     return (
         <div className="pl-route-map">
-            <div className="pl-route-top"><span className="pl-kick mono">06 · My journey · 2023 · the leap</span><b>Moved to Germany, alone, at 22.</b><span className="mono">{["Boarding", "In the air", "Landed"][f <= 0 ? 0 : f < 1 ? 1 : 2]} · {km.toLocaleString("en-GB")} km</span></div>
+            <div className="pl-route-top"><span className="pl-kick mono">06 · My journey · 2023 · the leap</span><b>Moved to Germany, alone, at 22.</b><span className="mono">{["Boarding", "In the air", "Landed"][f <= 0 ? 0 : f < 1 ? 1 : 2]} · {km.toLocaleString("en-GB")} km as the crow flies</span></div>
             <svg viewBox="0 0 1000 150" aria-hidden="true">
                 <path d="M40 110 Q500 -50 960 110" className="pl-arc" />
                 <path d="M40 110 Q500 -50 960 110" className="pl-arc-done" style={{ strokeDashoffset: 1100 - f * 1100 }} pathLength="1100" />
@@ -468,7 +469,7 @@ export function Contact({ onCv, onQuick }) {
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     const stamps = [
         ["LinkedIn", "in", "https://www.linkedin.com/in/farhanshahriyar", "#0a66c2"], ["GitHub", "gh", "https://github.com/Shahriyar31", "#24292f"],
-        ["Résumé", "CV", onCv, "#b5523b"], ["Quick read", "60s", onQuick, "#13804f"], [copied ? "Copied ✓" : "Copy email", "@", copy, "#6a4ad6"], ["Ask my AI", "AI", () => { openChat(true); ask("Is Farhan open to work?"); }, "#0a7fc0"],
+        ["Résumé", "CV", onCv, "#a45e4d"], ["Quick read", "60s", onQuick, "#13804f"], [copied ? "Copied ✓" : "Copy email", "@", copy, "#6a4ad6"], ["Ask my AI", "AI", () => { openChat(true); ask("Is Farhan open to work?"); }, "#0a7fc0"],
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">

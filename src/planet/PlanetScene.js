@@ -57,11 +57,11 @@ export default class PlanetScene {
         return {
             grass: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true }),
             path: m(0xe7d3a8), white: m(0xf3efe8), cream: m(0xe9dcc4), steel: m(0x8a9bb0, { metalness: 0.2, roughness: 0.5 }), dark: m(0x2a3240),
-            brick: m(0xb4583f), red: m(0xe0473a), gold: m(0xf2b33a), wood: m(0x8a5a3b),
-            accent: m(0x5fd0ff, { emissive: 0x2a8fc0, emissiveIntensity: 0.6 }), accent2: m(0xa58cff, { emissive: 0x6a4fd8, emissiveIntensity: 0.7 }),
+            brick: m(0xa45e4d), red: m(0xbf616a), gold: m(0xd8b779), wood: m(0x8a5a3b),
+            accent: m(0x88c0d0, { emissive: 0x5e81ac, emissiveIntensity: 0.6 }), accent2: m(0xb48ead, { emissive: 0x7d6a8c, emissiveIntensity: 0.7 }),
             glass: new THREE.MeshStandardMaterial({ color: 0x9fd8ff, transparent: true, opacity: 0.35, roughness: 0.1, metalness: 0.3 }),
-            window: new THREE.MeshStandardMaterial({ color: 0xffe2a0, emissive: 0xffb84d, emissiveIntensity: 1.2 }),
-            water: new THREE.MeshStandardMaterial({ color: 0x2f8fd0, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.92, flatShading: true }),
+            window: new THREE.MeshStandardMaterial({ color: 0xf0e2c8, emissive: 0xd8b779, emissiveIntensity: 1.2 }),
+            water: new THREE.MeshStandardMaterial({ color: 0x5e81ac, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.92, flatShading: true }),
             cloud: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, flatShading: true, transparent: true, opacity: 0.95 }),
         };
     }
@@ -87,11 +87,11 @@ export default class PlanetScene {
         const s = this.sun = new THREE.DirectionalLight(0xffffff, 2.2); s.position.set(8, R + 14, 12);
         s.castShadow = !this.mobile; s.shadow.mapSize.set(2048, 2048); const c = s.shadow.camera; c.left = c.bottom = -12; c.right = c.top = 12; c.near = 1; c.far = 60; s.shadow.bias = -0.0008;
         s.target.position.set(0, R, 0); this.scene.add(s, s.target);
-        this.fill = new THREE.PointLight(0xffb070, 0, 30); this.fill.position.set(-4, R + 3, 5); this.scene.add(this.fill);
+        this.fill = new THREE.PointLight(0xd8b9a0, 0, 30); this.fill.position.set(-4, R + 3, 5); this.scene.add(this.fill);
     }
     globe() {
         const geo = new THREE.IcosahedronGeometry(R, this.mobile ? 24 : 36), pos = geo.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color(), v = V(0, 0, 0);
-        const g1 = new THREE.Color(0x5fae5a), g2 = new THREE.Color(0x7cc36a), sand = new THREE.Color(0xe7d3a8), sea = new THREE.Color(0x2f8fd0);
+        const g1 = new THREE.Color(0x789c68), g2 = new THREE.Color(0x8fae7a), sand = new THREE.Color(0xe7d3a8), sea = new THREE.Color(0x5e81ac);
         for (let i = 0; i < pos.count; i++) {
             v.fromBufferAttribute(pos, i).normalize();
             const theta = ((Math.atan2(v.x, v.y) / D2R) + 360) % 360, ocean = PLACES.oceanFrom < theta && theta < PLACES.oceanTo && Math.abs(v.z) < 0.95;
@@ -125,7 +125,7 @@ export default class PlanetScene {
         { const g = this.tower = this.spot(P.what.theta, 9);
             this.cyl(1.1, 1.5, 0.5, M.white, g, 0, 0, 0, 24); this.cyl(0.5, 0.8, 5.2, M.steel, g, 0, 0.5, 0, 24);
             for (let i = 0; i < 5; i++) this.cyl(0.62 + (4 - i) * 0.05, 0.62 + (4 - i) * 0.05, 0.1, M.accent, g, 0, 1.1 + i * 0.95, 0, 24);
-            this.coreMat = new THREE.MeshStandardMaterial({ color: 0xa58cff, emissive: 0x6a4fd8, emissiveIntensity: 1.1, flatShading: true });
+            this.coreMat = new THREE.MeshStandardMaterial({ color: 0xb48ead, emissive: 0x7d6a8c, emissiveIntensity: 1.1, flatShading: true });
             this.core = this.mesh(new THREE.IcosahedronGeometry(0.85, 1), this.coreMat, g, 0, 6.8, 0);
             this.coreRings = [0, 1].map(i => { const t = this.mesh(new THREE.TorusGeometry(1.35 + i * 0.35, 0.04, 8, 64), M.accent, g, 0, 6.8, 0); t.rotation.x = 1.1 + i * 0.5; return t; }); }
         // break my AI: the governance gate
@@ -134,25 +134,25 @@ export default class PlanetScene {
             const arch = this.mesh(new THREE.TorusGeometry(1.5, 0.3, 12, 24, Math.PI), M.white, g, 0, 3, 0);
             const sh = new THREE.Shape(); sh.moveTo(0, -0.6); sh.quadraticCurveTo(0.55, -0.3, 0.5, 0.35); sh.lineTo(0, 0.5); sh.lineTo(-0.5, 0.35); sh.quadraticCurveTo(-0.55, -0.3, 0, -0.6);
             this.shield = this.mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.14, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 2 }), M.accent, g, 0, 3.9, -0.07);
-            this.beamMat = new THREE.MeshBasicMaterial({ color: 0x5fd0ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+            this.beamMat = new THREE.MeshBasicMaterial({ color: 0x88c0d0, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
             this.beam = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 2.9), this.beamMat); this.beam.position.set(0, 1.45, 0); g.add(this.beam); arch.castShadow = true; }
         // experience: Nordex tower with turbines around it (placeholder until the model loads)
         { const g = this.hq = this.spot(P.experience.theta, 11);
             this.hqStand = this.box(2.6, 8.4, 2.6, M.glass, g, 0, 0, 0, 0.1);
-            this.floors = [0, 1, 2, 3].map(i => { const f = this.box(2.72, 0.5, 2.72, new THREE.MeshStandardMaterial({ color: 0x1d2740, emissive: 0x5fd0ff, emissiveIntensity: 0.1, transparent: true, opacity: 0.7 }), g, 0, 1.2 + i * 1.8, 0, 0.04); f.castShadow = false; return f; });
+            this.floors = [0, 1, 2, 3].map(i => { const f = this.box(2.72, 0.5, 2.72, new THREE.MeshStandardMaterial({ color: 0x1d2740, emissive: 0x88c0d0, emissiveIntensity: 0.1, transparent: true, opacity: 0.7 }), g, 0, 1.2 + i * 1.8, 0, 0.04); f.castShadow = false; return f; });
             [[-5, 12], [4.5, 14], [8, 6]].forEach(([dt, back], i) => this.turbine(this.spot(P.experience.theta + dt, back), 3.8 + i * 0.5)); }
         // projects: one object per project, spread along the path
         { const T = P.projects.items;
             const argus = this.spot(T[0].theta, 6); this.cyl(1.4, 1.5, 0.35, M.white, argus, 0, 0, 0, 32); this.mesh(new THREE.SphereGeometry(1.25, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, argus, 0, 0.35, 0); this.mesh(new THREE.SphereGeometry(0.4, 16, 12), M.accent, argus, 0, 0.8, 0);
-            const twin = this.spot(T[1].theta, 6); this.box(0.9, 2.4, 0.9, M.cream, twin, -0.6, 0, 0); const w = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.4, 0.9), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, wireframe: true })); w.position.set(0.6, 1.2, 0); twin.add(w); this.anim.push(t => { w.rotation.y = Math.sin(t) * 0.3; });
+            const twin = this.spot(T[1].theta, 6); this.box(0.9, 2.4, 0.9, M.cream, twin, -0.6, 0, 0); const w = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.4, 0.9), new THREE.MeshBasicMaterial({ color: 0x88c0d0, wireframe: true })); w.position.set(0.6, 1.2, 0); twin.add(w); this.anim.push(t => { w.rotation.y = Math.sin(t) * 0.3; });
             const radar = this.spot(T[2].theta, 6); this.cyl(0.15, 0.25, 2.4, M.steel, radar, 0, 0, 0, 10); const dish = new THREE.Group(); dish.position.y = 2.55; radar.add(dish); const dm = this.mesh(new THREE.SphereGeometry(0.9, 20, 10, 0, Math.PI * 2, 0, Math.PI / 3), M.white, dish); dm.rotation.x = Math.PI / 2 + 0.5; this.spin.push({ o: dish, speed: 0.9 });
             const stock = this.spot(T[3].theta, 6); const bars = [0, 1, 2, 3, 4].map(i => this.box(0.3, 1, 0.3, i % 2 ? M.accent : M.accent2, stock, i * 0.42 - 0.84, 0, 0, 0.05)); this.anim.push(t => bars.forEach((b, i) => { const h = 0.5 + Math.abs(Math.sin(t * 1.3 + i * 0.9)) * 1.7; b.scale.y = h; b.position.y = h / 2; }));
             const barn = this.spot(T[4].theta, 6); this.box(1.8, 1.1, 1.3, M.brick, barn, 0, 0, 0); const tri = new THREE.Shape(); tri.moveTo(-1, 0); tri.lineTo(1, 0); tri.lineTo(0, 0.75); tri.closePath(); this.mesh(new THREE.ExtrudeGeometry(tri, { depth: 1.4, bevelEnabled: false }), M.white, barn, 0, 1.1, -0.7);
             this.libSpot = this.spot(T[5].theta, 6); this.box(1.8, 1.4, 1.2, M.cream, this.libSpot, 0, 0, 0);
-            this.projectSpots = T.map(p => p.theta); this.projOn = -1; this.projCol = new THREE.Color(0x5fd0ff);
+            this.projectSpots = T.map(p => p.theta); this.projOn = -1; this.projCol = new THREE.Color(0x88c0d0);
             this.beacons = T.map(p => { const g = this.spot(p.theta, 6);
-                const ring = new THREE.Mesh(new THREE.RingGeometry(1.55, 1.8, 56), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.07; g.add(ring);
-                const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 7, 40, 1, true), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, alphaMap: this.fadeTex(), transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); beam.position.y = 3.5; g.add(beam);
+                const ring = new THREE.Mesh(new THREE.RingGeometry(1.55, 1.8, 56), new THREE.MeshBasicMaterial({ color: 0x88c0d0, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.07; g.add(ring);
+                const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 7, 40, 1, true), new THREE.MeshBasicMaterial({ color: 0x88c0d0, alphaMap: this.fadeTex(), transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); beam.position.y = 3.5; g.add(beam);
                 return { ring, beam, k: 0 }; });
             this.coder(); }
         // journey: my college in Cooch Behar, home (getting ready), the runway; ocean; TUHH in Hamburg
@@ -167,17 +167,17 @@ export default class PlanetScene {
             this.lab(this.spot(P.lab.theta, 6));
             this.bags(); }
         // skills: a garden of five pedestals
-        { const g = this.garden = this.spot(P.skills.theta, 6); this.pedMat = M.white.clone(); this.pedMat.emissive = new THREE.Color(0); this.roleCol = new THREE.Color(0x5fd0ff); this.roleK = 0;
+        { const g = this.garden = this.spot(P.skills.theta, 6); this.pedMat = M.white.clone(); this.pedMat.emissive = new THREE.Color(0); this.roleCol = new THREE.Color(0x88c0d0); this.roleK = 0;
             this.roleBeams = [];
             this.pedestals = ORBS.map((o, i) => { const a = (i - 2) * 0.95, x = Math.sin(a) * 2.6, z = -Math.cos(a) * 0.9 + 0.9; this.cyl(0.32, 0.4, 0.7, this.pedMat, g, x, 0, z, 12);
-                const b = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, alphaMap: this.fadeTex(), transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); b.position.set(x, 2.7, z); g.add(b); this.roleBeams.push(b);
+                const b = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x88c0d0, alphaMap: this.fadeTex(), transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); b.position.set(x, 2.7, z); g.add(b); this.roleBeams.push(b);
                 return V(x, 1.35, z); }); }
         // photography: a camera on a tripod and fireflies
         { const g = this.spot(P.lens.theta, 5); [[-0.35, 0.3], [0.35, 0.3], [0, -0.4]].forEach(([x, z]) => { const l = this.cyl(0.03, 0.03, 1.5, M.dark, g, x * 0.6, 0, z * 0.6, 6); l.rotation.set(z * 0.35, 0, -x * 0.35); });
             this.box(0.7, 0.45, 0.4, M.dark, g, 0, 1.45, 0, 0.06); this.cyl(0.16, 0.18, 0.35, M.dark, g, 0, 1.55, 0.3).rotation.x = Math.PI / 2;
             this.fireflies = this.makeFireflies(P.lens.theta); }
         // contact: my desk (placeholder until furniture loads) and a mailbox
-        { this.deskSpot = this.spot(P.contact.theta, 3.2); this.box(1.8, 0.08, 0.9, M.wood, this.deskSpot, 0, 0.75, 0); this.screenMat = new THREE.MeshStandardMaterial({ color: 0x0b1320, emissive: 0x5fd0ff, emissiveIntensity: 0.9 });
+        { this.deskSpot = this.spot(P.contact.theta, 3.2); this.box(1.8, 0.08, 0.9, M.wood, this.deskSpot, 0, 0.75, 0); this.screenMat = new THREE.MeshStandardMaterial({ color: 0x0b1320, emissive: 0x88c0d0, emissiveIntensity: 0.9 });
             const mail = this.spot(P.contact.theta - 7, 5); this.cyl(0.06, 0.06, 1.1, M.dark, mail, 0, 0, 0, 6); this.mailBox = this.box(0.7, 0.5, 0.45, M.red, mail, 0, 1.1, 0, 0.12);
             this.envelope = this.box(0.5, 0.02, 0.34, M.white, mail, 0, 1.64, 0, 0.01); this.envelope.visible = false; }
         this.scatter();
@@ -195,9 +195,9 @@ export default class PlanetScene {
         this.box(0.5, 0.03, 0.34, M.dark, lap, 0, 0, 0, 0.01);
         const lid = new THREE.Group(); lid.position.set(0, 0.03, 0.16); lid.rotation.x = 0.22; lap.add(lid);
         this.mesh(new THREE.BoxGeometry(0.5, 0.34, 0.02), [M.dark, M.dark, M.dark, M.dark, M.dark, this.lapScreen], lid, 0, 0.17, 0);
-        this.lapGlow = new THREE.PointLight(0x5fd0ff, 0, 2.5); this.lapGlow.position.set(0, 0.35, -0.1); lap.add(this.lapGlow);
+        this.lapGlow = new THREE.PointLight(0x88c0d0, 0, 2.5); this.lapGlow.position.set(0, 0.35, -0.1); lap.add(this.lapGlow);
         const glyph = t => { const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.font = "700 64px 'JetBrains Mono', monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#fff"; x.shadowColor = "#fff"; x.shadowBlur = 12; x.fillText(t, 64, 64); const tx = new THREE.CanvasTexture(c); return tx; };
-        this.glyphs = ["</>", "{ }", "AI", "fn", "01", "λ", "RAG", "=>"].map((t, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glyph(t), color: 0x5fd0ff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.setScalar(0.34); s.userData.o = i / 8; g.add(s); return s; });
+        this.glyphs = ["</>", "{ }", "AI", "fn", "01", "λ", "RAG", "=>"].map((t, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glyph(t), color: 0x88c0d0, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.setScalar(0.34); s.userData.o = i / 8; g.add(s); return s; });
     }
     drawCode(col) {
         const x = this.codeCanvas.getContext("2d"), L = this.codeLines;
@@ -205,13 +205,13 @@ export default class PlanetScene {
         L.push({ ind: [0, 1, 1, 2, 1, 0][Math.floor(Math.random() * 6)], parts: Array.from({ length: 1 + Math.floor(Math.random() * 3) }, () => [8 + Math.random() * 46, Math.random()]) });
         x.fillStyle = "#0a1220"; x.fillRect(0, 0, 256, 168); x.fillStyle = "#16233a"; x.fillRect(0, 0, 256, 14);
         ["#ff5f57", "#febc2e", "#28c840"].forEach((c, i) => { x.fillStyle = c; x.beginPath(); x.arc(9 + i * 10, 7, 3, 0, 7); x.fill(); });
-        L.forEach((l, r) => { let cx = 14 + l.ind * 14; x.fillStyle = "#3a4a66"; x.fillRect(3, 20 + r * 15, 6, 6); l.parts.forEach(([w, c]) => { x.fillStyle = c < 0.35 ? col : c < 0.6 ? "#a58cff" : c < 0.8 ? "#e6edf5" : "#f2c14e"; x.fillRect(cx, 20 + r * 15, w, 7); cx += w + 6; }); });
+        L.forEach((l, r) => { let cx = 14 + l.ind * 14; x.fillStyle = "#3a4a66"; x.fillRect(3, 20 + r * 15, 6, 6); l.parts.forEach(([w, c]) => { x.fillStyle = c < 0.35 ? col : c < 0.6 ? "#b48ead" : c < 0.8 ? "#e6edf5" : "#ebcb8b"; x.fillRect(cx, 20 + r * 15, w, 7); cx += w + 6; }); });
         if (Math.floor(performance.now() / 400) % 2) { const last = L[L.length - 1]; x.fillStyle = "#fff"; x.fillRect(14 + last.ind * 14 + last.parts.reduce((a, p) => a + p[0] + 6, 0), 19 + (L.length - 1) * 15, 3, 9); }
         this.codeTex.needsUpdate = true;
     }
     /** my name as big 3D letters standing on the planet; click one and it flips */
     nameLetters(word, theta, back) {
-        const font = new FontLoader().parse(fontData), cols = [0xf4efe6, 0xf4efe6, 0xf4efe6, 0x5fd0ff, 0xa58cff, 0x5fd0ff];
+        const font = new FontLoader().parse(fontData), cols = [0xf4efe6, 0xf4efe6, 0xf4efe6, 0x88c0d0, 0xb48ead, 0x88c0d0];
         this.letters = [...word].map((ch, i) => {
             const geo = new TextGeometry(ch, { font, size: 1.05, depth: 0.32, curveSegments: 5, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.035, bevelSegments: 2 });
             geo.computeBoundingBox(); const b = geo.boundingBox; geo.translate(-(b.max.x + b.min.x) / 2, 0, -0.16);
@@ -305,7 +305,7 @@ export default class PlanetScene {
     }
     signpost(g, title, sub) {
         const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 360; const x = cv.getContext("2d");
-        x.fillStyle = "#f7f1e6"; x.beginPath(); x.roundRect(8, 8, 1008, 344, 40); x.fill(); x.fillStyle = "#5fd0ff"; x.fillRect(8, 300, 1008, 52);
+        x.fillStyle = "#f7f1e6"; x.beginPath(); x.roundRect(8, 8, 1008, 344, 40); x.fill(); x.fillStyle = "#88c0d0"; x.fillRect(8, 300, 1008, 52);
         x.fillStyle = "#1a2230"; x.font = "700 124px 'Clash Display', Arial Black, sans-serif"; x.textAlign = "center"; x.fillText(title.split(" ")[0], 512, 150); x.font = "700 92px 'Clash Display', Arial Black, sans-serif"; x.fillText(title.split(" ").slice(1).join(" "), 512, 250);
         x.font = "600 34px 'General Sans', Arial, sans-serif"; x.fillStyle = "#06121c"; x.fillText(sub.toUpperCase(), 512, 338);
         const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
@@ -358,7 +358,7 @@ export default class PlanetScene {
     makeOrbs() {
         ORBS.forEach((o, i) => {
             const g = this.spot(o.theta, o.back ?? -1, 2.1), col = new THREE.Color(o.color);
-            const core = this.mesh(new THREE.IcosahedronGeometry(0.4, 1), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.8, flatShading: true }), g); core.castShadow = false;
+            const core = this.mesh(new THREE.IcosahedronGeometry(0.4, 1), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.05, flatShading: true }), g); core.castShadow = false;
             const halo = new THREE.Mesh(new THREE.SphereGeometry(0.85, 16, 12), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending })); g.add(halo);
             core.userData.orb = i; halo.userData.orb = i; this.orbs.push({ g, core, halo, got: false, id: o.id }); this.clickables.push(core, halo);
         });
@@ -400,7 +400,7 @@ export default class PlanetScene {
         const ds = this.deskSpot; ds.children.forEach(c => { c.visible = false; });
         put("desk", ds, 0.78, 0, 0); const scr = put("screen", ds, 0.5, 0, -0.18); put("keys", ds, 0.03, 0, 0.12); ds.children[ds.children.length - 1].position.y = 0.78; scr.position.y = 0.78;
         put("lampT", ds, 0.45, 0.7, -0.1).position.y = 0.78; put("plant", ds, 0.6, -1.1, 0.2);
-        scr.traverse(o => { if (o.isMesh && o.material.name?.toLowerCase().includes("screen")) o.material.emissive?.set(0x5fd0ff); });
+        scr.traverse(o => { if (o.isMesh && o.material.name?.toLowerCase().includes("screen")) o.material.emissive?.set(0x88c0d0); });
         this.chair = put("chair", ds, 0.9, 0, 0.75, Math.PI);
         // me
         this.character(lib);
@@ -433,7 +433,7 @@ export default class PlanetScene {
     setSky(sky) { this.skyGoal = sky; }
     setProjectFocus(theta) { this.projectFocus = theta; }
     setPointer(x, y) { this.pointer.set(x, y); }
-    setWhat(k) { const c = [0xa58cff, 0x5fd0ff, 0xf2b33a, 0x3ee08f][k + 1] ?? 0xa58cff; this.coreMat.color.set(c); this.coreMat.emissive.set(c); this.coreBoost = k >= 0 ? 1 : 0; }
+    setWhat(k) { const c = [0xb48ead, 0x88c0d0, 0xd8b779, 0xa3be8c][k + 1] ?? 0xb48ead; this.coreMat.color.set(c); this.coreMat.emissive.set(c); this.coreBoost = k >= 0 ? 1 : 0; }
     setFloor(n) { this.floorOn = n; }
     setFlight(p) { this.flight = p; }
     setSit(v) { this.sitting = v; }
@@ -465,7 +465,7 @@ export default class PlanetScene {
 
     /** Break my AI: a red message flies in from the sky; the server's verdict decides where it dies */
     async attack(result) {
-        const g = new THREE.Group(), col = new THREE.Color(0xff4d5e);
+        const g = new THREE.Group(), col = new THREE.Color(0xbf616a);
         const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 2), new THREE.MeshBasicMaterial({ color: 0xffffff })), glow = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }));
         g.add(core, glow); this.scene.add(g);
         const tween = (ms, fn) => new Promise(res => { const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / ms); fn(k * k * (3 - 2 * k)); k < 1 ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); });
@@ -476,14 +476,14 @@ export default class PlanetScene {
             let r = null; result.then(v => { r = v; });
             while (!r) await tween(300, k => { glow.scale.setScalar(1 + Math.sin(k * Math.PI) * 0.6); this.beamMat.opacity = 0.2 + Math.sin(k * Math.PI) * 0.4; });
             if (r.verdict === "blocked") {
-                this.beamMat.color.set(0xff4d5e); this.once("emote-yes");
+                this.beamMat.color.set(0xbf616a); this.once("emote-yes");
                 const at = g.position.clone(), ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.45, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
                 ring.position.copy(at); ring.lookAt(this.camera.position); this.scene.add(ring); core.visible = false;
                 await tween(800, k => { ring.scale.setScalar(1 + k * 9); ring.material.opacity = 1 - k; glow.scale.setScalar(1 + k * 5); glow.material.opacity = 0.35 * (1 - k); });
                 this.scene.remove(ring); ring.geometry.dispose(); ring.material.dispose();
-                setTimeout(() => this.beamMat.color.set(0x5fd0ff), 900);
+                setTimeout(() => this.beamMat.color.set(0x88c0d0), 900);
             } else {
-                glow.material.color.set(0x3ee08f); const a = g.position.clone(); await tween(900, k => { g.position.lerpVectors(a, V(-6, R + 9, 0), k); });
+                glow.material.color.set(0xa3be8c); const a = g.position.clone(); await tween(900, k => { g.position.lerpVectors(a, V(-6, R + 9, 0), k); });
             }
             return r;
         } finally { this.scene.remove(g); core.geometry.dispose(); glow.geometry.dispose(); core.material.dispose(); glow.material.dispose(); }
@@ -555,7 +555,7 @@ export default class PlanetScene {
             // the coding rig appears under me when I sit down in the park
             this.rigK += ((typing ? 1 : 0) - this.rigK) * 0.12; this.rig.visible = this.rigK > 0.01; this.rig.scale.setScalar(Math.max(0.001, this.rigK)); this.rig.rotation.y = 1.2;
             if (this.rig.visible) {
-                const col = this.projHex || "#5fd0ff"; this.codeT += dt; if (this.codeT > 0.14) { this.codeT = 0; this.drawCode(col); }
+                const col = this.projHex || "#88c0d0"; this.codeT += dt; if (this.codeT > 0.14) { this.codeT = 0; this.drawCode(col); }
                 this.lapGlow.color.set(col); this.lapGlow.intensity = 1.2 * this.rigK;
                 this.glyphs.forEach((s, i) => { const k = (t * 0.28 + s.userData.o) % 1; s.position.set(Math.sin(i * 2.3) * 0.35 + Math.sin(t + i) * 0.06, 0.95 + k * 1.5, 0.66 + Math.cos(i * 1.7) * 0.2); s.material.opacity = Math.sin(k * Math.PI) * 0.95 * this.rigK; s.material.color.set(col); });
             }

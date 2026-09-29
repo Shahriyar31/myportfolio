@@ -10,11 +10,11 @@ export const EMAIL = "shahriyarfarhan3101@gmail.com";
 // The "audit report" on the front door: [label, value]
 export const AUDIT = [
     ["Status", "Open to roles · Hamburg, DE"],
-    ["Now", "AI & Data Engineering · Nordex Group"],
+    ["Now", "Enterprise Data Management & AI · Nordex Group"],
     ["Study", "M.Sc. Data Science · TUHH"],
-    ["Builds", "RAG · AI agents · AI platforms"],
-    ["Stack", "Azure · Databricks · LangGraph · DevSecOps"],
-    ["Governs", "EU AI Act · GDPR · OWASP LLM Top 10"],
-    ["Evidence", "Argus AI — live compliance agent"],
+    ["Builds", "RAG knowledge agents · AI governance frameworks"],
+    ["Stack", "Azure AI Foundry · Azure OpenAI · LangGraph · DevSecOps"],
+    ["Governs", "EU AI Act · GDPR · NIST AI RMF · OWASP LLM Top 10"],
+    ["Evidence", "Argus AI · preprint on OWASP LLM × EU AI Act"],
 ];
 export const CLASSIFICATION = ["High impact", "Low risk"];
