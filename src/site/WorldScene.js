@@ -6,6 +6,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { getPalette, onPalette, getMode } from "./theme";
 import { ZONES } from "./stations";
+import { ROUTE, STAGES, STOP_U } from "./journey";
 
 /*
  * The world behind the whole site.
@@ -40,7 +41,7 @@ export default class WorldScene {
 
         this.M = this.materials();
         this.sky(); this.lights();
-        this.mainIsland(); this.homeIsland(); this.districts(); this.streams(); this.plane(); this.clouds();
+        this.mainIsland(); this.homeIsland(); this.districts(); this.streams(); this.journeyPacket(); this.plane(); this.clouds();
         this.loadModels();
         if (!mobile) { // film look: soft bloom on lit windows, data streams and the AI core
             this.composer = new EffectComposer(this.renderer);
@@ -52,6 +53,9 @@ export default class WorldScene {
         this.ray = new THREE.Raycaster();
         this.resize = this.resize.bind(this); this.tick = this.tick.bind(this);
         this.ro = new ResizeObserver(this.resize); this.ro.observe(canvas); this.resize();
+        // weak devices start light; everyone else is measured in the first seconds (see perfCheck)
+        this.frames = []; this.level = 0;
+        if (navigator.connection?.saveData || (navigator.deviceMemory && navigator.deviceMemory <= 2)) this.degrade(1);
     }
 
     /* ── Districts: coloured ground plots with a glowing edge and a signpost ── */
@@ -424,6 +428,112 @@ export default class WorldScene {
         this.zaps = [];
     }
 
+    /* ── the visitor's own data packet, riding one route through the valley (see journey.js) ── */
+    journeyPacket() {
+        const route = this.route = new THREE.CatmullRomCurve3(ROUTE.map(v => V(...v)), false, "centripetal");
+        const pts = route.getSpacedPoints(600);
+        STOP_U.length = 0;
+        STAGES.forEach(s => { const t = V(...s.at); let k = 0, best = 1e9; pts.forEach((q, j) => { const d = q.distanceToSquared(t); if (d < best) { best = d; k = j; } }); STOP_U.push(k / 600); });
+        const g = this.pk = new THREE.Group(); this.scene.add(g);
+        const add = m => { m.material.transparent = true; m.material.depthWrite = false; m.material.blending = THREE.AdditiveBlending; g.add(m); return m; };
+        this.pkCore = add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 2), new THREE.MeshBasicMaterial({ color: 0xffffff })));
+        this.pkShell = add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.46, 1), new THREE.MeshBasicMaterial({ color: 0xff8a4c, wireframe: true, opacity: 0.8 })));
+        this.pkGlow = add(new THREE.Mesh(new THREE.SphereGeometry(0.7, 20, 14), new THREE.MeshBasicMaterial({ color: 0xff8a4c, opacity: 0.16 })));
+        this.pkScan = add(new THREE.Mesh(new THREE.TorusGeometry(1, 0.035, 8, 48), new THREE.MeshBasicMaterial({ color: 0x3ee08f, opacity: 0 })));
+        // trail: a fading string of beads behind the packet
+        const N = this.pkN = 28;
+        this.pkTrail = new THREE.InstancedMesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff8a4c, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }), N);
+        this.pkTrail.frustumCulled = false; this.scene.add(this.pkTrail);
+        this.pkHist = Array.from({ length: N }, () => V(...ROUTE[0]));
+        this.pkU = 0; this.pkGoalU = 0; this.pkColor = new THREE.Color(0xff8a4c); this.pkGoalColor = this.pkColor.clone(); this.pkScanK = -1; this.pkOn = 1; this.pkGoalOn = 1;
+        this.packetPos = V(...ROUTE[0]);
+    }
+    /** brief colour pulse on the governance gate (legal incident feedback) */
+    gateFlash(hex) { const m = this.beam.material, was = m.color.getHex(); m.color.set(hex); m.opacity = 0.7; clearTimeout(this._gf); this._gf = setTimeout(() => m.color.setHex(was), 900); }
+    routePoint(u) { return this.route.getPointAt(Math.min(1, Math.max(0, u))).toArray(); }
+    setPacket(u, color, scan = -1, on = 1) { this.pkGoalU = u; this.pkGoalColor.set(color); this.pkScanK = scan; this.pkGoalOn = on; }
+    packetTick(dt, t) {
+        if (!this.pk) return;
+        this.pkU += (this.pkGoalU - this.pkU) * (1 - Math.pow(0.00002, dt));
+        this.pkOn += ((this.attacking ? 0 : this.pkGoalOn) - this.pkOn) * (1 - Math.pow(0.01, dt));
+        this.pkColor.lerp(this.pkGoalColor, 1 - Math.pow(0.02, dt));
+        const pos = this.route.getPointAt(Math.min(1, Math.max(0, this.pkU)));
+        pos.y += Math.sin(t * 2.2) * 0.08;
+        this.packetPos.copy(pos); this.pk.position.copy(pos);
+        const s = this.pkOn; this.pk.scale.setScalar(Math.max(0.001, s) * (1 + Math.sin(t * 3.1) * 0.06));
+        this.pkShell.rotation.x += dt * 0.9; this.pkShell.rotation.y += dt * 1.3;
+        [this.pkShell, this.pkGlow].forEach(m => m.material.color.copy(this.pkColor)); this.pkTrail.material.color.copy(this.pkColor);
+        this.pkShell.material.opacity = 0.8 * s; this.pkGlow.material.opacity = 0.16 * s; this.pkTrail.material.opacity = 0.55 * s;
+        // gate scan: a ring sweeps down over the packet while it is checked
+        const k = this.pkScanK;
+        this.pkScan.material.opacity = k >= 0 ? 0.9 * Math.sin(Math.PI * ((k * 2.2) % 1)) : 0;
+        this.pkScan.position.y = k >= 0 ? 0.9 - ((k * 2.2) % 1) * 1.8 : 0; this.pkScan.rotation.x = Math.PI / 2;
+        // trail follows with lag
+        this.pkHist[0].copy(pos);
+        for (let i = 1; i < this.pkN; i++) this.pkHist[i].lerp(this.pkHist[i - 1], 1 - Math.pow(0.00001, dt));
+        const d = this.dummy;
+        this.pkHist.forEach((h, i) => { d.position.copy(h); d.scale.setScalar(s * (1 - i / this.pkN) * 1.2); d.updateMatrix(); this.pkTrail.setMatrixAt(i, d.matrix); });
+        this.pkTrail.instanceMatrix.needsUpdate = true;
+    }
+
+    /* ── "Break my AI": one visitor message flies gate → tower; the server's verdict decides where it dies ── */
+    tween(ms, fn) { return new Promise(res => { const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / ms); fn(k); k < 1 && !this.disposed ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); }); }
+    async attackRun(result, onPhase = () => {}) {
+        const ease = k => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+        const S = V(-3, 9, 9), G = V(3, 1.9, -1), T = V(9.5, 7.4, -2.6), E = V(14, 13, 8);
+        const far = this.mobile ? 1.55 : 1;
+        this.override = this.mobile ? { p: V(6 + 15, 3 + 13, -2.5 + 30), l: V(6, 1, -2.5) } : { p: V(8.5 + 13, 4.5 + 11, -3.5 + 27), l: V(8.5, 4.5, -3.5) };
+        this.attacking = true;
+        const g = new THREE.Group(), mk = (geo, c, o = 1, w = false) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, wireframe: w, depthWrite: false, blending: THREE.AdditiveBlending })); g.add(m); return m; };
+        mk(new THREE.IcosahedronGeometry(0.22, 2), 0xffffff);
+        const shell = mk(new THREE.IcosahedronGeometry(0.5, 1), 0xff5d5d, 0.9, true), glow = mk(new THREE.SphereGeometry(0.8, 18, 12), 0xff5d5d, 0.18);
+        const ring = mk(new THREE.TorusGeometry(1.1, 0.04, 8, 48), 0x73d4ff, 0); ring.rotation.x = Math.PI / 2;
+        g.position.copy(S); this.scene.add(g);
+        const spin = setInterval(() => { shell.rotation.x += 0.08; shell.rotation.y += 0.11; }, 16);
+        const fly = (a, b, lift, ms) => { const c = new THREE.QuadraticBezierCurve3(a, a.clone().lerp(b, 0.5).add(V(0, lift, 0)), b); return this.tween(ms, k => g.position.copy(c.getPoint(ease(k)))); };
+        const scan = ms => this.tween(ms, k => { ring.material.opacity = Math.sin(Math.PI * k) * 0.9; ring.position.y = 0.9 - k * 1.8; });
+        const color = c => [shell, glow].forEach(m => m.material.color.set(c));
+        const burst = async (at, c = 0xff4d4d) => {
+            const bits = Array.from({ length: 16 }, (_, i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), new THREE.MeshBasicMaterial({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); m.position.copy(at); m.userData.v = V(Math.cos(i * 2.4) * (0.5 + (i % 3) * 0.3), 0.4 + (i % 4) * 0.25, Math.sin(i * 2.4) * (0.5 + (i % 5) * 0.2)); this.scene.add(m); return m; });
+            const wave = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 40), new THREE.MeshBasicMaterial({ color: c, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
+            wave.position.copy(at); wave.lookAt(this.camera.position); this.scene.add(wave);
+            g.visible = false;
+            await this.tween(900, k => { bits.forEach(b => { b.position.addScaledVector(b.userData.v, 0.06); b.userData.v.y -= 0.02; b.material.opacity = 1 - k; }); wave.scale.setScalar(1 + k * 9); wave.material.opacity = 1 - k; });
+            [...bits, wave].forEach(m => { this.scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
+        };
+        const beamCol = this.beam.material.color.getHex();
+        try {
+            onPhase("input"); this.focusId = "gate";
+            await fly(S, G, 3, 1300);
+            // hover in the gate scanner until the server answers
+            let r = null; result.then(v => { r = v; });
+            do { await scan(700); } while (!r);
+            const blockedAt = r.at;
+            if (blockedAt === "input" || blockedAt === "judge") {
+                if (blockedAt === "judge") { onPhase("judge"); await scan(700); }
+                this.beam.material.color.set(0xff4d4d);
+                onPhase("blocked"); await burst(G);
+                return r;
+            }
+            onPhase("judge"); color(0xffc857); await scan(600);
+            onPhase("model"); this.focusId = "tower"; this.lineMat.opacity = 0.75;
+            await fly(G, T, 2.5, 1100);
+            await this.tween(700, k => g.scale.setScalar(1 - Math.sin(Math.PI * k) * 0.3));
+            onPhase("output"); await scan(700);
+            if (blockedAt === "output") { onPhase("blocked"); await burst(T); return r; }
+            color(0x3ee08f); onPhase("answered");
+            await fly(T, E, 2, 1200);
+            return r;
+        } finally {
+            clearInterval(spin);
+            this.scene.remove(g); g.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
+            this.lineMat.opacity = 0.25;
+            setTimeout(() => { this.beam.material.color.setHex(beamCol); }, 1200);
+            this.attacking = false; this.focusId = null;
+            setTimeout(() => { if (!this.attacking) this.override = null; }, 2200);
+        }
+    }
+
     plane() {
         const p = this.planeG = new THREE.Group(); this.scene.add(p); const M = this.M; p.scale.setScalar(1.25);
         const body = this.mesh(new THREE.CapsuleGeometry(0.35, 2.2, 6, 14), M.white, 0, 0, 0, p); body.rotation.z = Math.PI / 2;
@@ -497,20 +607,41 @@ export default class WorldScene {
         return hit ? hit.object.userData.pick.userData : null;
     }
 
+    /** Quality steps: 1 = no bloom/shadows, pixel ratio 1; 2 = also render every other frame. */
+    degrade(level) {
+        if (level <= this.level) return;
+        this.level = level;
+        this.composer?.dispose(); this.composer = null;
+        this.renderer.shadowMap.enabled = false; this.renderer.setPixelRatio(1); this.resize();
+        document.documentElement.dataset.lite = String(level);
+    }
+    perfCheck(raw) {
+        if (this.level >= 2 || this.frames === null) return;
+        this.frames.push(raw);
+        if (this.frames.length < 90) return;
+        const f = [...this.frames].sort((a, b) => a - b), med = f[f.length >> 1];
+        this.frames = med > 1 / 28 ? [] : null; // keep measuring after a downgrade, stop when smooth
+        if (med > 1 / 20) this.degrade(Math.min(2, this.level + (this.level ? 1 : 2)));
+        else if (med > 1 / 28) this.degrade(this.level + 1);
+    }
     tick() {
-        const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+        const raw = this.clock.getDelta(), t = this.clock.elapsedTime;
+        if (this.running && raw > 0) this.perfCheck(raw);
+        // lowest quality: draw every other frame, carrying the skipped time into the next one
+        if (this.level >= 2 && (this._skip = !this._skip)) { this._acc = (this._acc || 0) + raw; return; }
+        const dt = Math.min(raw + (this._acc || 0), 0.1); this._acc = 0;
         this.mixer?.update(dt);
         this.signs?.forEach(s => { s.getWorldPosition(this._sp ||= new THREE.Vector3()); s.visible = s.userData.zone === this.zone || this._sp.distanceTo(this.camera.position) > 13; s.rotation.y = Math.atan2(this.camera.position.x - this._sp.x, this.camera.position.z - this._sp.z) - (s.parent.rotation?.y || 0); });
         this.plots?.forEach(p => { const on = p.zone === this.zone; p.ring.material.emissiveIntensity += ((on ? 2.2 + Math.sin(t * 3) * 0.6 : 0.45) - p.ring.material.emissiveIntensity) * 0.1; });
         if (this.codeTex) this.codeTex.offset.y = -Math.floor(t * 3) / 16; // lines scroll like typing
         this.skyU.time.value = t;
         // camera glides; pointer adds a small parallax orbit
-        this.camPos.lerp(this.goalPos, 1 - Math.pow(0.001, dt));
-        this.camLook.lerp(this.goalLook, 1 - Math.pow(0.001, dt));
+        this.camPos.lerp(this.override?.p || this.goalPos, 1 - Math.pow(this.override ? 0.05 : 0.001, dt));
+        this.camLook.lerp(this.override?.l || this.goalLook, 1 - Math.pow(this.override ? 0.05 : 0.001, dt));
         this.smooth.lerp(this.pointer, 0.05);
         const off = V(this.smooth.x * 1.6, this.smooth.y * 0.9, 0);
         this.camera.position.copy(this.camPos).add(off);
-        if (this.orbitW > 0.001) { // slow sway around the look point (hero only); fades out with the weight
+        if (this.orbitW > 0.001 && !this.override) { // slow sway around the look point (hero only); fades out with the weight
             const a = Math.sin(t * 0.13) * 0.42 * this.orbitW;
             this.camera.position.sub(this.camLook).applyAxisAngle(V(0, 1, 0), a).add(this.camLook);
         }
@@ -554,6 +685,9 @@ export default class WorldScene {
         this.planeG.rotateY(-Math.PI / 2);
         this.trail.material.opacity = f > 0 && f < 1 ? 0.8 : 0.25;
 
+        // RAG incident: each connected source brightens the data streams into the AI tower
+        if (!this.attacking) this.lineMat.opacity += ((0.25 + (this.ragGlow || 0) * 0.2) - this.lineMat.opacity) * 0.08;
+        this.packetTick(dt, t);
         if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera);
         this.afterTick?.();
     }

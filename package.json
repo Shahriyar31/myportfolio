@@ -4,16 +4,24 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "kb": "node scripts/build-kb.mjs",
+    "predev": "node scripts/build-kb.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/build-kb.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.13",
+    "@langchain/groq": "^1.3.1",
+    "@langchain/langgraph": "^1.4.18",
     "@vercel/analytics": "^2.0.1",
     "lenis": "^1.3.26",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "three": "^0.170.0"
+    "simple-icons": "^16.33.0",
+    "three": "^0.170.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",

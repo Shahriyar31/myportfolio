@@ -1,6 +1,6 @@
 import SectionHead from "./SectionHead";
 import { useEffect, useRef, useState } from "react";
-import { useChat, ask, setDraft, cancelDemo, runDemo, openChat } from "./chat";
+import { useChat, ask, setDraft, cancelDemo, runDemo, openChat, describe, redo } from "./chat";
 import { Icon } from "./Chrome";
 import { useInView } from "./hooks";
 import { Lines } from "./Motion";
@@ -13,7 +13,12 @@ function Screen({ tall }) {
     useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, typing, busy]);
     return (
         <div className={`screen neu-in ${tall ? "is-tall" : ""}`} ref={ref} aria-live="polite" data-lenis-prevent>
-            {msgs.map((m, i) => <p key={i} className={`bubble ${m.r}`}>{m.t}</p>)}
+            {msgs.map((m, i) => <div key={i} className={`bubble-wrap ${m.r}`}>
+                {m.tools?.length > 0 && <p className="bubble-tools mono" aria-label="Tools the agent used">{m.tools.map(t => <span key={t}>{t}</span>)}</p>}
+                <p className={`bubble ${m.r}`}>{m.t}</p>
+                {m.acts?.length > 0 && <div className="bubble-acts">{m.acts.map((a, k) => <button key={k} onClick={() => redo(a)} title="Do it again"><i aria-hidden="true">↳</i>{describe(a)}<b aria-hidden="true">↻</b></button>)}</div>}
+                {m.src?.length > 0 && <p className="bubble-src mono">from my notes: {m.src.map(x => x.title).join(" · ")}</p>}
+            </div>)}
             {typing && <p className="bubble b">{typing}<span className="caret" /></p>}
             {busy && !typing && <p className="bubble b dots" aria-label="Thinking"><i /><i /><i /></p>}
         </div>
@@ -30,9 +35,9 @@ function Composer({ inputRef }) {
                 value={draft}
                 onFocus={cancelDemo}
                 onChange={e => { cancelDemo(); setDraft(e.target.value); }}
-                placeholder="Ask my agent anything…"
+                placeholder="Ask anything, or paste a job ad…"
                 aria-label="Message Farhan's agent"
-                maxLength={500}
+                maxLength={4000}
             />
             <button className="key key-accent send" type="submit" disabled={busy || !draft.trim()} aria-label="Send"><Icon n="arrow" size={18} /></button>
         </form>
@@ -101,7 +106,7 @@ export function AgentSection() {
                     <Composer inputRef={inputRef} />
                 </div>
                 <div className="console neu-lg">
-                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />running in your browser</span></div>
+                    <div className="device-head"><span className="mono">Live trace</span><span className="chip mono"><span className="dot-live" />Agent · LangGraph · Groq</span></div>
                     <Trace />
                     <Ledger />
                 </div>
@@ -117,7 +122,23 @@ const CONTEXT = {
     work: "What did he do at Nordex?", skills: "What's his strongest skill?", built: "What is Argus AI?",
     story: "Why did he move to Germany?", game: "How does he make AI safe?", education: "What did he study?", agent: "How does this AI work?",
     lens: "What does he photograph?", hello: "Is he open to work?",
+    what: "What does Farhan build?", break: "How does he make AI safe?", experience: "What did he do at Nordex?", projects: "What is Argus AI?", journey: "Why did he move to Germany?", contact: "Is he open to work?",
 };
+
+/* While the agent acts on the page, say so: a pill names the action and the target glows for a moment */
+function AgentActs() {
+    const [act, setAct] = useState(null);
+    useEffect(() => {
+        let t = 0;
+        const on = e => {
+            const d = e.detail || {}; setAct({ ...d, k: Date.now() }); clearTimeout(t); t = setTimeout(() => setAct(null), 3400);
+            const el = d.target === "contact" ? document.querySelector(".pl-envelope") : d.target && document.getElementById(d.target);
+            if (el) { el.classList.remove("is-agent-lit"); void el.offsetWidth; el.classList.add("is-agent-lit"); setTimeout(() => el.classList.remove("is-agent-lit"), 3200); }
+        };
+        addEventListener("agent-act", on); return () => { removeEventListener("agent-act", on); clearTimeout(t); };
+    }, []);
+    return act && <div className="agent-pill" key={act.k} role="status"><span className="agent-pill-dot" aria-hidden="true" /><span className="mono">My AI agent</span>{act.text}</div>;
+}
 
 /* Floating assistant, on every screen */
 export function ChatDock() {
@@ -134,13 +155,16 @@ export function ChatDock() {
     useEffect(() => { setHint(true); const t = setTimeout(() => setHint(false), 7000); return () => clearTimeout(t); }, [section]);
     useEffect(() => {
         if (open) setTimeout(() => inputRef.current?.focus(), 300);
+        const focus = () => inputRef.current?.focus();
+        addEventListener("focus-dock", focus);
         const esc = e => e.key === "Escape" && openChat(false);
         window.addEventListener("keydown", esc);
-        return () => window.removeEventListener("keydown", esc);
+        return () => { window.removeEventListener("keydown", esc); removeEventListener("focus-dock", focus); };
     }, [open]);
     const q = CONTEXT[section] || CONTEXT.home;
     return (
         <>
+            <AgentActs />
             <div className={`dock-wrap ${open ? "is-hidden" : ""}`}>
                 {hint && (
                     <div className="dock-hint neu" key={section}>
@@ -151,13 +175,13 @@ export function ChatDock() {
                     </div>
                 )}
                 <button className="dock-btn key" onClick={() => { cancelDemo(); openChat(true); }} aria-label="Chat with Farhan's AI">
-                    <img className="dock-av" src="/images/profile-cartoon.jpg" alt="" /><span className="dock-label">Ask my AI</span><span className="device-led" aria-hidden="true" />
+                    <img className="dock-av" src="/images/profile-cartoon.jpg" alt="" /><span className="dock-label">Ask my AI agent</span><span className="device-led" aria-hidden="true" />
                 </button>
             </div>
-            <div className={`dock neu-lg ${open ? "is-open" : ""}`} role="dialog" aria-label="Chat with Farhan's AI" inert={!open}>
+            <div className={`dock neu-lg ${open ? "is-open" : ""}`} data-lenis-prevent role="dialog" aria-label="Chat with Farhan's AI" inert={!open}>
                 <div className="device-head">
                     <span className="device-led" aria-hidden="true" />
-                    <span className="mono">Ask Farhan's AI</span>
+                    <span className="mono">Farhan's AI agent · live on Groq</span>
                     <button className="key key-sm" onClick={() => openChat(false)}>Close</button>
                 </div>
                 <Screen />

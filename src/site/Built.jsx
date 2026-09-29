@@ -4,6 +4,7 @@ import { Lines } from "./Motion";
 import { Icon } from "./Chrome";
 import { finePointer } from "./hooks";
 import { PROJECTS } from "../data/constants";
+import Preview from "./Previews";
 
 /* Simplified EU AI Act risk tiers — an illustration of what Argus automates, not legal advice. */
 const TIERS = ["Minimal", "Limited", "High", "Unacceptable"];
@@ -46,13 +47,26 @@ function Classifier() {
 const STATION = { 2: "p-twin", 3: "p-poultry", 4: "p-radiation", 5: "p-stock", 6: "p-books" };
 const PLACE = { 2: "The twin buildings", 3: "The barn", 4: "The radar", 5: "The ticker tower", 6: "The library" };
 
+function EarlyItem({ p }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <li className={`early-i ${open ? "is-open" : ""}`}>
+            <span className="mono">{p.badge}</span><b>{p.title}</b><small>{p.sub}</small>
+            <span className="early-t">{p.tags.slice(0, 3).join(" · ")}</span>
+            <span className="early-act"><button onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? "Hide preview" : "Try it ▸"}</button>{p.link && <a href={p.link} target="_blank" rel="noreferrer">Code →</a>}</span>
+            {open && <Preview id={p.id} />}
+        </li>
+    );
+}
+
 export default function Built() {
     // walking order: a loop around the island that ends at the library, next to the education chapter
-    const others = [4, 5, 2, 3, 6].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean);
+    const main = [2].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean); // current direction
+    const earlier = [4, 5, 3, 6].map(id => PROJECTS.find(p => p.id === id)).filter(Boolean); // earlier work, different directions
     return (
         <section id="built" aria-label="Projects">
-            <Opener station="overview" n="03" kicker="Projects" title="Walk the project district"
-                sub="Every project is a building in the valley. Scroll to walk from one to the next — or click a building in the world." />
+            <Opener station="overview" n="02" kicker="The evidence room" title="Everything the report claims, here's the proof"
+                sub="Each project is a building in the valley. Argus AI first, then research, then where I started." />
             <Stop station="p-argus" side="left" wide>
                 <div className="pane-kicker"><span className="chip mono is-live"><span className="dot-live" />Live · free beta</span><span className="pane-where mono">🧪 The Argus lab</span></div>
                 <h3 className="pane-title">Argus AI</h3>
@@ -66,17 +80,24 @@ export default function Built() {
                     <div className="argus-demo"><span className="mono">Try it — how would the EU AI Act classify…</span><Classifier /></div>
                 </div>
             </Stop>
-            {others.map((p, i) => (
+            {main.map((p, i) => (
                 <Stop key={p.id} station={STATION[p.id]} side={i % 2 ? "left" : "right"}>
                     <div className="pane-kicker"><span className="chip mono">{p.badge}</span><span className="pane-where mono">📍 {PLACE[p.id]}</span></div>
                     <h3 className="pane-title">{p.title}</h3>
                     <p className="stack-org">{p.sub}</p>
                     <p className="pane-lede sm">{p.desc}</p>
                     <ul className="stack-tags">{p.tags.map(t => <li key={t} className="neu-in-sm mono">{t}</li>)}</ul>
+                    <Preview id={p.id} />
                     {p.link && <a className="key" href={p.link} target="_blank" rel="noreferrer" style={{ marginTop: 14 }}>View code<Icon n="arrow" size={16} /></a>}
-                    {i === others.length - 1 && <p className="pane-next mono">Next — where it all started ↓</p>}
                 </Stop>
             ))}
+            <Stop station="p-books" side="left" wide>
+                <div className="pane-kicker"><span className="chip mono">Earlier work</span><span className="pane-where mono">📍 The project park</span></div>
+                <h3 className="pane-title">Where I learned the basics</h3>
+                <p className="pane-lede sm">Before focusing on AI engineering I built across streaming data, computer vision and NLP. Different directions — same habit of shipping things end to end.</p>
+                <ul className="early">{earlier.map(p => <EarlyItem key={p.id} p={p} />)}</ul>
+                <p className="pane-next mono">Next — where it all started ↓</p>
+            </Stop>
         </section>
     );
 }

@@ -1,45 +1,19 @@
 import { useSyncExternalStore } from "react";
+import { scrollToId } from "./hooks";
+import { PROJECTS } from "../data/constants";
 
 /*
- * "Ask my agent" — a small, governed agent that runs in the browser.
+ * "Ask my AI": the browser side of a grounded agent.
  *
- *   intent → retrieve → generate → policy → ledger
- *
- * Retrieval hits a public-safe profile knowledge base; open questions go to
- * the Groq proxy (api/chat.js). Every reply passes an output policy check
- * and is appended to a SHA-256 hash-chained audit ledger, the same idea as
- * the audit trail in Argus AI. Each step is exposed as a trace for the UI.
+ *   server (api/chat.js → api/_agent.js, a LangGraph agent with LangChain tools):
+ *     guard → agent ⇄ tools (search_notes, match_job, show_section, open_project, open_resume,
+ *     open_quick_read, draft_letter) → verify; the RAG pipeline in api/_rag.js is the fallback
+ *   browser: shows that trace, keeps a short history for follow-ups, re-checks the answer
+ *   against a public-safety policy, appends it to a SHA-256 hash-chained audit ledger,
+ *   then performs the page actions the agent asked for. Nothing is ever sent for the visitor.
  */
 
 const EMAIL = "shahriyarfarhan3101@gmail.com";
-
-const KB = [
-    { doc: "about.md", intent: "Who is Farhan", k: ["what does farhan do", "what do you do", "who is farhan", "who are you", "about you", "about farhan", "introduce", "tell me about"], a: "I help companies build AI they can trust. I build AI assistants and agents, I engineer the data they run on, and I make sure they meet rules like the EU AI Act and GDPR. Right now I do this at Nordex Group in Hamburg, alongside my MSc in Data Science." },
-    { doc: "value.md", intent: "Value", k: ["value", "bring", "why should", "why hire", "my team", "help us", "strength", "different"], a: "Three things: I can take an AI idea to a working product, I make it compliant and secure from day one instead of as an afterthought, and I can explain it clearly to non-technical people. I've also run a cross-team project to a deadline, so I'm comfortable owning delivery." },
-    { doc: "pm.md", intent: "Project management", k: ["project manag", "manage", "lead", "stakeholder", "coordinat", "deadline"], a: "I was the project manager for an enterprise AI project at Nordex: coordinating several teams and external partners, clearing an infrastructure blocker with the cloud and network teams, and keeping ownership and status clear until we hit the deadline." },
-    { doc: "security.md", intent: "AI security", k: ["security", "secure", "safe", "owasp", "prompt injection", "attack", "red team"], a: "For AI security I check LLM systems against the OWASP LLM Top 10 — prompt injection, data leakage, insecure tool use — and add guardrails, least-privilege access and audit logs. Argus AI runs these checks automatically, and this assistant has its own output policy check." },
-    { doc: "work.md", intent: "Current work", k: ["nordex", "work on", "your job", "day to day", "currently", "doing now", "do you do", "experience"], a: "I'm a working student at Nordex Group in Hamburg, in Enterprise Data Management & AI. Day to day: data governance and cataloguing, pipelines and analytics on Azure Databricks, and helping our AI work line up with the EU AI Act and GDPR." },
-    { doc: "argus.md", intent: "Project", k: ["argus", "compliance", "ai act", "side project", "startup", "project"], a: "Argus AI is my EU AI Act compliance platform. A LangGraph agent classifies AI systems into risk tiers, drafts GDPR DPIAs and checks OWASP LLM Top 10 risks — pausing for human review on high-risk cases — with a hash-chained audit trail. FastAPI, pgvector, Azure Container Apps, Terraform. Try the mini classifier further down." },
-    { doc: "availability.md", intent: "Hiring", k: ["open to", "new role", "roles", "hire", "hiring", "available", "job offer", "opportunit", "looking for", "relocat"], a: `Yes — open to full-time and working-student roles in AI governance, data engineering and agentic AI, based in Hamburg. Fastest route: ${EMAIL}.` },
-    { doc: "stack.md", intent: "Skills", k: ["skill", "stack", "strong", "good at", "tools", "tech", "databricks", "agentic", "agents", "langgraph"], a: "Three pillars: AI governance (EU AI Act, GDPR, data lineage, audit trails), the data platform (Azure Databricks, Spark, Kafka, SQL) and agentic AI (LangGraph agents, RAG, tool calling, evals). Python throughout; Docker, Kubernetes and Terraform to ship." },
-    { doc: "governance.md", intent: "Governance", k: ["governance", "govern", "responsible", "gdpr", "risk", "audit", "lineage"], a: "For me governance is engineering, not paperwork: catalogue and classify data, trace lineage, map each AI use case to its EU AI Act risk tier and GDPR duties, and log decisions so they're auditable. This agent does a tiny version of that — look at the trace." },
-    { doc: "education.md", intent: "Education", k: ["study", "tuhh", "master", "msc", "degree", "education", "university", "b.tech", "btech", "college"], a: "MSc Data Science at Hamburg University of Technology (TUHH) since 2023. Before that a B.Tech in Computer Science at Cooch Behar Government Engineering College — CGPA 8.73/10." },
-    { doc: "photography.md", intent: "Personal", k: ["photo", "camera", "picture", "lens", "hobby", "hobbies"], a: "Street, mountains and wildlife. Every photo on this site is mine — mostly West Bengal and the Himalaya. Scroll to “Through the lens” and drag the ring." },
-    { doc: "story.md", intent: "Personal", k: ["india", "bengal", "move", "moved", "germany", "hamburg", "story", "background", "yourself", "who are you"], a: "I grew up in West Bengal and moved to Hamburg alone at 22 for my master's. “The route” below flies the 7,004 km on a globe, with my photos from home." },
-    { doc: "how-this-works.md", intent: "Meta", k: ["how does this", "this ai work", "how do you work", "this agent", "trace", "ledger", "hash", "how is this"], a: "I'm a small governed agent: I classify your intent, retrieve from a public profile knowledge base (or ask Llama 3.3 via a server-side proxy), check my answer against an output policy, then hash-chain the exchange into an audit ledger with SHA-256 — all visible in the trace." },
-    { doc: "contact.md", intent: "Contact", k: ["contact", "email", "reach", "mail", "linkedin"], a: `Email ${EMAIL} or find me on LinkedIn — linkedin.com/in/farhanshahriyar.` },
-    { doc: "hello.md", intent: "Greeting", k: ["hello", "hi ", "hey", "hallo", "moin", "good morning"], a: "Moin! Ask me about AI governance, Databricks, agentic AI, Argus — or whether I'm open to new roles." },
-];
-
-function retrieve(q) {
-    const s = ` ${q.toLowerCase()} `;
-    let best = null, score = 0;
-    for (const e of KB) {
-        const hits = e.k.filter(k => s.includes(k)).length;
-        if (hits > score) { score = hits; best = e; }
-    }
-    return best;
-}
 
 /* Output policy: public-safe answers only. */
 const POLICY = [
@@ -63,13 +37,14 @@ const STEPS = [
 const freshTrace = () => STEPS.map(([id, label]) => ({ id, label, status: "idle", detail: "" }));
 
 let state = {
-    msgs: [{ r: "b", t: "Hi! I'm Farhan's AI assistant. Ask me anything about his work." }],
+    msgs: [{ r: "b", t: "Hi, I'm Farhan's AI assistant! I answer from his own notes: ask about his work, projects or research, paste a job description to see how he fits, or ask me to show you something on the site." }],
     busy: false,
     typing: "",
     draft: "",
     open: false,
     trace: freshTrace(),
     ledger: [],
+    tools: [], // the agent tools used for the latest answer, from the server's real trace
 };
 const subs = new Set();
 const set = p => { state = { ...state, ...p }; subs.forEach(f => f()); };
@@ -84,40 +59,74 @@ const step = (id, status, detail) => {
 };
 let history = [];
 
-async function typeOut(text) {
-    for (let i = 1; i <= text.length; i += 2) { set({ typing: text.slice(0, i) }); await sleep(12); }
-    set({ typing: "", msgs: [...state.msgs, { r: "b", t: text }] });
+async function typeOut(text, src = [], extra = {}) {
+    const n = text.length > 280 ? 6 : 3;
+    for (let i = 1; i <= text.length; i += n) { set({ typing: text.slice(0, i) }); await sleep(14); }
+    set({ typing: "", msgs: [...state.msgs, { r: "b", t: text, src, ...extra }] });
 }
 
-export async function ask(text, { demo = false } = {}) {
+const SERVER_STEP = { guard: "intent", rewrite: "intent", agent: "intent", retrieve: "retrieve", tools: "retrieve", generate: "generate", refuse: "generate", verify: "policy" };
+
+/* page actions the agent may request; each one only scrolls, opens or pre-fills, never sends */
+const ACTIONS = {
+    section: a => typeof a.id === "string" && /^[a-z]+$/.test(a.id) && scrollToId(a.id),
+    project: a => Number.isInteger(a.id) && dispatchEvent(new CustomEvent("open-project", { detail: a.id })),
+    resume: () => dispatchEvent(new Event("open-cv")),
+    quick_read: () => dispatchEvent(new Event("quick-read")),
+    letter: a => typeof a.message === "string" && dispatchEvent(new CustomEvent("draft-letter", { detail: { message: a.message.slice(0, 1200), name: String(a.name || "").slice(0, 80), email: String(a.email || "").slice(0, 120) } })),
+};
+const SECTION_NAME = { home: "the start", what: "What I do", break: "Break my AI", experience: "my work at Nordex", research: "my research", projects: "my projects", journey: "my journey", skills: "my skills", lens: "my photography", contact: "the contact desk" };
+/** what the agent is doing, in words: shown on the page while it happens and kept as a receipt under the answer */
+export const describe = a => ({
+    section: `scrolled to ${SECTION_NAME[a.id] || a.id}`,
+    project: `opened ${PROJECTS.find(p => p.id === a.id)?.title || "a project"}`,
+    resume: "opened my résumé",
+    quick_read: "opened the quick read",
+    letter: "drafted a letter for you to review",
+})[a.type] || a.type;
+const TARGET = { section: a => a.id, project: () => "projects", letter: () => "contact" };
+function perform(list) {
+    if (!list.length) return;
+    if (innerWidth < 760 && list.some(a => a.type !== "quick_read" && a.type !== "resume")) openChat(false); // on a phone the panel would hide what we scroll to
+    list.forEach((a, i) => setTimeout(() => {
+        dispatchEvent(new CustomEvent("agent-act", { detail: { text: describe(a), target: TARGET[a.type]?.(a) } }));
+        ACTIONS[a.type](a);
+    }, 350 + i * 1100));
+}
+const validActions = actions => (Array.isArray(actions) ? actions : []).filter(a => ACTIONS[a?.type]).slice(0, 2);
+
+/** redo one page action from a receipt under an answer */
+export const redo = a => ACTIONS[a?.type] && perform([a]);
+
+export async function ask(text) {
     text = text.trim();
     if (!text || state.busy) return;
-    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace() });
+    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace(), tools: [] });
     history = [...history, { role: "user", content: text }].slice(-12);
+    ["intent", "retrieve", "generate"].forEach(id => step(id, "run"));
 
-    step("intent", "run"); await sleep(260);
-    const hit = retrieve(text);
-    step("intent", "ok", hit ? hit.intent : "Open question");
+    let reply = null, sources = [], server = [], actions = [], via = "fallback", why = "no connection";
+    try {
+        const ac = new AbortController(), t = setTimeout(() => ac.abort(), 25000);
+        const res = await fetch("/api/chat", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history }) });
+        clearTimeout(t);
+        const j = await res.json().catch(() => ({}));
+        why = `server answered ${res.status}`;
+        if (res.ok && j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; actions = j.actions || []; via = j.model || "model"; }
+        else if (j.error) reply = j.error;
+    } catch (e) { why = e?.name === "AbortError" ? "timed out" : "no connection"; }
+    if (!reply) { console.warn("Ask my AI:", why); server = [{ step: "agent", detail: why }]; reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`; }
 
-    step("retrieve", "run"); await sleep(320);
-    step("retrieve", "ok", hit ? `profile/${hit.doc}` : "no local match → model");
+    set({ tools: [...new Set(server.filter(s => s.step === "tools").flatMap(s => [...String(s.detail).matchAll(/\b([a-z_]+)\(/g)].map(m => m[1])))] });
+    // replay the server's real trace, one step at a time
+    const detail = { intent: [], retrieve: [], generate: [], policy: [] };
+    server.forEach(s => SERVER_STEP[s.step] && detail[SERVER_STEP[s.step]].push(s.detail));
+    for (const id of ["intent", "retrieve", "generate"]) { step(id, "ok", detail[id].filter(Boolean).join(" · ") || (id === "generate" ? via : "—")); await sleep(140); }
 
-    step("generate", "run");
-    let reply = hit?.a ?? null, via = "profile knowledge base";
-    if (!reply && !demo) {
-        try {
-            const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history }) });
-            reply = (await res.json())?.choices?.[0]?.message?.content ?? null;
-            if (reply) via = "Llama 3.3 · Groq (server-side)";
-        } catch { /* fall back below */ }
-    } else await sleep(380);
-    if (!reply) { reply = `Good question — my model is offline right now. Email ${EMAIL} and the real Farhan will answer.`; via = "fallback"; }
-    step("generate", "ok", via);
-
-    step("policy", "run"); await sleep(300);
+    step("policy", "run"); await sleep(160);
     const failed = POLICY.filter(([, test]) => !test(reply)).map(([name]) => name);
-    if (failed.length) reply = `I'd rather not answer that one here — ask Farhan directly at ${EMAIL}.`;
-    step("policy", failed.length ? "warn" : "ok", failed.length ? `blocked: ${failed[0]}` : `${POLICY.length}/${POLICY.length} checks passed`);
+    if (failed.length) reply = `I'd rather not answer that one here. Please ask me directly at ${EMAIL}.`;
+    step("policy", failed.length ? "warn" : "ok", failed.length ? `blocked: ${failed[0]}` : [detail.policy[0] ? `server ${detail.policy[0]}` : "", `${POLICY.length}/${POLICY.length} browser checks`].filter(Boolean).join(" · "));
 
     step("ledger", "run");
     const prev = state.ledger[0]?.hash ?? "0".repeat(64);
@@ -126,9 +135,20 @@ export async function ask(text, { demo = false } = {}) {
     set({ ledger: [{ n: state.ledger.length + 1, hash, prev, at, q: text }, ...state.ledger].slice(0, 12) });
     step("ledger", "ok", `#${state.ledger[0].n} · ${hash.slice(0, 10)}…`);
 
-    history = [...history, { role: "assistant", content: reply }];
-    await typeOut(reply);
+    history = [...history, { role: "assistant", content: reply }].slice(-12);
+    const acts = failed.length ? [] : validActions(actions);
+    await typeOut(reply, failed.length ? [] : sources, { tools: state.tools, acts });
     set({ busy: false });
+    perform(acts);
+}
+
+/* "Paste a job ad": open the assistant ready for a job description */
+export function startJobFit() {
+    cancelDemo();
+    const hint = "Paste the job description below and press send. I'll compare it with my notes and tell you honestly what matches, and what my notes don't mention.";
+    if (state.msgs.at(-1)?.t !== hint) set({ msgs: [...state.msgs, { r: "b", t: hint }] });
+    openChat(true);
+    setTimeout(() => dispatchEvent(new Event("focus-dock")), 320);
 }
 
 /* Auto-demo: types two questions once, then hands over to the visitor.
@@ -146,7 +166,7 @@ export async function runDemo() {
         await sleep(300);
         if (!live()) return;
         demoPlayed = true;
-        await ask(q, { demo: true });
+        await ask(q);
         await sleep(2400);
     }
 }
