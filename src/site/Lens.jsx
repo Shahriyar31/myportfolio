@@ -1,7 +1,8 @@
+import { createPortal } from "react-dom";
 import SectionHead from "./SectionHead";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lines } from "./Motion";
-import { reducedMotion, useMedia } from "./hooks";
+import { reducedMotion, useMedia, lockScroll, unlockScroll } from "./hooks";
 import PHOTOS from "../data/photos.json";
 
 const CATS = ["All", "Street", "Mountains", "Wildlife", "Light", "Close-up"];
@@ -13,13 +14,11 @@ function Lightbox({ list, idx, setIdx }) {
     const next = useCallback(() => setIdx(i => (i + 1) % n), [n, setIdx]);
     useEffect(() => {
         const key = e => { if (e.key === "Escape") setIdx(-1); if (e.key === "ArrowLeft") prev(); if (e.key === "ArrowRight") next(); };
-        window.addEventListener("keydown", key);
-        window.__lenis?.stop();
-        document.body.classList.add("is-locked");
-        return () => { window.removeEventListener("keydown", key); window.__lenis?.start(); document.body.classList.remove("is-locked"); };
+        window.addEventListener("keydown", key); lockScroll();
+        return () => { window.removeEventListener("keydown", key); unlockScroll(); };
     }, [prev, next, setIdx]);
     const p = list[idx];
-    return (
+    return createPortal(
         <div className="lb" data-lenis-prevent role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={e => e.target === e.currentTarget && setIdx(-1)}>
             <figure className="lb-frame neu-lg">
                 <img key={p.n} src={src(p.n, true)} alt={p.t || `${p.c} photograph`} width={p.w} height={p.h} />
@@ -28,7 +27,7 @@ function Lightbox({ list, idx, setIdx }) {
             <button className="key lb-btn lb-prev" onClick={prev} aria-label="Previous photo">←</button>
             <button className="key lb-btn lb-next" onClick={next} aria-label="Next photo">→</button>
             <button className="key key-sm lb-close" onClick={() => setIdx(-1)} autoFocus>Close</button>
-        </div>
+        </div>, document.body
     );
 }
 

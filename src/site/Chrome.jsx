@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { scrollToId, reducedMotion } from "./hooks";
+import { scrollToId, reducedMotion, lockScroll, unlockScroll } from "./hooks";
 import { NAME, TITLE } from "../data/profile";
 import { CHAPTERS } from "../planet/world";
 
@@ -117,10 +117,7 @@ export function Rail() {
 
 /* ── Mobile menu ── */
 export function Menu({ open, onClose, onOpenCv, onQuick }) {
-    useEffect(() => {
-        document.body.classList.toggle("is-locked", open);
-        if (open) window.__lenis?.stop(); else window.__lenis?.start();
-    }, [open]);
+    useEffect(() => { if (!open) return; lockScroll(); return unlockScroll; }, [open]);
     return (
         <div className={`menu ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open}>
             <nav className="menu-grid">
@@ -146,10 +143,8 @@ export function CvModal({ open, onClose }) {
             .then(r => setOk(r.ok && (r.headers.get("content-type") || "").includes("pdf")))
             .catch(() => setOk(false));
         const esc = e => e.key === "Escape" && onClose();
-        window.addEventListener("keydown", esc);
-        window.__lenis?.stop();
-        document.body.classList.add("is-locked");
-        return () => { window.removeEventListener("keydown", esc); window.__lenis?.start(); document.body.classList.remove("is-locked"); };
+        window.addEventListener("keydown", esc); lockScroll();
+        return () => { window.removeEventListener("keydown", esc); unlockScroll(); };
     }, [open, onClose]);
     if (!open) return null;
     return (

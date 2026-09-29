@@ -7,7 +7,7 @@ import { ChatDock } from "./site/Chat";
 import QuickRead from "./site/QuickRead";
 import Planet from "./planet/Planet";
 import { Hero, What, Break, Experience, Projects, Journey, Skills, Photos, Contact } from "./planet/Chapters";
-import { reducedMotion } from "./site/hooks";
+import { reducedMotion, lockScroll, unlockScroll } from "./site/hooks";
 
 /*
  * Farhan's tiny planet. One small world behind the page; a little 3D me walks around it as you scroll.
@@ -29,10 +29,7 @@ export default function App() {
         let raf = requestAnimationFrame(function loop(t) { lenis.raf(t); raf = requestAnimationFrame(loop); });
         return () => { cancelAnimationFrame(raf); lenis.destroy(); window.__lenis = undefined; };
     }, []);
-    useEffect(() => {
-        if (ready) { window.__lenis?.start(); document.body.classList.remove("is-locked"); }
-        else { window.__lenis?.stop(); document.body.classList.add("is-locked"); }
-    }, [ready]);
+    useEffect(() => { if (ready) return; lockScroll(); return unlockScroll; }, [ready]);
     // cards lean towards the pointer
     useEffect(() => {
         if (reducedMotion() || matchMedia("(pointer: coarse)").matches) return;

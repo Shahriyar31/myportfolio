@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { lockScroll, unlockScroll } from "./hooks";
 import { NAME, TITLE, FOCUS, EMAIL, AUDIT } from "../data/profile";
 import { EXPERIENCE, PROJECTS, SKILLS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/constants";
 
@@ -13,8 +14,8 @@ export default function QuickRead({ open, onClose, onOpenCv }) {
         if (!open) return;
         const esc = e => e.key === "Escape" && onClose();
         window.addEventListener("keydown", esc);
-        window.__lenis?.stop(); document.body.classList.add("qr-open");
-        return () => { window.removeEventListener("keydown", esc); window.__lenis?.start(); document.body.classList.remove("qr-open"); };
+        lockScroll(); document.body.classList.add("qr-open");
+        return () => { window.removeEventListener("keydown", esc); unlockScroll(); document.body.classList.remove("qr-open"); };
     }, [open, onClose]);
     if (!open) return null;
     const main = PROJECTS.filter(p => [1, 2].includes(p.id)), earlier = PROJECTS.filter(p => ![1, 2].includes(p.id));

@@ -1,4 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
+/*
+ * One scroll lock for the whole site. Every popup, the menu and the preloader call
+ * lockScroll() when they open and unlockScroll() when they close; the page only
+ * scrolls again when nothing is holding it. (Separate locks used to fight each other.)
+ */
+let locks = 0;
+export function lockScroll() { locks++; if (locks === 1) { window.__lenis?.stop(); document.body.classList.add("is-locked"); } }
+export function unlockScroll() { locks = Math.max(0, locks - 1); if (locks === 0) { window.__lenis?.start(); document.body.classList.remove("is-locked"); } }
+
+/*
+ * Fit: a panel measures itself against the space it has. If it is too tall it drops
+ * its least important details, one level at a time (data-drop="1" goes first, then 2,
+ * then 3), so nothing is ever cut off, on any screen. max(compact) returns the height
+ * the panel may use, in px.
+ */
+export function useFit(ref, max, deps = []) {
+    const mx = useRef(max); mx.current = max;
+    useLayoutEffect(() => {
+        const el = ref.current; if (!el) return;
+        let raf = 0;
+        const run = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => {
+            const room = mx.current(window.matchMedia(COMPACT).matches);
+            el.style.maxHeight = ""; el.classList.remove("is-scroll"); el.removeAttribute("data-lenis-prevent");
+            for (let l = 0; l <= 3; l++) { el.dataset.fit = String(l); if (el.offsetHeight <= room + 1) break; }
+            // last resort on very small screens: the panel scrolls inside instead of being cut off
+            if (el.offsetHeight > room + 1) { el.style.maxHeight = `${Math.max(160, room)}px`; el.classList.add("is-scroll"); el.setAttribute("data-lenis-prevent", ""); }
+        }); };
+        run(); const t = setTimeout(run, 400);
+        addEventListener("resize", run); document.fonts?.ready.then(run);
+        return () => { cancelAnimationFrame(raf); clearTimeout(t); removeEventListener("resize", run); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, deps);
+}
 
 export const reducedMotion = () =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

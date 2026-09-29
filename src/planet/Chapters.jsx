@@ -7,7 +7,8 @@ import { EXPERIENCE, PROJECTS, EDU_CHAPTERS, PAPER, LANGUAGES } from "../data/co
 import { useChat, ask, openChat } from "../site/chat";
 import { attack, settle, useAttack, LAYERS } from "../site/attack";
 import { useProgress, mark } from "../site/progress";
-import { scrollToId, reducedMotion, compact, COMPACT } from "../site/hooks";
+import { scrollToId, reducedMotion, compact, COMPACT, lockScroll, unlockScroll, useFit } from "../site/hooks";
+import { createPortal } from "react-dom";
 import Preview from "../site/Previews";
 import BuildIt from "../site/BuildIt";
 import KeepLegal from "../site/KeepLegal";
@@ -91,14 +92,15 @@ const PROOF = [
 ];
 const STACK = ["Azure AI Foundry", "Azure OpenAI", "RAG", "LangGraph", "MCP", "EU AI Act", "GDPR", "NIST AI RMF", "OWASP LLM Top 10", "Python", "SQL", "Kafka", "Docker", "DevSecOps"];
 export function Hero({ ready, onQuick, onCv }) {
-    const sec = useRef(null);
+    const sec = useRef(null), copy = useRef(null);
+    useFit(copy, c => c ? innerHeight * 0.34 : innerHeight - 104 - 230);
     useEffect(() => { const f = () => { const el = sec.current; if (!el) return; const k = Math.max(0, Math.min(1, scrollY / (innerHeight * 0.55))); el.style.setProperty("--fade", String(1 - k)); }; f(); addEventListener("scroll", f, { passive: true }); return () => removeEventListener("scroll", f); }, []);
     return (
         <section id="home" ref={sec} className="pl-sec pl-hero" data-angle={PLACES.home.theta} data-sky="0">
-            <div className="pl-hero-copy">
-                <span className="pl-chip mono"><i className="pl-dot" />Open to roles · Hamburg, Germany</span>
+            <div className="pl-hero-copy" ref={copy}>
+                <span className="pl-chip mono" data-drop="2"><i className="pl-dot" />Open to roles · Hamburg, Germany</span>
                 <h1 className="pl-hero-name"><span className="pl-hero-hi">Hi, I'm</span> {NAME}</h1>
-                <p className="pl-hero-line">{TITLE}. I build <Rotator words={BUILDS} /><br />that are safe, legal and actually useful.</p>
+                <p className="pl-hero-line">{TITLE}. I build <Rotator words={BUILDS} /><br /><span data-drop="1">that are safe, legal and actually useful.</span></p>
                 <div className="pl-hero-tags">{PROOF.map((f, k) => (
                     <button key={f.n} onClick={() => scrollToId(f.go)} style={{ "--d": `${0.6 + k * 0.12}s` }}><span className="mono">{f.k}</span>{f.n}<i aria-hidden="true">→</i></button>))}
                 </div>
@@ -121,14 +123,14 @@ const WHAT = [
 function DemoModal({ item, onClose }) {
     useEffect(() => {
         const esc = e => e.key === "Escape" && onClose();
-        addEventListener("keydown", esc); addEventListener("demo-close", onClose); window.__lenis?.stop(); document.body.classList.add("is-locked");
-        return () => { removeEventListener("keydown", esc); removeEventListener("demo-close", onClose); window.__lenis?.start(); document.body.classList.remove("is-locked"); };
+        addEventListener("keydown", esc); addEventListener("demo-close", onClose); lockScroll();
+        return () => { removeEventListener("keydown", esc); removeEventListener("demo-close", onClose); unlockScroll(); };
     }, [onClose]);
     const { Demo } = item;
-    return (
+    return createPortal(
         <div className="pl-modal" data-lenis-prevent role="dialog" aria-modal="true" aria-label={item.demo} onClick={e => e.target === e.currentTarget && onClose()}>
             <div className="pl-modal-box pl-card is-drawn"><button className="pl-x" onClick={onClose} aria-label="Close demo">×</button><Demo /></div>
-        </div>
+        </div>, document.body
     );
 }
 export function What() {
@@ -149,14 +151,16 @@ export function What() {
                 ln.setAttribute("d", `M${core.x} ${core.y - top} Q${(core.x + x2) / 2} ${Math.min(core.y, y2) - top - 40} ${x2} ${y2 - top}`); }); };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, [small]);
-    const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(-1);
+    const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(-1), head = useRef(null);
+    useFit(head, c => c ? innerHeight * 0.22 : innerHeight * 0.42);
+    useEffect(() => { const run = () => sats.current.forEach(el => { if (!el) return; const room = compact() ? innerHeight * 0.36 : Math.min(innerHeight * 0.4, (innerHeight - 200) / 2); for (let l = 0; l <= 3; l++) { el.dataset.fit = String(l); if (el.offsetHeight <= room) break; } }); run(); addEventListener("resize", run); document.fonts?.ready.then(run); return () => removeEventListener("resize", run); }, [small]);
     return (
         <section id="what" ref={sec} className="pl-what-sec" data-angle={PLACES.what.theta} data-sky="1" data-slot="0.45" style={{ height: "calc(100svh + 150svh)" }}>
             <div className="pl-what-stage" ref={stage}>
-                <div className="pl-what-head">
+                <div className="pl-what-head" ref={head}>
                     <Kick>02 · What I do · the AI tower</Kick>
                     <H text="Three things, done properly." accent={["properly."]} />
-                    <p className="pl-p">Keep scrolling: each one comes out of my AI tower. Hover a card to power the core; each has a 1-minute hands-on demo.</p>
+                    <p className="pl-p" data-drop="1">Keep scrolling: each one comes out of my AI tower. Hover a card to power the core; each has a 1-minute hands-on demo.</p>
                     <div className="pl-what-steps" aria-hidden="true">{WHAT.map((w, i) => <i key={w.id} className={i < n ? "is-on" : ""} />)}</div>
                 </div>
                 {!small && <svg className="pl-beams" aria-hidden="true">{WHAT.map((w, i) => <path key={w.id} ref={el => { beams.current[i] = el; }} className={i < n ? "is-on" : ""} pathLength="1" />)}</svg>}
@@ -165,8 +169,8 @@ export function What() {
                         <div key={w.id} ref={el => { sats.current[i] = el; }} className={`pl-sat pl-sat-${i} ${small || i < n ? "is-out" : ""}`} onPointerEnter={() => enter(i)} onPointerLeave={leave} onFocus={() => enter(i)} onBlur={leave}>
                             <span className="pl-sat-n mono">{w.n}</span>
                             <h3>{w.title}</h3>
-                            <p>{w.plain}</p>
-                            <div className="pl-tags">{w.tools.map(t => <span key={t}>{t}</span>)}</div>
+                            <p data-drop="2">{w.plain}</p>
+                            <div className="pl-tags" data-drop="1">{w.tools.map(t => <span key={t}>{t}</span>)}</div>
                             <button className="pl-try" onClick={() => setOpen(w)}><span className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span>{w.demo} →</button>
                         </div>
                     ))}
@@ -249,6 +253,7 @@ export function Experience() {
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, []);
     const fl = f >= 0 && f < 4 ? job.focus[f] : null;
+    useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 190, [f]);
     return (
         <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(5 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [3.55, E, 3], [4.05, L, 3], [5.2, L, 3]])}>
             <div className="pl-stage pl-left">
@@ -256,24 +261,24 @@ export function Experience() {
                 {f >= 0 && f < 4 && <div className="pl-lift" aria-hidden="true"><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
                 {f < 0 && <div className="pl-exp-intro"><Kick>04 · Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
                 {fl && (
-                    <div ref={panel} key={f} className="pl-floor">
+                    <div ref={panel} key={f} className="pl-floor" data-fit="0">
                         <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
                         <p className="pl-p">{fl.d}</p>
-                        <Flow steps={FLOORS[f].flow} color="#88c0d0" />
-                        <div className="pl-tags">{FLOORS[f].tools.map(t => <span key={t}>{t}</span>)}</div>
+                        <div data-drop="2"><Flow steps={FLOORS[f].flow} color="#88c0d0" /></div>
+                        <div className="pl-tags" data-drop="1">{FLOORS[f].tools.map(t => <span key={t}>{t}</span>)}</div>
                         {f === 3 && <p className="pl-note mono">{job.date} · {job.location}</p>}
                     </div>
                 )}
                 {f === 4 && (
-                    <div ref={panel} className="pl-notebook">
+                    <div ref={panel} className="pl-notebook" data-fit="0">
                         <span className="pl-tape" aria-hidden="true" />
                         <span className="pl-nb-kick mono">Lab notebook · {res.company}</span>
                         <h3>{res.role.split("—")[1]?.trim() || res.role}</h3>
                         <p className="pl-nb-meta">{res.role.split("—")[0].trim()} · {res.date}</p>
-                        <p>{res.summary}</p>
+                        <p data-drop="2">{res.summary}</p>
                         <ul>{res.focus.map((x, i) => <li key={x.k} style={{ "--i": i }}><i>✓</i><b>{x.k}:</b> {x.d}</li>)}</ul>
-                        <div className="pl-stickers">{res.tech.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
-                        <div className="pl-paper"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where} · now researching security threats in the Model Context Protocol (MCP)</small></div>
+                        <div className="pl-stickers" data-drop="1">{res.tech.map((t, i) => <span key={t} style={{ "--r": `${(i % 3 - 1) * 3}deg` }}>{t}</span>)}</div>
+                        <div className="pl-paper" data-drop="3"><span className="mono">Published · {PAPER.when}</span><b>{PAPER.title}</b><small>{PAPER.where} · now researching security threats in the Model Context Protocol (MCP)</small></div>
                         <button className="pl-link" onClick={() => scrollToProject(1)}>See it in the project park →</button>
                     </div>
                 )}
@@ -297,20 +302,21 @@ function ArgusTry() {
     );
 }
 function ProjectCard({ p, i }) {
-    const early = EARLY.includes(p.id), N = PROJECT_ORDER.length;
+    const early = EARLY.includes(p.id), N = PROJECT_ORDER.length, card = useRef(null);
+    useFit(card, c => c ? innerHeight * 0.58 : Math.min(innerHeight * 0.56, innerHeight - 250));
     return (
-        <article className="pl-show" style={{ "--pc": p.color }}>
+        <article className="pl-show" ref={card} style={{ "--pc": p.color }}>
             <div className="pl-show-text">
                 <div className="pl-proj-top"><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span><span className="pl-badge mono">{p.badge}</span><span className="pl-kind mono">{p.id === 2 ? "Research" : early ? "Earlier work" : "Main work"}</span></div>
                 <h3 className="pl-show-h">{p.title}</h3>
                 <p className="pl-sub">{p.sub}</p>
-                <p className="pl-p">{p.desc}</p>
-                <ul className="pl-points">{p.points.map(t => <li key={t}>{t}</li>)}</ul>
-                <div className="pl-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
+                <p className="pl-p" data-drop="3">{p.desc}</p>
+                <ul className="pl-points">{p.points.map((t, k) => <li key={t} data-drop={k === 2 ? "2" : undefined}>{t}</li>)}</ul>
+                <div className="pl-tags" data-drop="2">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
             </div>
             <div className="pl-show-side">
-                <div className="pl-show-stats">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div>
-                <div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div>
+                <div className="pl-show-stats" data-drop="3">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div>
+                <div className="pl-show-demo" data-drop="1">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div>
                 <div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div>
             </div>
         </article>
@@ -348,21 +354,22 @@ function Count({ to, dec = 0, run }) {
 }
 const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Student visa", "Finances and paperwork", "Goodbye, West Bengal"];
 function Page({ stop, q }) {
-    const [bt, ms] = EDU_CHAPTERS, research = EXPERIENCE[1];
+    const [bt, ms] = EDU_CHAPTERS, research = EXPERIENCE[1], ref = useRef(null);
+    useFit(ref, c => c ? innerHeight * 0.58 : innerHeight - 170, [stop]);
     if (stop === 0) return (
-        <div className="pl-page is-in">
-            <div className="pl-page-top mono"><span>Republic of India · West Bengal</span><span>Page 1</span></div>
+        <div className="pl-page is-in" ref={ref}>
+            <div className="pl-page-top mono" data-drop="2"><span>Republic of India · West Bengal</span><span>Page 1</span></div>
             <span className="pl-page-when mono">{bt.year} · where it started</span>
             <div className="pl-degree">B.Tech<small>Computer Science · CGPA 8.73 / 10</small></div>
             <p className="pl-page-school">{bt.school}<br /><span>Cooch Behar, West Bengal, India · Jul 2018 – Aug 2022</span></p>
-            <div className="pl-page-stats"><div><b><Count to={8.73} dec={2} run /></b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b><Count to={4} run /></b>years</div></div>
-            <div className="pl-tags"><span>Teaching assistant</span><span>Student council</span></div>
+            <div className="pl-page-stats" data-drop="3"><div><b><Count to={8.73} dec={2} run /></b>CGPA / 10</div><div><b>Top 10%</b>graduated</div><div><b><Count to={4} run /></b>years</div></div>
+            <div className="pl-tags" data-drop="1"><span>Teaching assistant</span><span>Student council</span></div>
             <span className="pl-stamp-ink is-red mono">Graduated<br /><b>2022</b><br />Cooch Behar</span>
         </div>
     );
     if (stop === 1) { const n = Math.min(PREP.length, Math.floor(q * (PREP.length + 0.6))); return (
-        <div className="pl-page is-in">
-            <div className="pl-page-top mono"><span>Departure preparation</span><span>Page 2</span></div>
+        <div className="pl-page is-in" ref={ref}>
+            <div className="pl-page-top mono" data-drop="2"><span>Departure preparation</span><span>Page 2</span></div>
             <span className="pl-page-when mono">2022 – 2023 · at home in West Bengal</span>
             <div className="pl-degree is-small">One year<small>to get ready for Germany</small></div>
             <ul className="pl-prep">{PREP.map((t, k) => <li key={t} className={k < n ? "is-ok" : ""}><i aria-hidden="true">{k < n ? "✓" : ""}</i>{t}</li>)}</ul>
@@ -370,12 +377,12 @@ function Page({ stop, q }) {
         </div>
     ); }
     return (
-        <div className="pl-page is-in">
-            <div className="pl-page-top mono"><span>Bundesrepublik Deutschland · Hamburg</span><span>Page 3</span></div>
+        <div className="pl-page is-in" ref={ref}>
+            <div className="pl-page-top mono" data-drop="2"><span>Bundesrepublik Deutschland · Hamburg</span><span>Page 3</span></div>
             <span className="pl-page-when mono">{ms.year} · landed in Hamburg</span>
             <div className="pl-degree">M.Sc.<small>Data Science</small></div>
             <p className="pl-page-school">{ms.school}<br /><span>Research: {research.role.split("—")[1]?.trim()} · working student at Nordex</span></p>
-            <div className="pl-tags">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>
+            <div className="pl-tags" data-drop="1">{LANGUAGES.map(([l, lv]) => <span key={l}>{l} · {lv}</span>)}</div>
             <button className="pl-link" onClick={() => scrollToId("experience")}>See my research and work →</button>
             <span className="pl-stamp-ink is-blue mono">Entry<br /><b>2023</b><br />Hamburg</span>
         </div>
@@ -471,6 +478,8 @@ export function Contact({ onCv, onQuick }) {
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
     useEffect(() => { Views.contact = () => ({ fx: !compact() ? -1.6 : 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
+    const desk = useRef(null);
+    useFit(desk, c => c ? 99999 : innerHeight - 160);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
     const stamps = [
@@ -479,16 +488,16 @@ export function Contact({ onCv, onQuick }) {
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
-            <div className="pl-desk-left">
+            <div className="pl-desk-left" ref={desk}>
             <div className="pl-desk-copy">
                 <Kick>08 · My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />
-                <p className="pl-p">Open to AI engineering roles: RAG and agents, AI platforms on Azure, AI governance and security. Write me a letter, it flies straight into my mailbox.</p>
+                <p className="pl-p" data-drop="1">Open to AI engineering roles: RAG and agents, AI platforms on Azure, AI governance and security. Write me a letter, it flies straight into my mailbox.</p>
             </div>
             <div className="pl-desk-table">
                 <Letter />
                 <div className="pl-stamps">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
-                <div className="pl-trust">
+                <div className="pl-trust" data-drop="2">
                     <span className="pl-score mono">You explored <b>{score}%</b> of my world</span>
                     <span className={`mono ${ui.orbs.length ? "ok" : ""}`}>{ui.orbs.length}/5 orbs</span>
                     <span className={`mono ${a.tries ? "ok" : ""}`}>{a.tries ? `${a.tries} attacks · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try to break my AI</button>}</span>

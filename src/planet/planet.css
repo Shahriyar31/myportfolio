@@ -687,8 +687,7 @@ body { background: #2e3440; }
 .pl-show-links { display: flex; flex-wrap: wrap; gap: 8px; } .pl-show-links .pl-btn { height: 36px; padding: 0 14px; font-size: 13px; }
 .pl-show-links .pl-btn.is-main { background: var(--pc); border-color: var(--pc); color: #1e1e2e; }
 .pl-show .pl-tags span { font-size: 10.5px; padding: 3px 8px; }
-@media (max-height: 820px) and (min-width: 861px) and (orientation: landscape) { .pl-show-demo { display: none; } }
-@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-show-track { height: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); } .pl-show { max-height: none; } .pl-show-side .pl-show-demo, .pl-points li:nth-child(n+3), .pl-show .pl-tags { display: none; } .pl-show-slot { width: 86vw; } .pl-show-stats b { font-size: 16px; } }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-show-track { height: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); } .pl-show { max-height: none; }  .pl-show-slot { width: 86vw; } .pl-show-stats b { font-size: 16px; } }
 :root[data-theme="light"] .pl-points { color: #1a2a30; }
 
 /* contact v2: one centred composition that grows with the screen */
@@ -713,7 +712,7 @@ body { background: #2e3440; }
   .pl-stage { justify-items: center; } .pl-floor, .pl-notebook, .pl-exp-intro { left: 50%; right: auto; width: min(680px, calc(100% - 48px)); transform: translateX(-50%); }
   .pl-floor { animation: none; } .pl-hero { align-items: center; } .pl-hero-copy, .pl-hero-dock { width: min(680px, 100%); }
   .pl-sats-row { justify-content: center; } .pl-sats-row .pl-sat { width: min(46vw, 360px); }
-  .pl-show-slot { width: min(720px, 86vw); } .pl-show-side .pl-show-demo { display: block; }
+  .pl-show-slot { width: min(720px, 86vw); } 
   .pl-netcard { max-width: 760px; margin-inline: auto; } .pl-net-in .pl-cluster > div { gap: 7px; }
   .pl-desk { padding-inline: max(24px, calc((100% - 720px) / 2)); } .pl-stamps { grid-template-columns: repeat(6, 1fr); }
   .pl-route-map { max-width: 760px; margin-inline: auto; }
@@ -725,3 +724,29 @@ body { background: #2e3440; }
 }
 @media (min-width: 861px) and (orientation: landscape) { .pl-desk-left { grid-template-rows: auto auto; align-content: center; } .pl-desk-table { align-self: start; } }
 .pl-orbs-tip { background: rgba(40,45,56,.97); } :root[data-theme="light"] .pl-orbs-tip { background: rgba(255,255,255,.97); }
+
+
+/* ══ fit: panels drop their least important details until they fit the screen ══ */
+[data-fit="1"] [data-drop="1"], [data-fit="2"] [data-drop="1"], [data-fit="2"] [data-drop="2"], [data-fit="3"] [data-drop] { display: none !important; }
+[data-fit="3"] .pl-p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pl-show { max-height: none; }
+.pl-desk-left { overflow: visible; }
+.pl-modal { font-family: var(--pl-body); color: var(--pl-text); }
+body.is-locked .pl-bubble, body.qr-open .pl-bubble, body.is-locked .pl-vision, body.qr-open .pl-vision { visibility: hidden !important; }
+
+.is-scroll { overflow-y: auto !important; overscroll-behavior: contain; scrollbar-width: thin; }
+/* phones: stamps share one row and never push the page wider than the screen */
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-stamps { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } .pl-post { width: auto !important; min-width: 0; height: 62px !important; padding: 4px; }
+  .pl-post b { font-size: 15px !important; } .pl-post span { font-size: 9px !important; }
+  .pl-desk-table { grid-template-columns: minmax(0, 1fr) !important; } .pl-desk-table .pl-mailform { max-width: none !important; min-width: 0; }
+  .pl-desk-copy, .pl-desk-table { min-width: 0; max-width: 100%; }
+}
+/* phones held sideways: very little height, so panels sit on the left half */
+@media (max-height: 500px) and (orientation: landscape) {
+  .pl-stage { align-items: end; padding: 60px var(--pl-gut) 70px !important; justify-items: start !important; }
+  .pl-stage > *, .pl-slot, .pl-passport { width: min(58vw, 520px) !important; margin: 0 !important; }
+  .pl-floor, .pl-notebook, .pl-exp-intro { left: var(--pl-gut) !important; right: auto !important; width: min(58vw, 520px) !important; top: auto !important; bottom: 70px !important; transform: none !important; }
+  .pl-show-track { bottom: 64px !important; } .pl-show-slot { width: min(62vw, 560px) !important; }
+  .pl-hero { justify-content: flex-end; padding-bottom: 70px; } .pl-hero-copy .pl-hero-name { font-size: 28px !important; }
+}
