@@ -332,32 +332,61 @@ export function Experience() {
     );
 }
 
-/* ── research: my TUHH research project, told as a lab notebook; its pages turn as you scroll (one stop per spread) ── */
+/* ── research: my TUHH research project, told as a lab notebook; three spreads, the pages turn as you scroll ── */
+function Vessel() { // a quick pen sketch of a fluidised-bed granulator (decoration)
+    return (
+        <svg className="pl-rs-sketch" viewBox="0 0 160 190" aria-hidden="true">
+            <path className="ink" d="M50 20 h60 M50 20 v120 q0 20 30 26 q30 -6 30 -26 v-120" pathLength="1" />
+            <path className="ink thin" d="M50 118 h60 M58 150 l-18 18 M102 150 l18 18" pathLength="1" />
+            {[[64, 100], [78, 92], [92, 104], [70, 80], [88, 76], [80, 110], [96, 88], [62, 70], [100, 68]].map(([x, y], k) => <circle key={k} className="bub" cx={x} cy={y} r={3 + (k % 3)} style={{ "--d": `${k * 0.25}s` }} />)}
+            <path className="ink thin" d="M80 186 v-16 m-5 5 l5 -5 l5 5" pathLength="1" />
+            <text x="80" y="14" textAnchor="middle">fluidised bed</text><text x="128" y="184" textAnchor="middle">air in</text>
+        </svg>
+    );
+}
+function Flow2() { // how the data flows, drawn in pen (simplified)
+    const box = (x, y, w, t, k) => <g key={t}><rect className="ink" x={x} y={y} width={w} height="30" rx="5" pathLength="1" style={{ "--d": `${0.2 + k * 0.18}s` }} /><text x={x + w / 2} y={y + 20} textAnchor="middle">{t}</text></g>;
+    return (
+        <svg className="pl-rs-flow" viewBox="0 0 400 230" role="img" aria-label="Simplified data flow: sensor stream through Kafka and Flink, CSV files through Pandas preprocessing, both into InfluxDB, shown in a Plotly Dash dashboard; all services run in Docker Compose">
+            <rect className="ink dash" x="96" y="6" width="300" height="200" rx="10" pathLength="1" /><text className="small" x="386" y="222" textAnchor="end">Docker Compose</text>
+            {box(4, 34, 84, "sensor stream", 0)}{box(112, 34, 70, "Kafka", 1)}{box(210, 34, 70, "Flink", 2)}
+            {box(4, 124, 84, "CSV files", 3)}{box(112, 124, 168, "Pandas · clean, BOM strip", 4)}
+            {box(304, 80, 84, "InfluxDB", 5)}{box(304, 160, 84, "Plotly Dash", 6)}
+            <path className="ink arrow" d="M88 49 h22 M182 49 h26 M280 49 q20 0 24 30 M88 139 h22 M280 139 q20 0 24 -28 M346 110 v48" pathLength="1" />
+        </svg>
+    );
+}
 export function Research() {
     const p = PROJECTS.find(x => x.id === 2), res = EXPERIENCE[1], sec = useRef(null), [k, setK] = useState(0), cur = useRef(0), [small, setSmall] = useState(false);
     useEffect(() => { const mq = matchMedia(COMPACT), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
-    const n = small ? 4 : 2, L = PLACES.lab.theta;
+    const n = small ? 6 : 3, L = PLACES.lab.theta;
     useSlots(sec, v => { const j = Math.max(0, Math.min(n - 1, Math.round(v - 0.15))); if (j !== cur.current) { cur.current = j; setK(j); } }, 6);
     useSnap(sec, Array.from({ length: n }, (_, j) => j + 0.15));
     useEffect(() => { Views.research = () => ({ fx: standFx() }); return () => { delete Views.research; }; }, []);
+    const [before, after] = [900, 150], cut = Math.round((1 - after / before) * 100);
+    const pg = (no, kids, cls = "") => <><span className="pl-rs-no mono">p. {no}</span>{kids}</>;
     const pages = [
-        <><span className="pl-rs-stamp mono">Research highlight</span><span className="pl-rs-kick mono">Lab notebook · {res.company}</span><h3 className="pl-rs-title">{p.title}</h3><p className="pl-rs-sub">{p.sub}</p><p className="pl-rs-meta mono">{res.date}</p><p className="pl-rs-p">{p.desc}</p></>,
-        <><span className="pl-rs-kick mono">What I built</span><ul className="pl-rs-list">{p.points.map(t => <li key={t}><i aria-hidden="true">✓</i>{t}</li>)}</ul></>,
-        <><span className="pl-rs-kick mono">The stack</span><div className="pl-rs-stickers">{p.tags.map((t, j) => <span key={t} style={{ "--r": `${(j % 3 - 1) * 3}deg` }}>{t}</span>)}</div><span className="pl-rs-kick mono">Results</span><div className="pl-rs-notes">{p.stats.map(([v, lab], j) => <div key={lab} style={{ "--r": `${j % 2 ? 2 : -2}deg` }}><b>{v}</b>{lab}</div>)}</div></>,
-        <><span className="pl-rs-kick mono">Try it</span><div className="pl-rs-demo"><Preview id={p.id} /></div><div className="pl-show-links">{p.links.map(([t, u], j) => <a key={u} className={`pl-btn ${j === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></>,
+        pg(1, <><span className="pl-rs-tape" aria-hidden="true" /><span className="pl-rs-stamp mono">Research highlight</span><span className="pl-rs-kick mono">Lab notebook · {res.company}</span><h3 className="pl-rs-title">{p.title}</h3><p className="pl-rs-sub">{p.sub}</p><div className="pl-rs-intro"><p className="pl-rs-p">{p.desc}</p><Vessel /></div><p className="pl-rs-meta mono">{res.date}</p></>),
+        pg(2, <><span className="pl-rs-kick mono">How the data flows</span><p className="pl-rs-hand">simplified, but this is the idea:</p><Flow2 /><p className="pl-rs-note">Streams and files both land in one time-series store; the dashboard reads from it live.</p></>),
+        pg(3, <><span className="pl-rs-kick mono">What I built</span><ul className="pl-rs-list">{p.points.map((t, j) => <li key={t} style={{ "--d": `${0.2 + j * 0.25}s` }}><i aria-hidden="true">✓</i>{t}</li>)}</ul><p className="pl-rs-hand is-margin">three pieces, one working pipeline →</p></>),
+        pg(4, <><span className="pl-rs-kick mono">Results</span><div className="pl-rs-chart" aria-label={`Frontend image size cut from about ${before} MB to ${after} MB, ${cut} percent smaller`}><span className="mono">Frontend image size</span><div><b style={{ "--w": 1 }}><em>before</em>~{before} MB</b></div><div><b className="is-after" style={{ "--w": after / before }}><em>after</em>{after} MB</b></div><strong className="pl-rs-hand">−{cut}% ✎</strong></div><div className="pl-rs-notes">{p.stats.filter(([, lab]) => !/MB/i.test(lab)).map(([v, lab], j) => <div key={lab} style={{ "--r": `${j % 2 ? 2 : -2}deg` }}><b>{v}</b>{lab}</div>)}<div style={{ "--r": "2deg" }}><b>{p.tags.length}</b>tools in the stack</div></div></>),
+        pg(5, <><span className="pl-rs-kick mono">Try it</span><p className="pl-rs-hand">poke the sensor, watch the twin react:</p><div className="pl-rs-demo"><Preview id={p.id} /></div></>),
+        pg(6, <><span className="pl-rs-clip" aria-hidden="true" /><span className="pl-rs-kick mono">The stack</span><div className="pl-rs-stickers">{p.tags.map((t, j) => <span key={t} style={{ "--r": `${(j % 3 - 1) * 3}deg` }}>{t}</span>)}</div><span className="pl-rs-kick mono">The code</span><p className="pl-rs-p">Everything is on GitHub: services, preprocessing and the dashboard.</p><div className="pl-show-links">{p.links.map(([t, u], j) => <a key={u} className={`pl-btn ${j === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div><p className="pl-rs-hand is-end">— end of notebook</p></>),
     ];
+    const page = (j, side) => <div className={`pl-rs-pg is-${side} ${Math.floor(j / 2) === k || small ? "is-seen" : ""}`}>{pages[j]}</div>;
     return (
         <section id="research" ref={sec} className="pl-deck pl-rs-sec" style={{ height: `calc(${n} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify([[-0.6, L, 3], [n + 0.5, L, 3]])}>
             <div className="pl-stage pl-left">
                 <div className="pl-rs">
-                    <div className="pl-rs-head"><Kick>Research · page {small ? k + 1 : k * 2 + 1}{small ? "" : `–${k * 2 + 2}`} of 4</Kick><H text="My research project." accent={["research"]} /><p className="pl-edu-sub">{p.sub}. Scroll to turn the pages of my lab notebook.</p></div>
+                    <div className="pl-rs-head"><Kick>Research · pages {small ? k + 1 : `${k * 2 + 1}–${k * 2 + 2}`} of 6</Kick><H text="My research project." accent={["research"]} /><p className="pl-edu-sub">{p.sub}. Scroll to turn the pages of my lab notebook.</p></div>
                     {small ? (
-                        <div className="pl-rs-stack">{pages.map((pg, j) => <div key={j} className={`pl-rs-pg ${j === k ? "is-on" : ""}`} aria-hidden={j !== k}>{pg}</div>)}</div>
+                        <div className="pl-rs-stack">{pages.map((pgc, j) => <div key={j} className={`pl-rs-pg is-seen ${j === k ? "is-on" : ""}`} aria-hidden={j !== k}>{pgc}</div>)}</div>
                     ) : (
-                        <div className="pl-rs-book pl-avoid">
-                            <div className="pl-rs-pg is-left is-first"><span className="pl-rs-holes" aria-hidden="true" />{pages[0]}</div>
-                            <div className="pl-rs-pg is-right is-base">{pages[3]}</div>
-                            <Leaf k={0} on={k >= 1} front={<div className="pl-rs-pg is-right">{pages[1]}</div>} back={<div className="pl-rs-pg is-left">{pages[2]}</div>} />
+                        <div className={`pl-rs-book pl-avoid is-s${k}`}>
+                            <div className="pl-rs-pg is-left is-first is-seen"><span className="pl-rs-holes" aria-hidden="true" />{pages[0]}</div>
+                            {page(5, "right is-base")}
+                            <Leaf k={1} on={k >= 2} front={page(3, "right")} back={page(4, "left")} />
+                            <Leaf k={0} on={k >= 1} front={page(1, "right")} back={page(2, "left")} />
                         </div>
                     )}
                 </div>
@@ -716,7 +745,7 @@ function useScaleFit(ref) {
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
             if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
-            const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 56, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
+            const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 104, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
             el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.min(70, Math.max(0, (avail - h * k) / 2)).toFixed(1)}px`);
         };
         const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
