@@ -288,6 +288,7 @@ export default class PlanetScene {
     screenOf(what, i = 0) {
         let w;
         if (what === "me") { if (!this.me || !this.me.visible) return null; w = this.me.getWorldPosition(V(0, 0, 0)).add(V(0, this.sitting || this.base === "sit" ? 1.25 : 1.55, 0)); }
+        else if (what === "feet") { if (!this.me || !this.me.visible) return null; w = this.me.getWorldPosition(V(0, 0, 0)); }
         else if (what === "plane") { if (!this.planeG) return null; w = this.planeG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.7, 0)); }
         else if (what === "tower") { w = this.tower.localToWorld(V(Math.cos(i) * 6.4, 3.3 + Math.sin(i * 2) * 0.2, Math.sin(i) * 2.4)); }
         else { const o = what === "floor" ? this.floors?.[i] : what === "core" ? this.core : what === "lab" ? this.labHolo : what === "mail" ? this.mailBox : null; if (!o) return null; w = o.getWorldPosition(V(0, 0, 0)); }

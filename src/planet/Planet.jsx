@@ -97,6 +97,8 @@ export default function Planet() {
                 scene.setCoding(inView); scene.setProject(inView ? k : -1, PROJECTS.find(x => x.id === PROJECT_ORDER[k])?.color);
             }
             scene.setView(Views[state.chapter]?.() || {});
+            // where I stand on screen, so panels can keep clear of me (--me-x / --me-y on :root)
+            const me = scene.screenOf("me"); if (me && (Math.abs(me.x - (state.meX ?? 0)) > 2 || Math.abs(me.y - (state.meY ?? 0)) > 2)) { state.meX = me.x; state.meY = me.y; const st = document.documentElement.style; st.setProperty("--me-x", `${Math.round(me.x)}px`); st.setProperty("--me-y", `${Math.round(me.y)}px`); const ft = scene.screenOf("feet"); if (ft) st.setProperty("--me-feet", `${Math.round(ft.y)}px`); }
             const cur = CHAPTERS.map(([id]) => document.getElementById(id)).filter(Boolean).reduce((best, el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5 ? el.id : best; }, state.chapter);
             if (cur !== state.chapter) setUI({ chapter: cur });
         };

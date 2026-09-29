@@ -382,7 +382,7 @@ export function Projects() {
         const k = Math.round(p); if (k !== nearRef.current) { nearRef.current = k; setNear(k); }
     }, 7);
     useSnap(sec, PROJECT_ORDER.map((_, k) => k));
-    useEffect(() => { Views.projects = () => ({ dy: !compact() ? -1.7 : -0.4, zoom: 0.3 }); return () => { delete Views.projects; }; }, []);
+    useEffect(() => { Views.projects = () => ({ dy: !compact() ? -1.7 : -0.4, zoom: 0.3, fx: standFx() }); return () => { delete Views.projects; }; }, []);
     const keys = [[-0.6, items[0].theta, 4], ...items.flatMap((it, k) => [[k - 0.1, it.theta, 4], [k + 0.4, it.theta, 4]])];
     return (
         <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
@@ -424,7 +424,10 @@ function hl(line) {
     for (const m of line.matchAll(TOK)) { if (m.index > last) out.push(line.slice(last, m.index)); out.push(<span key={m.index} className={`hl-${m[1] ? "s" : m[2] ? "n" : m[3] ? "k" : m[4] ? "a" : "f"}`}>{m[0]}</span>); last = m.index + m[0].length; }
     out.push(line.slice(last)); return out;
 }
-/* a laptop: the lid opens, the screen boots, then it runs; on a mouse it tilts a little toward the cursor */
+/** desktop: where I stand on screen (matches --stand-x in the CSS), and the camera slide that puts me there */
+const standX = () => (innerWidth >= 1500 ? (innerWidth - 1280) / 2 + 1180 : Math.min(innerWidth - 242, 1300));
+const standFx = (zk = 1) => (compact() ? 0 : -(standX() - innerWidth / 2) / (innerHeight * 0.103 * zk));
+/* a laptop: a real 16:10 screen. The lid opens, the screen boots, then it runs; on a mouse it tilts a little toward the cursor */
 function Mac({ title, className = "", foot, bodyRef, children }) {
     const el = useRef(null);
     const move = e => { if (e.pointerType !== "mouse") return; const r = el.current.getBoundingClientRect(); el.current.style.setProperty("--rx", ((e.clientY - r.top) / r.height - 0.5).toFixed(3)); el.current.style.setProperty("--ry", ((e.clientX - r.left) / r.width - 0.5).toFixed(3)); };
@@ -433,9 +436,10 @@ function Mac({ title, className = "", foot, bodyRef, children }) {
         <div className={`pl-mac pl-avoid ${className}`} ref={el} onPointerMove={move} onPointerLeave={leave}>
             <div className="pl-mac-tilt">
                 <div className="pl-mac-lid">
+                    <i className="pl-mac-cam" aria-hidden="true" />
                     <div className="pl-mac-screen">
                         <div className="pl-mac-bar"><i /><i /><i /><span className="mono">{title}</span></div>
-                        <div className="pl-mac-body" ref={bodyRef} data-lenis-prevent>{children}</div>
+                        <div className="pl-mac-body" ref={bodyRef} data-lenis-prevent><div className="pl-mac-in">{children}</div></div>
                         {foot && <div className="pl-mac-foot mono">{foot}</div>}
                         <span className="pl-mac-boot" aria-hidden="true"><b>FS</b></span>
                         <span className="pl-mac-glare" aria-hidden="true" />
@@ -446,7 +450,7 @@ function Mac({ title, className = "", foot, bodyRef, children }) {
         </div>
     );
 }
-/* the college: code on the left types itself; the preview on the right renders each line as it lands */
+/* the college: degree.py types itself on the left; on the right it renders into a small dashboard, line by line */
 const CGEC_CODE = `from cgec import BTech
 
 degree = BTech(
@@ -462,27 +466,35 @@ const BOOT = 1500, SPEED = 17;
 function CgecLaptop() {
     const [bt] = EDU_CHAPTERS, t = useClock(), code = useRef(null), body = useRef(null);
     const n = Math.max(0, Math.min(CGEC_CODE.length, Math.floor((t - BOOT) / SPEED))), typed = CGEC_CODE.slice(0, n), lines = typed.split("\n");
-    const all = n >= CGEC_CODE.length, done = lines.length - 1 + (all ? 1 : 0), on = k => (done > k ? "is-on" : ""), grad = t > BOOT + CGEC_CODE.length * SPEED + 500;
+    const all = n >= CGEC_CODE.length, done = lines.length - 1 + (all ? 1 : 0), on = k => (done > k ? "is-on" : ""), endT = BOOT + CGEC_CODE.length * SPEED, grad = t > endT + 500;
+    const sem = done > 5 ? Math.min(8, Math.floor((t - (BOOT + CGEC_CODE.indexOf("  cgpa") * SPEED)) / 140) + 1) : 0; // semesters light up once the years are in
     useEffect(() => { const c = code.current, b = body.current; if (c) c.scrollTop = c.scrollHeight; if (b && b.scrollHeight > b.clientHeight + 4) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [lines.length, grad]);
     return (
         <div className="pl-edu">
             <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
-            <Mac title="degree.py — btech" className="is-ide" bodyRef={body} foot={<><span>{grad ? "✓ build passed" : "● running"}</span><span>Python · UTF-8 · Ln {lines.length}, Col {lines[lines.length - 1].length + 1}</span></>}>
+            <Mac title="degree.py — btech" className="is-ide" bodyRef={body} foot={<><span>{grad ? "✓ build passed · 0 errors" : "● building…"}</span><span>Python · UTF-8 · Ln {lines.length}, Col {lines[lines.length - 1].length + 1}</span></>}>
                 <div className="pl-ide">
-                    <pre className="pl-ide-code" ref={code} aria-hidden="true">{lines.map((l, k) => <div key={k}><i>{k + 1}</i><span>{hl(l)}{k === lines.length - 1 && !all && <span className="pl-caret" />}</span></div>)}</pre>
-                    <div className="pl-ide-pv" aria-label="B.Tech. Computer Science, Cooch Behar Government Engineering College, 2018 to 2022, CGPA 8.73 of 10, top 10 percent">
-                        <span className="pl-pv-tab mono">Preview</span>
-                        <span className={`pl-pv-b pl-pv-kick mono ${on(2)}`}>B.Tech. · Jul 2018 – Aug 2022</span>
-                        <h3 className={`pl-pv-b ${on(3)}`}>Computer Science</h3>
-                        <p className={`pl-pv-b pl-pv-sub ${on(4)}`}>{bt.school} · West Bengal, India</p>
-                        <div className={`pl-pv-b pl-pv-years ${on(5)}`}><span>2018</span><i /><span>2022</span></div>
-                        <div className="pl-pv-row">
-                            <div className={`pl-pv-b pl-pv-gauge ${on(6)}`}><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${done > 6 ? 87.3 : 0} 100` }} /></svg><b><Count to={8.73} dec={2} run={done > 6} /></b><small>CGPA / 10</small></div>
-                            <div className={`pl-pv-b pl-pv-badge ${on(7)}`}><b>Top 10%</b><small>of my class</small></div>
+                    <div className="pl-ide-left">
+                        <pre className="pl-ide-code" ref={code} aria-hidden="true">{lines.map((l, k) => <div key={k}><i>{k + 1}</i><span>{hl(l)}{k === lines.length - 1 && !all && <span className="pl-caret" />}</span></div>)}</pre>
+                        <div className="pl-ide-term mono" aria-hidden="true"><span>$ python degree.py</span>{grad && <span className="is-ok">✓ graduated in 4 years</span>}</div>
+                    </div>
+                    <div className="pl-ide-pv" aria-label="B.Tech. Computer Science, Cooch Behar Government Engineering College, 2018 to 2022, CGPA 8.73 of 10, top 10 percent, teaching assistant, student council">
+                        <div className="pl-pv-head">
+                            <div>
+                                <span className={`pl-pv-b pl-pv-kick mono ${on(2)}`}>B.Tech. · Jul 2018 – Aug 2022</span>
+                                <h3 className={`pl-pv-b ${on(3)}`}>Computer Science</h3>
+                                <p className={`pl-pv-b pl-pv-sub ${on(4)}`}>{bt.school}<br />West Bengal, India</p>
+                            </div>
+                            <div className={`pl-pv-b pl-pv-ring ${on(6)}`}><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${done > 6 ? 87.3 : 0} 100` }} /></svg><b><Count to={8.73} dec={2} run={done > 6} /></b><small>CGPA / 10</small></div>
                         </div>
-                        <div className={`pl-pv-b pl-pv-chips ${on(8)}`}><span>Teaching assistant</span><span>Student council</span></div>
-                        <div className={`pl-pv-b pl-pv-ok ${grad ? "is-on" : ""}`}>✓ Graduated · Aug 2022</div>
-                        <div className={`pl-pv-b pl-pv-ticker ${grad ? "is-on" : ""}`} aria-label={`Courses: ${bt.pills.join(", ")}`}><div>{[...bt.pills, ...bt.pills].map((x, k) => <span key={k}>{x}</span>)}</div></div>
+                        <div className={`pl-pv-b pl-pv-sems ${on(5)}`}><span className="mono">2018</span><ol>{Array.from({ length: 8 }, (_, k) => <li key={k} className={k < sem ? "is-on" : ""}><i /><small className="mono">S{k + 1}</small></li>)}</ol><span className="mono">2022</span></div>
+                        <div className="pl-pv-tiles">
+                            <div className={`pl-pv-b ${on(7)}`}><b>Top 10%</b><small>of my class</small></div>
+                            <div className={`pl-pv-b ${on(8)}`}><b>Teaching assistant</b><small>at CGEC</small></div>
+                            <div className={`pl-pv-b ${on(8)}`}><b>Student council</b><small>member</small></div>
+                        </div>
+                        <div className={`pl-pv-b pl-pv-courses ${grad ? "is-on" : ""}`}><span className="mono">Courses</span>{bt.pills.map((x, k) => <em key={x} style={{ "--d": `${k * 0.12}s` }}>✓ {x}</em>)}</div>
+                        <span className={`pl-pv-stamp mono ${grad ? "is-on" : ""}`} aria-hidden="true">Graduated<b>Aug 2022</b></span>
                     </div>
                 </div>
             </Mac>
@@ -596,17 +608,25 @@ function Timeline() {
 }
 function TuhhNotebook() {
     const [, ms] = EDU_CHAPTERS, res = EXPERIENCE[1], t = useClock(14000), body = useRef(null);
-    const cell = k => { const { s, e, o } = NB_T[k], c = NB[k]; return { show: t >= s || k === 0, code: c.slice(0, Math.max(0, Math.floor((t - s) / 26))), typing: t >= s && t < e, run: t >= e && t < o, out: t >= o }; };
+    const cell = k => { const { s, e, o } = NB_T[k], c = NB[k]; return { code: c.slice(0, Math.max(0, Math.floor((t - s) / 26))), typing: t >= s && t < e, run: t >= e && t < o, out: t >= o }; };
     const cs = NB.map((_, k) => cell(k)), shown = cs.filter(c => c.out).length;
-    useEffect(() => { const b = body.current; if (b && b.scrollHeight > b.clientHeight) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [shown]);
-    const In = k => <div className="pl-cell-in"><span className="mono">In [{cs[k].run ? "*" : cs[k].out ? k + 1 : " "}]:</span><code>{hl(cs[k].code)}{cs[k].typing && <span className="pl-caret" />}</code></div>;
+    useEffect(() => { const b = body.current; if (b && b.scrollHeight > b.clientHeight + 4) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [shown]);
+    const wait = <span className="pl-nb-wait mono">waiting for the kernel…</span>;
     return (
         <div className="pl-edu">
             <div className="pl-edu-cap"><Kick>06 · My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
-            <Mac title="M.Sc._Data_Science.ipynb" className="is-nb2" bodyRef={body} foot={<><span>{shown < NB.length ? "● kernel busy" : "○ kernel idle"}</span><span>Python 3 · TUHH</span></>}>
-                <div className="pl-cell">{In(0)}{cs[0].out && <div className="pl-cell-out"><span className="mono">Out[1]:</span><div className="pl-nb-hero"><span className="mono">M.Sc. · Oct 2023 – now</span><h3>Data Science</h3><p>{ms.school} · Hamburg, Germany</p></div></div>}</div>
-                {cs[1].show && <div className="pl-cell">{In(1)}{cs[1].out && <div className="pl-cell-out is-plot"><Timeline /></div>}</div>}
-                {cs[2].show && <div className="pl-cell">{In(2)}{cs[2].out && <div className="pl-cell-out"><span className="mono">Out[3]:</span><ol className="pl-nb-res"><li><b>Research</b>{res.role.split("—")[1]?.trim() || res.role}</li><li><b>Security</b>Threats in the Model Context Protocol (MCP)</li><li><b>Preprint · {PAPER.when}</b><i>{PAPER.title}</i></li></ol></div>}</div>}
+            <Mac title="M.Sc._Data_Science.ipynb — JupyterLab" className="is-nb3" bodyRef={body} foot={<><span>{shown < NB.length ? "● kernel busy" : "○ kernel idle"}</span><span>Python 3 · TUHH · Hamburg</span></>}>
+                <div className="pl-lab">
+                    <div className="pl-lab-cells">
+                        {NB.map((_, k) => <div key={k} className={`pl-lab-cell ${cs[k].run ? "is-run" : cs[k].out ? "is-done" : ""}`}><span className="mono">[{cs[k].run ? "*" : cs[k].out ? k + 1 : " "}]</span><code>{hl(cs[k].code)}{cs[k].typing && <span className="pl-caret" />}</code></div>)}
+                        <dl className={`pl-lab-vars mono ${shown ? "is-on" : ""}`}><dt>Variables</dt><dd><span>ms</span><em>MSc</em></dd><dd><span>ms.city</span><em>"Hamburg"</em></dd><dd><span>ms.since</span><em>"2023-10"</em></dd><dd><span>ms.status</span><em>"enrolled"</em></dd></dl>
+                    </div>
+                    <div className="pl-lab-out">
+                        <div className={`pl-lab-o is-hero ${cs[0].out ? "is-on" : ""}`}><span className="mono">Out[1]</span>{cs[0].out ? <div className="pl-nb-hero"><span className="mono">M.Sc. · Oct 2023 – now</span><h3>Data Science</h3><p>{ms.school} · Hamburg, Germany</p></div> : wait}</div>
+                        <div className={`pl-lab-o is-plot ${cs[1].out ? "is-on" : ""}`}><span className="mono">Out[2]</span>{cs[1].out ? <Timeline /> : wait}</div>
+                        <div className={`pl-lab-o is-res ${cs[2].out ? "is-on" : ""}`}><span className="mono">Out[3]</span>{cs[2].out ? <ol className="pl-nb-res"><li><b>Research</b>{res.role.split("—")[1]?.trim() || res.role}</li><li><b>Security</b>Threats in the Model Context Protocol (MCP)</li><li><b>Preprint · {PAPER.when}</b><i>{PAPER.title}</i></li></ol> : wait}</div>
+                    </div>
+                </div>
             </Mac>
         </div>
     );
@@ -618,6 +638,9 @@ export function Journey() {
         if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3))));
     }, 7);
     useSnap(sec, [0, JOURNEY.land + 0.5]);
+    // desktop: at the college and at TUHH I step to the right so the laptop gets the room
+    const stopRef = useRef(0); stopRef.current = stop;
+    useEffect(() => { Views.journey = () => ({ fx: stopRef.current !== 2 ? standFx() : 0 }); return () => { delete Views.journey; }; }, []);
     const t0 = s0 + s1, total = t0 + JOURNEY.spans[2] + 1.2, off = 7; // the building stands beside me, the laptop or passport on the left
     const keys = [[-0.6, J.cgec - off, "WB"], [s0 - 0.35, J.cgec - off, "WB"], [s0 + 0.05, J.home - 4, 5], [t0 - 0.2, J.home - 4, 5], [JOURNEY.takeoff - 0.1, J.runway, 5], [JOURNEY.takeoff + 0.25, J.runway + 10, "N"], [JOURNEY.land - 0.15, J.to - 3, "N"], [JOURNEY.land, J.to, "N"], [JOURNEY.land + 0.35, T - off, 6], [total, T - off, 6]];
     return (
