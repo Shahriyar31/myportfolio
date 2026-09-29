@@ -87,16 +87,17 @@ export async function ask(text) {
     history = [...history, { role: "user", content: text }].slice(-12);
     ["intent", "retrieve", "generate"].forEach(id => step(id, "run"));
 
-    let reply = null, sources = [], server = [], actions = [], via = "fallback";
+    let reply = null, sources = [], server = [], actions = [], via = "fallback", why = "no connection";
     try {
         const ac = new AbortController(), t = setTimeout(() => ac.abort(), 25000);
         const res = await fetch("/api/chat", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history }) });
         clearTimeout(t);
         const j = await res.json().catch(() => ({}));
+        why = `server answered ${res.status}`;
         if (res.ok && j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; actions = j.actions || []; via = j.model || "model"; }
         else if (j.error) reply = j.error;
-    } catch { /* offline: handled below */ }
-    if (!reply) reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`;
+    } catch (e) { why = e?.name === "AbortError" ? "timed out" : "no connection"; }
+    if (!reply) { console.warn("Ask my AI:", why); server = [{ step: "agent", detail: why }]; reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`; }
 
     set({ tools: [...new Set(server.filter(s => s.step === "tools").flatMap(s => [...String(s.detail).matchAll(/\b([a-z_]+)\(/g)].map(m => m[1])))] });
     // replay the server's real trace, one step at a time
