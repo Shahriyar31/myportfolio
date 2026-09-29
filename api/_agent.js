@@ -25,7 +25,7 @@ import { SystemMessage, HumanMessage, AIMessage, ToolMessage } from "@langchain/
 import { Annotation, MessagesAnnotation, StateGraph, START, END } from "@langchain/langgraph";
 import { z } from "zod";
 import { KB } from "./_kb.js";
-import { retrieve, answer as ragAnswer, checkAnswer, PERSONA, REFUSAL, EMAIL, MODELS, groqKey, ready } from "./_rag.js";
+import { retrieve, answer as ragAnswer, checkAnswer, PERSONA, REFUSAL, EMAIL, MODELS, groqKey, ready, modelOpts, budget } from "./_rag.js";
 import { inputShield } from "./_guard.js";
 
 const MAX_TURNS = 4, MAX_INPUT = 4000;
@@ -101,7 +101,7 @@ const State = Annotation.Root({
 
 export function buildAgent({ apiKey = groqKey(), baseUrl, timeout = 15000 } = {}) {
     const sink = { actions: [], sources: [] }, tools = makeTools(sink), byName = Object.fromEntries(tools.map(t => [t.name, t]));
-    const llm = new ChatGroq({ apiKey, model: MODELS.answer, temperature: 0.35, maxTokens: 450, maxRetries: 1, ...(baseUrl ? { baseUrl } : {}) });
+    const llm = new ChatGroq({ apiKey, model: MODELS.answer, temperature: 0.35, maxTokens: budget(MODELS.answer, 450), maxRetries: 1, ...modelOpts(MODELS.answer).lc, ...(baseUrl ? { baseUrl } : {}) });
     const withTools = llm.bindTools(tools), answerOnly = llm.bindTools(tools, { tool_choice: "none" });
 
     const guard = async s => {

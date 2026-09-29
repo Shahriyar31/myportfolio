@@ -22,6 +22,17 @@ import { inputShield, outputScan } from "./_guard.js";
 export const EMAIL = "shahriyarfarhan3101@gmail.com";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 export const MODELS = { answer: process.env.GROQ_MODEL || "llama-3.3-70b-versatile", fast: process.env.GROQ_FAST_MODEL || "llama-3.1-8b-instant" };
+/*
+ * Reasoning models (gpt-oss, qwen3) think before they answer and those tokens count against max_tokens,
+ * so they get a low reasoning effort, hidden reasoning and a larger token budget.
+ */
+export function modelOpts(model = "") {
+    if (/gpt-oss/.test(model)) return { reasoning: true, body: { reasoning_effort: "low" }, lc: { reasoningEffort: "low" } };
+    if (/qwen3|deepseek-r1/.test(model)) return { reasoning: true, body: { reasoning_format: "hidden" }, lc: { reasoningFormat: "hidden" } };
+    return { reasoning: false, body: {}, lc: {} };
+}
+export const budget = (model, n) => n + (modelOpts(model).reasoning ? 800 : 0);
+
 /** the key as pasted into Vercel, without stray spaces, line breaks or quotes */
 export const groqKey = () => (process.env.GROQ_API_KEY || "").trim().replace(/^["']+|["']+$/g, "");
 
@@ -56,7 +67,7 @@ export function ready() {
 export async function probe() {
     const models = await ready();
     const t0 = Date.now();
-    try { const { model } = await groq({ model: MODELS.answer, messages: [{ role: "user", content: "Say OK." }], max_tokens: 5, timeout: 8000 }); return { models, completion: { ok: true, model, ms: Date.now() - t0 } }; }
+    try { const { model } = await groq({ model: MODELS.answer, messages: [{ role: "user", content: "Reply with the single word OK." }], max_tokens: 20, timeout: 10000 }); return { models, completion: { ok: true, model, ms: Date.now() - t0 } }; }
     catch (e) { return { models, completion: { ok: false, status: e.status || 0, error: String(e.detail || e.message).slice(0, 240) } }; }
 }
 
@@ -86,7 +97,7 @@ async function groq({ model, messages, max_tokens = 320, temperature = 0.5, time
     const tryOnce = async m => {
         const ac = new AbortController(), t = setTimeout(() => ac.abort(), timeout);
         try {
-            const r = await fetch(GROQ_URL, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` }, body: JSON.stringify({ model: m, messages, max_tokens, temperature }) });
+            const r = await fetch(GROQ_URL, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` }, body: JSON.stringify({ model: m, messages, max_tokens: budget(m, max_tokens), temperature, ...modelOpts(m).body }) });
             if (!r.ok) { const j = await r.json().catch(() => ({})); throw Object.assign(new Error(`groq ${r.status}`), { status: r.status, detail: j?.error?.message }); }
             const j = await r.json(), text = j?.choices?.[0]?.message?.content?.trim();
             if (!text) throw new Error("empty completion");

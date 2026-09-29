@@ -49,7 +49,7 @@ This portfolio avoids standard static templates by building complex 2D and 3D vi
 
 ## 🤖 "Ask my AI": a grounded agent with tools
 
-The chat is a **LangGraph agent** (`api/_agent.js`) using **LangChain** tools and Groq Llama 3.3 70B. It answers **only** from the Markdown knowledge base in `data/knowledge/`.
+The chat is a **LangGraph agent** (`api/_agent.js`) using **LangChain** tools on Groq. The server asks Groq which models the key can use and picks the first available from a preference list (Llama 3.3 70B, gpt-oss-120b, Kimi K2, …), so a retired model never breaks the chat. Check a deployment at `/api/chat?probe=1`. It answers **only** from the Markdown knowledge base in `data/knowledge/`.
 
 ```
 guard ─┬─ attack ───────────────────────────→ refuse
