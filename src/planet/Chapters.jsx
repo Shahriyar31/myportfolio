@@ -44,13 +44,16 @@ export function H({ as: Tag = "h2", text, className = "", accent }) {
                 <span key={wi}>
                     <span className={`pl-w ${accent && accent.some(a => a.replace(/[.,!?]/g, "") === w.replace(/[.,!?]/g, "")) ? "is-accent" : ""}`} aria-hidden="true">
                         {[...w].map((ch, ci) => <span key={ci} className="pl-l" style={{ "--i": n++ }}>{ch}</span>)}
+                        {accent && accent.some(a => a.replace(/[.,!?]/g, "") === w.replace(/[.,!?]/g, "")) && <Swoosh />}
                     </span>{wi < words.length - 1 ? " " : ""}
                 </span>
             ))}
         </Tag>
     );
 }
-const Kick = ({ children }) => <span className="pl-kick mono">{children}</span>;
+const Kick = ({ children }) => <span className="pl-kick mono"><i aria-hidden="true" />{children}</span>;
+/** a hand-drawn marker stroke under a headline's accent word; it draws itself after the letters rise */
+export const Swoosh = () => <svg className="pl-swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13 C 48 7, 118 3, 196 9 M 30 17 C 80 13, 140 12, 176 14" pathLength="1" /></svg>;
 
 /** how far (in slots) the page has scrolled into a section, as a number that updates while visible */
 function useSlots(ref, fn, smooth = 0) {
@@ -165,77 +168,67 @@ function DemoModal({ item, onClose }) {
         </div>, document.body
     );
 }
+/* desktop: the tower projects one module at a time. Its ring lights up, a blade of light leaves the ring and the
+   module unfolds from it as a hologram. On the left, the module list says what is online. Phones: the three cards in a row. */
 export function What() {
-    const [open, setOpen] = useState(null), p = useProgress(), sec = useRef(null), stage = useRef(null), sats = useRef([]), beams = useRef([]), [n, setN] = useState(0), cur = useRef(0), [small, setSmall] = useState(false);
+    const [open, setOpen] = useState(null), p = useProgress(), sec = useRef(null), holo = useRef(null), [n, setN] = useState(0), cur = useRef(0), [small, setSmall] = useState(false);
     useEffect(() => { const mq = matchMedia(COMPACT), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
-    // one card per stretch of scroll: it pops out of the tower's core and stays put
     useSlots(sec, q => { const k = q < -0.7 ? 0 : Math.min(3, Math.floor(q + 1.5)); if (k !== cur.current) { cur.current = k; setN(k); } });
-    // a card is born: a stream of light leaves the tower's core, draws the card's outline, then the card materialises (a hologram scan)
-    const cv = useRef(null), fx = useRef({ burst: [], pk: [], hover: -1, last: [] });
+    const act = n - 1;
+    useEffect(() => { World.scene?.setWhat(act); return () => World.scene?.setWhat(-1); }, [act]);
+    // keep the hologram level with its ring: the blade starts at the ring's edge, the panel sits at the same height
     useEffect(() => {
-        if (n <= 0) return; World.scene?.setWhat(n - 1);
-        const el = sats.current[n - 1], core = World.scene?.screenOf("core"), st = stage.current;
-        if (el && core && st && !small && !reducedMotion()) {
-            const r = el.getBoundingClientRect(), top = st.getBoundingClientRect().top, now = performance.now(), cols = ["#88c0d0", "#b48ead", "#a3be8c", "#eceff4"];
-            for (let k = 0; k < 170; k++) {
-                const edge = k % 10 < 7, u = Math.random(), side = Math.floor(Math.random() * 4);
-                const [x1, y1] = edge ? [[r.left + u * r.width, r.top], [r.right, r.top + u * r.height], [r.left + u * r.width, r.bottom], [r.left, r.top + u * r.height]][side] : [r.left + Math.random() * r.width, r.top + Math.random() * r.height];
-                const x0 = core.x + (Math.random() - 0.5) * 16, y0 = core.y - top + (Math.random() - 0.5) * 16, mx = (x0 + x1) / 2 + (Math.random() - 0.5) * 220, my = Math.min(y0, y1 - top) - 60 - Math.random() * 140;
-                fx.current.burst.push({ x0, y0, mx, my, x1, y1: y1 - top, t0: now + Math.random() * 380, d: 700 + Math.random() * 500, s: 1 + Math.random() * 2.2, c: cols[k % 4] });
-            }
-            el.animate([{ clipPath: "inset(0 0 100% 0 round 18px)", opacity: 0.2, filter: "brightness(1.8) saturate(.4)" }, { clipPath: "inset(0 0 0% 0 round 18px)", opacity: 1, filter: "brightness(1.25)", offset: 0.7 }, { clipPath: "inset(0 0 0% 0 round 18px)", opacity: 1, filter: "none" }], { duration: 1100, delay: 650, easing: "cubic-bezier(.3,.7,.2,1)", fill: "backwards" });
-            el.querySelector(".pl-sat-scan")?.animate([{ top: "0%", opacity: 1 }, { top: "100%", opacity: 1, offset: 0.7 }, { top: "100%", opacity: 0 }], { duration: 1100, delay: 650, easing: "cubic-bezier(.3,.7,.2,1)", fill: "both" });
-        }
-        const t = setTimeout(() => World.scene?.setWhat(-1), 1800); return () => clearTimeout(t);
-    }, [n, small]);
-    // every frame: faint guide beams core → card, data packets flowing along them (faster to the card you hover), and the burst particles
-    useEffect(() => {
-        let raf = 0, dpr = Math.min(2, devicePixelRatio || 1);
-        const loop = now => {
-            raf = requestAnimationFrame(loop); const st = stage.current, S = World.scene, c = cv.current; if (!st || !S || small || !c) return;
-            const W = st.clientWidth, H = st.clientHeight; if (c.width !== W * dpr || c.height !== H * dpr) { c.width = W * dpr; c.height = H * dpr; }
-            const g = c.getContext("2d"), top = st.getBoundingClientRect().top, core = S.screenOf("core"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); if (!core) return;
-            const cy = core.y - top, F = fx.current, ends = [];
-            WHAT.forEach((w, i) => {
-                const ln = beams.current[i], el = sats.current[i]; if (!el) return; const r = el.getBoundingClientRect(), x2 = r.left + r.width / 2 < core.x ? r.right : r.left, y2 = r.top + Math.min(40, r.height / 2) - top, qx = (core.x + x2) / 2, qy = Math.min(cy, y2) - 40;
-                ln?.setAttribute("d", `M${core.x} ${cy} Q${qx} ${qy} ${x2} ${y2}`); ends[i] = [qx, qy, x2, y2];
-                if (i < cur.current) { const gap = F.hover === i ? 70 : 420; if (!F.last[i] || now - F.last[i] > gap) { F.last[i] = now; F.pk.push({ i, t0: now, d: F.hover === i ? 700 : 1300 }); } }
-            });
-            g.globalCompositeOperation = "lighter";
-            const dot = (x, y, rad, col, a) => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, rad, 0, 6.283); g.fill(); g.globalAlpha = a * 0.25; g.beginPath(); g.arc(x, y, rad * 3, 0, 6.283); g.fill(); };
-            const bez = (x0, y0, mx, my, x1, y1, t) => [(1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * mx + t * t * x1, (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * my + t * t * y1];
-            F.pk = F.pk.filter(p => { const t = (now - p.t0) / p.d, e = ends[p.i]; if (t >= 1 || !e) return false; if (t < 0) return true; const [x, y] = bez(core.x, cy, e[0], e[1], e[2], e[3], t); dot(x, y, 2.2, "#88c0d0", Math.sin(Math.PI * t)); return true; });
-            F.burst = F.burst.filter(p => { const t = (now - p.t0) / p.d; if (t < 0) return true; if (t > 1.6) return false; const k = Math.min(1, t), e = 1 - Math.pow(1 - k, 3), [x, y] = bez(p.x0, p.y0, p.mx, p.my, p.x1, p.y1, e); dot(x, y, p.s, p.c, t < 1 ? 0.9 : 0.9 * (1 - (t - 1) / 0.6)); return true; });
-            g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+        let raf = 0; const loop = () => {
+            raf = requestAnimationFrame(loop); const h = holo.current, S = World.scene; if (!h || !S || cur.current < 1) return;
+            const at = S.screenOf("ring", cur.current), st = h.parentElement.getBoundingClientRect(); if (!at) return;
+            const panel = h.querySelector(".pl-holo-panel"), ph = panel?.offsetHeight || 300, left = h.offsetLeft + st.left, me = S.screenOf("me");
+            // below my speech bubble, level with the ring when there is room
+            const top = Math.min(Math.max(96, at.y - 56, me ? me.y - 2 : 0), innerHeight - ph - 90), oy = Math.min(ph - 14, Math.max(14, at.y - top));
+            const dx = left - at.x, dy = top + oy - at.y;
+            h.style.setProperty("--top", `${top - st.top}px`); h.style.setProperty("--oy", `${oy}px`);
+            h.style.setProperty("--bx", `${at.x - left}px`); h.style.setProperty("--by", `${at.y - st.top}px`); h.style.setProperty("--bl", `${Math.hypot(dx, dy)}px`); h.style.setProperty("--ba", `${Math.atan2(dy, dx)}rad`);
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-    }, [small]);
-    const enter = i => { fx.current.hover = i; World.scene?.setWhat(i); }, leave = () => { fx.current.hover = -1; World.scene?.setWhat(-1); }, head = useRef(null);
-    useFit(head, c => c ? innerHeight * 0.22 : innerHeight * 0.42);
-    useEffect(() => { const run = () => sats.current.forEach(el => { if (!el) return; const room = compact() ? innerHeight * 0.36 : Math.min(innerHeight * 0.4, (innerHeight - 200) / 2); for (let l = 0; l <= 3; l++) { el.dataset.fit = String(l); if (el.offsetHeight <= room) break; } }); run(); addEventListener("resize", run); document.fonts?.ready.then(run); return () => removeEventListener("resize", run); }, [small]);
+    }, []);
+    const go = i => { const el = sec.current; if (!el) return; const y = el.getBoundingClientRect().top + scrollY + innerHeight * 0.45 * i + 2; window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.1 }) : scrollTo({ top: y, behavior: "smooth" }); };
+    const enter = i => World.scene?.setWhat(i), leave = () => World.scene?.setWhat(act), head = useRef(null);
+    useFit(head, c => c ? innerHeight * 0.22 : innerHeight * 0.5);
+    const w = WHAT[act];
     return (
         <section id="what" ref={sec} className="pl-what-sec" data-angle={PLACES.what.theta} data-sky="1" data-slot="0.45" style={{ height: "calc(100svh + 150svh)" }}>
-            <div className="pl-what-stage" ref={stage}>
+            <div className="pl-what-stage">
                 <div className="pl-what-head" ref={head}>
-                    <Kick>02 · What I do · the AI tower</Kick>
+                    <Kick>What I do · the AI tower</Kick>
                     <H text="Three things, done properly." accent={["properly."]} />
-                    <p className="pl-p" data-drop="1">Keep scrolling: each one comes out of my AI tower. Hover a card to power the core; each has a 1-minute hands-on demo.</p>
-                    <div className="pl-what-steps" aria-hidden="true">{WHAT.map((w, i) => <i key={w.id} className={i < n ? "is-on" : ""} />)}</div>
+                    <p className="pl-p" data-drop="1">My AI tower runs three modules. Scroll to bring each one online; every module has a 1-minute hands-on demo.</p>
+                    {!small && <ol className="pl-mods pl-avoid">{WHAT.map((m, i) => <li key={m.id} className={i === act ? "is-on" : i < act ? "is-done" : ""}><button onClick={() => go(i)}><span className="mono">{m.n}</span><b>{m.title}</b><em className="mono">{i === act ? "online" : p[m.id]?.status === "solved" ? "✓ tried" : i < act ? "loaded" : "standby"}</em></button></li>)}</ol>}
                 </div>
-                {!small && <canvas className="pl-sparks" ref={cv} aria-hidden="true" />}
-                {!small && <svg className="pl-beams" aria-hidden="true">{WHAT.map((w, i) => <path key={w.id} ref={el => { beams.current[i] = el; }} className={i < n ? "is-on" : ""} pathLength="1" />)}</svg>}
-                <div className={small ? "pl-sats-row" : ""}>
-                    {WHAT.map((w, i) => (
-                        <div key={w.id} ref={el => { sats.current[i] = el; }} className={`pl-sat pl-sat-${i} ${small || i < n ? "is-out" : ""}`} onPointerEnter={() => enter(i)} onPointerLeave={leave} onFocus={() => enter(i)} onBlur={leave}>
-                            <span className="pl-sat-scan" aria-hidden="true" />
-                            <span className="pl-sat-n mono">{w.n}</span>
+                {!small && w && (
+                    <div className="pl-holo" ref={holo} key={w.id} aria-live="polite">
+                        <i className="pl-holo-blade" aria-hidden="true" />
+                        <div className="pl-holo-panel pl-avoid" onPointerEnter={() => enter(act)} onPointerLeave={leave}>
+                            <span className="pl-holo-c" aria-hidden="true"><i /><i /><i /><i /></span>
+                            <div className="pl-holo-top mono"><span><i className="pl-holo-dot" />Module {w.n} · online</span><span>{act + 1} / {WHAT.length}</span></div>
                             <h3>{w.title}</h3>
-                            <p data-drop="2">{w.plain}</p>
-                            <div className="pl-tags" data-drop="1">{w.tools.map(t => <span key={t}>{t}</span>)}</div>
-                            <button className="pl-try" onClick={() => setOpen(w)}><span className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span>{w.demo} →</button>
+                            <p>{w.plain}</p>
+                            <div className="pl-holo-tools">{w.tools.map((t, k) => <span key={t} style={{ "--d": `${0.95 + k * 0.08}s` }}>{t}</span>)}</div>
+                            <button className="pl-holo-try" onClick={() => setOpen(w)}><span className="mono">{p[w.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span><b>{w.demo} →</b></button>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
+                {small && (
+                    <div className="pl-sats-row">
+                        {WHAT.map(m => (
+                            <div key={m.id} className="pl-sat is-out">
+                                <span className="pl-sat-n mono">{m.n}</span>
+                                <h3>{m.title}</h3>
+                                <p data-drop="2">{m.plain}</p>
+                                <div className="pl-tags" data-drop="1">{m.tools.map(t => <span key={t}>{t}</span>)}</div>
+                                <button className="pl-try" onClick={() => setOpen(m)}><span className="mono">{p[m.id]?.status === "solved" ? "✓ Solved · replay" : "Try it · 1 min"}</span>{m.demo} →</button>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             {open && <DemoModal item={open} onClose={() => setOpen(null)} />}
         </section>
@@ -262,7 +255,7 @@ export function Break() {
                 <div className="pl-term">
                     <div className="pl-term-bar"><i /><i /><i /><span className="mono">guardrails@farhan: ~/break-my-ai</span></div>
                     <div className="pl-term-body">
-                        <p className="t-dim">{"// 03 · the governance gate"}</p>
+                        <p className="t-dim">{"// the governance gate"}</p>
                         <h2 className="pl-term-h">Don't trust my CV.<br /><em>Try to break my AI.</em></h2>
                         <p className="t-dim">It guards a secret code. Four real layers of defence decide, the same OWASP LLM Top 10 thinking as in my paper. Pick an attack or write your own.</p>
                         <div className="pl-presets">{PRESETS.map(([k, t]) => <button key={k} disabled={a.busy} onClick={() => go(t)} title={t}><b>$ {k.toLowerCase()}</b>{t}</button>)}</div>
@@ -338,7 +331,7 @@ export function Experience() {
             <div className="pl-stage pl-left">
                 {f >= 0 && <svg className="pl-exp-line" aria-hidden="true"><defs><linearGradient id="plWin" x1="1" x2="0"><stop offset="0" stopColor="#f5e6b8" stopOpacity=".85" /><stop offset=".35" stopColor="#88c0d0" stopOpacity=".35" /><stop offset="1" stopColor="#88c0d0" stopOpacity="0" /></linearGradient></defs><polygon ref={line} className="pl-exp-cone" fill="url(#plWin)" /></svg>}
                 {f >= 0 && f < 4 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
-                {f < 0 && <div className="pl-exp-intro"><Kick>04 · Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
+                {f < 0 && <div className="pl-exp-intro"><Kick>Where I do it for real</Kick><H text="Let's ride up the Nordex tower." accent={["Nordex"]} /><p className="pl-p">{job.role} · {job.date}. Keep scrolling: one floor per part of my job.</p></div>}
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor" data-fit="0">
                         <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
@@ -427,7 +420,7 @@ export function Projects() {
     return (
         <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
-                <div className="pl-show-head"><Kick>05 · The project park · {near + 1} / {N}</Kick></div>
+                <div className="pl-show-head"><Kick>The project park · {near + 1} / {N}</Kick></div>
                 <div className="pl-blueprint" ref={board}>
                     <span className="pl-bp-grid" aria-hidden="true" />
                     {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-bp-slot" ref={el => { slots.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 1 && <ProjectCard p={p} i={k} fold={el => { folds.current[k] = el; }} />}</div>; })}
@@ -511,7 +504,7 @@ function CgecLaptop() {
     useEffect(() => { const c = code.current, b = body.current; if (c) c.scrollTop = c.scrollHeight; if (b && b.scrollHeight > b.clientHeight + 4) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); }, [lines.length, grad]);
     return (
         <div className="pl-edu">
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
+            <div className="pl-edu-cap"><Kick>My journey · stop 1 of 4 · 2018 – 2022</Kick><H text="Where it started." accent={["started."]} /></div>
             <Mac title="degree.py — btech" className="is-ide" bodyRef={body} foot={<><span>{grad ? "✓ build passed · 0 errors" : "● building…"}</span><span>Python · UTF-8 · Ln {lines.length}, Col {lines[lines.length - 1].length + 1}</span></>}>
                 <div className="pl-ide">
                     <div className="pl-ide-left">
@@ -544,7 +537,8 @@ function CgecLaptop() {
 /* the gap year: a diary on one side ticks itself off; my passport on the other side opens, turns a page, and gets its visa */
 const PREP = ["University applications", "Admitted to TUHH · M.Sc. Data Science", "Finances and paperwork", "Student visa", "Goodbye, West Bengal"];
 const clamp01 = x => Math.min(1, Math.max(0, x));
-const TICKS = [0.05, 0.12, 0.19, 0.26, 0.33], OPEN = 0.42, TURN = 0.6, STAMP = 0.76;
+// each passport page has its own scroll stop (GAP_STOPS); a page turns as you cross the midpoint between two stops
+const OPEN = 0.27, TURN = 0.54, STAMP = 0.78, GAP_STOPS = [0.12, 0.42, 0.66, 0.9];
 /** a page that turns over its spine: eases from where it is to open or shut, shading as it lifts; the scroll only says which way */
 function useLeaf(ref, on, dur = 1500) {
     const cur = useRef(on ? 1 : 0);
@@ -558,20 +552,8 @@ function useLeaf(ref, on, dur = 1500) {
         raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf);
     }, [on, dur]);
 }
-/** follows the scroll one step at a time, and holds each step long enough to read (quicker on the way back) */
-function usePaced(want, hold = 3000, back = 1200) {
-    const [step, setStep] = useState(want), last = useRef(0);
-    useEffect(() => {
-        if (want === step) return;
-        if (reducedMotion()) { setStep(want); return; }
-        const wait = Math.max(0, last.current + (want > step ? hold : back) - performance.now());
-        const t = setTimeout(() => { last.current = performance.now(); setStep(s => s + Math.sign(want - s)); }, wait);
-        return () => clearTimeout(t);
-    }, [want, step, hold, back]);
-    return step;
-}
 function Leaf({ on, k, front, back }) {
-    const ref = useRef(null); useLeaf(ref, on, 2300);
+    const ref = useRef(null); useLeaf(ref, on, 1500);
     return <div className="pl-leaf" ref={ref} style={{ "--z0": 10 - k, "--z1": 20 + k }}><div className="pl-face">{front}</div><div className="pl-face is-back">{back}</div></div>;
 }
 function Passport({ open, turned, stamped }) {
@@ -603,11 +585,11 @@ function Passport({ open, turned, stamped }) {
 }
 function Tick({ on }) { return <svg viewBox="0 0 24 24" className={`pl-tick ${on ? "is-on" : ""}`} aria-hidden="true"><path d="M4 13.5 9.5 18.5 20 5.5" /></svg>; }
 function GapYear({ q }) {
-    const n = TICKS.filter(x => q >= x).length, want = (q >= OPEN) + (q >= TURN) + (q >= STAMP), step = usePaced(want, 3200, 1400);
+    const t = useClock(5000), n = Math.max(0, Math.min(PREP.length, Math.floor((t - 500) / 420))), step = (q >= OPEN) + (q >= TURN) + (q >= STAMP);
     const open = step >= 1, turned = step >= 2, stamped = step >= 3;
     return (
         <div className={`pl-gap2 ${open ? "is-pass" : ""}`}>
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
+            <div className="pl-edu-cap"><Kick>My journey · stop 2 of 4 · 2022 – 2023</Kick><H text="One year to get ready." accent={["ready."]} /></div>
             <div className="pl-diary2 pl-avoid">
                 <span className="pl-diary-date mono">2022 – 2023 · at home in West Bengal</span>
                 <b className="pl-diary-h">To do before Germany</b>
@@ -624,7 +606,7 @@ function BoardingPass() {
     return (
         <div className="pl-bpass" style={{ "--f": f }}>
             <div className="pl-bpass-main">
-                <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>06 · stop 3 of 4 · 2023</span></div>
+                <div className="pl-bpass-top mono"><span>Boarding pass · one way</span><span>My journey · stop 3 of 4 · 2023</span></div>
                 <div className="pl-bpass-route">
                     <div><small className="mono">From</small><b>CCU</b><span>Kolkata, India</span></div>
                     <div className="pl-bpass-track"><i /><em aria-hidden="true">✈</em></div>
@@ -667,7 +649,7 @@ function TuhhNotebook() {
     const wait = <span className="pl-nb-wait mono">waiting for the kernel…</span>;
     return (
         <div className="pl-edu">
-            <div className="pl-edu-cap"><Kick>06 · My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
+            <div className="pl-edu-cap"><Kick>My journey · stop 4 of 4 · Oct 2023 – now</Kick><H text="Landed in Hamburg." accent={["Hamburg."]} /></div>
             <Mac title="M.Sc._Data_Science.ipynb — JupyterLab" className="is-nb3" bodyRef={body} foot={<><span>{shown < NB.length ? "● kernel busy" : "○ kernel idle"}</span><span>Python 3 · TUHH · Hamburg</span></>}>
                 <div className="pl-lab">
                     <div className="pl-lab-cells">
@@ -690,7 +672,7 @@ export function Journey() {
         const k = p < s0 - 0.1 ? 0 : p < s0 + s1 - 0.1 ? 1 : p < JOURNEY.land ? 2 : 3; if (k !== cur.current) { cur.current = k; setStop(k); }
         if (k === 1) setQ(Math.min(1, Math.max(0, (p - s0 + 0.1) / (s1 - 0.3))));
     }, 7);
-    useSnap(sec, [0, JOURNEY.land + 0.5]);
+    useSnap(sec, [0, ...GAP_STOPS.map(g => s0 - 0.1 + g * (s1 - 0.3)), JOURNEY.land + 0.5]);
     // desktop: at the college and at TUHH I step to the right so the laptop gets the room
     const stopRef = useRef(0); stopRef.current = stop;
     useEffect(() => { Views.journey = () => ({ fx: stopRef.current !== 2 ? standFx() : 0 }); return () => { delete Views.journey; }; }, []);
@@ -778,7 +760,7 @@ export function Contact({ onCv, onQuick }) {
     const ui = useUI(), a = useAttack(), p = useProgress(), [copied, setCopied] = useState(false), desk = useRef(null), verified = p.verdict?.status === "solved";
     const demos = ["build", "legal", "ship"].filter(id => p[id]?.status === "solved").length;
     useEffect(() => { if (verified) World.scene?.setMail(true); }, [verified]);
-    useEffect(() => { Views.contact = () => ({ fx: !compact() ? -1.6 : 0, dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
+    useEffect(() => { Views.contact = () => ({ fx: standFx(), dy: !compact() ? 0 : 0.2 }); return () => { delete Views.contact; }; }, []);
     const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* blocked */ } };
     useScaleFit(desk);
     const score = Math.round(((ui.orbs.length / ORBS.length) * 0.4 + (a.tries ? 0.3 : 0) + (demos / 3) * 0.3) * 100);
@@ -790,19 +772,19 @@ export function Contact({ onCv, onQuick }) {
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
             <div className="pl-desk-left" ref={desk}>
             <div className="pl-desk-copy">
-                <Kick>08 · My desk · this is where I build</Kick>
+                <Kick>My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />
                 <p className="pl-p" data-drop="1">Open to AI engineering roles: RAG and agents, AI platforms on Azure, AI governance and security. Write me a letter, it flies straight into my mailbox.</p>
             </div>
             <div className="pl-desk-table">
                 <Letter />
-                <div className="pl-stamps">{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
+                <div className="pl-stamps"><span className="pl-sheet-cap mono">Postage · tap a stamp</span>{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
                 <div className="pl-trust pl-log">
                     <span className="pl-log-cap mono">Your visit · logged on this desk</span>
                     <div className="pl-log-dial"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" /><circle cx="22" cy="22" r="18" pathLength="100" style={{ strokeDasharray: `${score} 100` }} /></svg><b>{score}%</b><small>of my world</small></div>
                     <ul className="pl-log-list">
                         <li className={ui.orbs.length ? "ok" : ""}><i aria-hidden="true">✦</i><span>Skill orbs</span><b className="mono">{ui.orbs.length}/{ORBS.length}</b></li>
-                        <li className={a.tries ? "ok" : ""}><i aria-hidden="true">⛨</i><span>Break my AI</span><b className="mono">{a.tries ? `${a.tries} tries · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try it</button>}</b></li>
+                        <li className={a.tries ? "ok" : ""}><i aria-hidden="true">⛨</i><span>Break my AI</span><b className="mono">{a.tries ? `${a.tries} · 0 leaks` : <button className="pl-link" onClick={() => scrollToId("break")}>try it</button>}</b></li>
                         <li className={demos ? "ok" : ""}><i aria-hidden="true">▶</i><span>Demos solved</span><b className="mono">{demos}/3</b></li>
                     </ul>
                     <div className="pl-log-seal">{verified ? <span className="pl-stamp mono">Verified<small>by you ✓</small></span> : <button className="pl-rubber" onClick={() => { mark("verdict", "solved"); say("Thank you! That means a lot 🙏"); }}>Stamp me: trustworthy</button>}</div>

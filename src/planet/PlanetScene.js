@@ -124,7 +124,7 @@ export default class PlanetScene {
         // what I do: the AI tower
         { const g = this.tower = this.spot(P.what.theta, 9);
             this.cyl(1.1, 1.5, 0.5, M.white, g, 0, 0, 0, 24); this.cyl(0.5, 0.8, 5.2, M.steel, g, 0, 0.5, 0, 24);
-            for (let i = 0; i < 5; i++) this.cyl(0.62 + (4 - i) * 0.05, 0.62 + (4 - i) * 0.05, 0.1, M.accent, g, 0, 1.1 + i * 0.95, 0, 24);
+            this.towerRings = []; for (let i = 0; i < 5; i++) this.towerRings.push(this.cyl(0.62 + (4 - i) * 0.05, 0.62 + (4 - i) * 0.05, 0.1, M.accent.clone(), g, 0, 1.1 + i * 0.95, 0, 24));
             this.coreMat = new THREE.MeshStandardMaterial({ color: 0xb48ead, emissive: 0x7d6a8c, emissiveIntensity: 1.1, flatShading: true });
             this.core = this.mesh(new THREE.IcosahedronGeometry(0.85, 1), this.coreMat, g, 0, 6.8, 0);
             this.coreRings = [0, 1].map(i => { const t = this.mesh(new THREE.TorusGeometry(1.35 + i * 0.35, 0.04, 8, 64), M.accent, g, 0, 6.8, 0); t.rotation.x = 1.1 + i * 0.5; return t; }); }
@@ -288,6 +288,7 @@ export default class PlanetScene {
     screenOf(what, i = 0) {
         let w;
         if (what === "me") { if (!this.me || !this.me.visible) return null; w = this.me.getWorldPosition(V(0, 0, 0)).add(V(0, this.sitting || this.base === "sit" ? 1.25 : 1.55, 0)); }
+        else if (what === "ring") { if (!this.towerRings?.[i]) return null; const y = 1.1 + i * 0.95 + 0.05, a = this.tower.localToWorld(V(0.85, y, 0)).project(this.camera), b = this.tower.localToWorld(V(-0.85, y, 0)).project(this.camera), c = this.tower.localToWorld(V(0, y, 0.85)).project(this.camera), d = this.tower.localToWorld(V(0, y, -0.85)).project(this.camera), m = [a, b, c, d].reduce((p, q) => (q.x > p.x ? q : p)), r = this.canvas.getBoundingClientRect(); return { x: r.left + (m.x + 1) / 2 * r.width, y: r.top + (1 - m.y) / 2 * r.height }; }
         else if (what === "feet") { if (!this.me || !this.me.visible) return null; w = this.me.getWorldPosition(V(0, 0, 0)); }
         else if (what === "plane") { if (!this.planeG) return null; w = this.planeG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.7, 0)); }
         else if (what === "tower") { w = this.tower.localToWorld(V(Math.cos(i) * 6.4, 3.3 + Math.sin(i * 2) * 0.2, Math.sin(i) * 2.4)); }
@@ -426,7 +427,7 @@ export default class PlanetScene {
     setSky(sky) { this.skyGoal = sky; }
     setProjectFocus(theta) { this.projectFocus = theta; }
     setPointer(x, y) { this.pointer.set(x, y); }
-    setWhat(k) { const c = [0xb48ead, 0x88c0d0, 0xd8b779, 0xa3be8c][k + 1] ?? 0xb48ead; this.coreMat.color.set(c); this.coreMat.emissive.set(c); this.coreBoost = k >= 0 ? 1 : 0; }
+    setWhat(k) { const c = [0xb48ead, 0x88c0d0, 0xd8b779, 0xa3be8c][k + 1] ?? 0xb48ead; this.coreMat.color.set(c); this.coreMat.emissive.set(c); this.coreBoost = k >= 0 ? 1 : 0; (this.towerRings || []).forEach((r, i) => { const on = k >= 0 && i === k + 1; r.material.emissive.set(on ? c : 0x5e81ac); r.material.emissiveIntensity = on ? 2.2 : 0.6; r.scale.set(on ? 1.25 : 1, 1, on ? 1.25 : 1); }); }
     setFloor(n) { this.floorOn = n; }
     setFlight(p) { this.flight = p; }
     setSit(v) { this.sitting = v; }

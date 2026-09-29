@@ -1,5 +1,4 @@
 import { createPortal } from "react-dom";
-import SectionHead from "./SectionHead";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Lines } from "./Motion";
 import { reducedMotion, useMedia, lockScroll, unlockScroll } from "./hooks";
@@ -85,7 +84,11 @@ export default function Lens() {
 
     return (
         <section id="lens" className="act" data-station="sky">
-            <div className="wrap"><SectionHead n="07" kicker="Photography" title="Through my lens" sub="Street, mountains and wildlife — mostly West Bengal and the Himalaya. Drag the rings to spin them." /></div>
+            <div className="wrap pl-lens-head">
+                <span className="pl-kick mono"><i aria-hidden="true" />Photography · away from the keyboard</span>
+                <h2 className="pl-h is-in">Through my <span className="pl-w is-accent">lens<svg className="pl-swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13 C 48 7, 118 3, 196 9 M 30 17 C 80 13, 140 12, 176 14" pathLength="1" /></svg></span></h2>
+                <p className="head-sub">Street, mountains and wildlife, mostly West Bengal and the Himalaya. Drag the rings to spin them.</p>
+            </div>
 
             <div className="lens-filters wrap" role="tablist" aria-label="Photo categories">
                 {CATS.map(c => {

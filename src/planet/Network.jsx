@@ -123,7 +123,7 @@ export default function Network() {
     return (
         <div className="pl-skillterm" ref={box} style={{ "--rc": role?.color || "#88c0d0" }}>
             <div className="pl-net-head">
-                <div><span className="pl-kick mono">07 · My toolkit · the skill installer</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}</span> for?</h2></div>
+                <div><span className="pl-kick mono"><i aria-hidden="true" />My toolkit · the skill installer</span><h2 className="pl-h is-in">What are you <span className="pl-w is-accent">{[..."hiring"].map((ch, i) => <span key={i} className="pl-l" style={{ "--i": i }}>{ch}</span>)}<svg className="pl-swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13 C 48 7, 118 3, 196 9 M 30 17 C 80 13, 140 12, 176 14" pathLength="1" /></svg></span> for?</h2></div>
                 <p className="pl-p">Pick the role you're hiring for and my skills install one by one, each with where I've really used it. Or type a skill, like <code>rag</code> or <code>kafka</code>.</p>
             </div>
             <div className="pl-st-grid">
