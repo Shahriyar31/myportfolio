@@ -7,6 +7,7 @@ import { CHAPTERS } from "../planet/world";
 /* ── Icons (24px, 1.6 stroke) ── */
 const I = {
     home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5.5h4V20h3.5a1 1 0 0 0 1-1V9.5" /></>,
+    flask: <><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3" /><path d="M7.5 14h9" /></>,
     mail: <><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></>,
     agent: <><rect x="4" y="7" width="16" height="12" rx="3.5" /><path d="M12 7V4M9 12h.01M15 12h.01M9.5 15.5h5" /><circle cx="12" cy="3.5" r=".8" /></>,
     route: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" /></>,
@@ -119,7 +120,7 @@ export function Rail() {
 /* ── Menu: a full-screen index of the planet; big chapter names on the left, a preview of the one you point at on the right ── */
 const ABOUT = {
     home: "Who I am, in one screen.", what: "Three things I do, each with a 1-minute demo.", break: "Try to get past my AI's guardrails.",
-    experience: "Working student at Nordex Group, floor by floor.", projects: "Six projects, from Argus AI to NLP.", journey: "From a B.Tech in India to an M.Sc. in Hamburg.",
+    experience: "My job, one floor per part of it.", research: "My TUHH research project, as a lab notebook.", projects: "Six projects, from Argus AI to NLP.", journey: "From a B.Tech in India to an M.Sc. in Hamburg.",
     skills: "Pick the role you're hiring for, see the matching skills.", lens: "Street, mountains and wildlife.", contact: "Write me a letter. It lands in my inbox.",
 };
 export function Menu({ open, onClose, onOpenCv, onQuick }) {

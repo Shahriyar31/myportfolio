@@ -185,6 +185,7 @@ const LINES = {
     home: "Hey there, welcome to my little planet! 👋",
     what: "Here's what I actually do. Three things, done properly.",
     break: "Go on, try to break my AI. I won't mind.",
+    research: "This is my research at TUHH. Let me show you my lab notebook.",
     experience: "Happy to walk you through my work at Nordex. Let's ride up!",
     projects: "Things I've built. Some are early work, but I learned from every one.",
     contact: "Thanks for walking with me. Fancy writing me a letter?",

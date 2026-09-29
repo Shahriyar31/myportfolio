@@ -11,7 +11,7 @@ export const PLACES = {
     break: { theta: 66 },
     experience: { theta: 100 },
     projects: { theta: 140, items: [
-        { id: 1, theta: 128 }, { id: 2, theta: 134 }, { id: 4, theta: 140 }, { id: 5, theta: 146 }, { id: 3, theta: 152 }, { id: 6, theta: 158 },
+        { id: 1, theta: 128 }, { id: 4, theta: 136 }, { id: 5, theta: 146 }, { id: 3, theta: 152 }, { id: 6, theta: 158 },
     ] },
     lab: { theta: 116 },               // my TUHH research, next to Nordex
     journey: { from: 176, cgec: 176, home: 192, runway: 199, to: 262 },   // college → home, getting ready → take-off → ocean → Hamburg
@@ -55,6 +55,7 @@ export const CHAPTERS = [
     ["what", "What I do", "layers"],
     ["break", "Break my AI", "shield"],
     ["experience", "Work experience", "work"],
+    ["research", "Research", "flask"],
     ["projects", "Projects", "built"],
     ["journey", "Education", "grad"],
     ["skills", "Skills", "keys"],

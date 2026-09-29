@@ -6,7 +6,7 @@ import { Preloader, TopBar, Rail, Menu, CvModal } from "./site/Chrome";
 import { ChatDock } from "./site/Chat";
 import QuickRead from "./site/QuickRead";
 import Planet from "./planet/Planet";
-import { Hero, What, Break, Experience, Projects, Journey, Skills, Photos, Contact } from "./planet/Chapters";
+import { Hero, What, Break, Experience, Research, Projects, Journey, Skills, Photos, Contact } from "./planet/Chapters";
 import { reducedMotion, lockScroll, unlockScroll } from "./site/hooks";
 
 /*
@@ -57,6 +57,7 @@ export default function App() {
                 <What />
                 <Break />
                 <Experience />
+                <Research />
                 <Projects />
                 <Journey />
                 <Skills />

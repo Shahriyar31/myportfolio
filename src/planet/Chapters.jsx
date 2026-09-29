@@ -312,12 +312,12 @@ export function Experience() {
         pn.animate([{ transform: `translate(${dx}px, ${dy}px) scale(.05) rotateY(-35deg)`, opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: "none", opacity: 1 }], { duration: 750, easing: "cubic-bezier(.2,.85,.25,1)" });
     }, [f]);
     const fl = f >= 0 ? job.focus[f] : null;
-    useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 190, [f]);
+    useFit(panel, c => c ? innerHeight * 0.56 : innerHeight - 330, [f]);
     return (
         <section id="experience" ref={sec} className="pl-deck pl-exp-sec" style={{ height: "calc(4 * 85svh + 100svh)" }} data-slot="0.85" data-keys={JSON.stringify([[-0.6, E, 3], [4.6, E, 3]])}>
             <div className="pl-stage pl-left">
                 {f >= 0 && <div className="pl-lift" ref={lift} aria-hidden="true"><s className="pl-lift-bar"><i /></s><span className="mono">Nordex Group · Hamburg</span><b>{f + 1}</b><div>{[3, 2, 1, 0].map(i => <i key={i} className={i === f ? "is-on" : i < f ? "is-done" : ""} />)}</div><em className="mono">▲ FL {f + 1} / 4</em></div>}
-                {f < 0 && <div className="pl-exp-intro"><Kick>Work experience</Kick><H text="Nordex Group" accent={["Nordex"]} /><p className="pl-p">Working student in Enterprise Data Management & AI, Hamburg, since Aug 2025. Ride the lift up: one floor for each part of the job.</p></div>}
+                <div className={`pl-exp-intro ${f >= 0 ? "is-riding" : ""}`}><Kick>{job.company} · {job.date}</Kick><H text="Work experience." accent={["experience."]} /><p className="pl-edu-sub">{job.role.split("—").pop().trim()}{job.location ? `, ${job.location}` : ""}. Ride the lift: one floor for each part of the job.</p></div>
                 {fl && (
                     <div ref={panel} key={f} className="pl-floor" data-fit="0">
                         <div className="pl-floor-top"><span className="pl-floor-no">FL<b>{f + 1}</b></span><div><Kick>{job.company} · {fl.when}</Kick><h3>{fl.k}</h3></div></div>
@@ -327,6 +327,40 @@ export function Experience() {
                         {f === 3 && <p className="pl-note mono">{job.date} · {job.location}</p>}
                     </div>
                 )}
+            </div>
+        </section>
+    );
+}
+
+/* ── research: my TUHH research project, told as a lab notebook; its pages turn as you scroll (one stop per spread) ── */
+export function Research() {
+    const p = PROJECTS.find(x => x.id === 2), res = EXPERIENCE[1], sec = useRef(null), [k, setK] = useState(0), cur = useRef(0), [small, setSmall] = useState(false);
+    useEffect(() => { const mq = matchMedia(COMPACT), f = () => setSmall(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
+    const n = small ? 4 : 2, L = PLACES.lab.theta;
+    useSlots(sec, v => { const j = Math.max(0, Math.min(n - 1, Math.round(v - 0.15))); if (j !== cur.current) { cur.current = j; setK(j); } }, 6);
+    useSnap(sec, Array.from({ length: n }, (_, j) => j + 0.15));
+    useEffect(() => { Views.research = () => ({ fx: standFx() }); return () => { delete Views.research; }; }, []);
+    const pages = [
+        <><span className="pl-rs-stamp mono">Research highlight</span><span className="pl-rs-kick mono">Lab notebook · {res.company}</span><h3 className="pl-rs-title">{p.title}</h3><p className="pl-rs-sub">{p.sub}</p><p className="pl-rs-meta mono">{res.date}</p><p className="pl-rs-p">{p.desc}</p></>,
+        <><span className="pl-rs-kick mono">What I built</span><ul className="pl-rs-list">{p.points.map(t => <li key={t}><i aria-hidden="true">✓</i>{t}</li>)}</ul></>,
+        <><span className="pl-rs-kick mono">The stack</span><div className="pl-rs-stickers">{p.tags.map((t, j) => <span key={t} style={{ "--r": `${(j % 3 - 1) * 3}deg` }}>{t}</span>)}</div><span className="pl-rs-kick mono">Results</span><div className="pl-rs-notes">{p.stats.map(([v, lab], j) => <div key={lab} style={{ "--r": `${j % 2 ? 2 : -2}deg` }}><b>{v}</b>{lab}</div>)}</div></>,
+        <><span className="pl-rs-kick mono">Try it</span><div className="pl-rs-demo"><Preview id={p.id} /></div><div className="pl-show-links">{p.links.map(([t, u], j) => <a key={u} className={`pl-btn ${j === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></>,
+    ];
+    return (
+        <section id="research" ref={sec} className="pl-deck pl-rs-sec" style={{ height: `calc(${n} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify([[-0.6, L, 3], [n + 0.5, L, 3]])}>
+            <div className="pl-stage pl-left">
+                <div className="pl-rs">
+                    <div className="pl-rs-head"><Kick>Research · page {small ? k + 1 : k * 2 + 1}{small ? "" : `–${k * 2 + 2}`} of 4</Kick><H text="My research project." accent={["research"]} /><p className="pl-edu-sub">{p.sub}. Scroll to turn the pages of my lab notebook.</p></div>
+                    {small ? (
+                        <div className="pl-rs-stack">{pages.map((pg, j) => <div key={j} className={`pl-rs-pg ${j === k ? "is-on" : ""}`} aria-hidden={j !== k}>{pg}</div>)}</div>
+                    ) : (
+                        <div className="pl-rs-book pl-avoid">
+                            <div className="pl-rs-pg is-left is-first"><span className="pl-rs-holes" aria-hidden="true" />{pages[0]}</div>
+                            <div className="pl-rs-pg is-right is-base">{pages[3]}</div>
+                            <Leaf k={0} on={k >= 1} front={<div className="pl-rs-pg is-right">{pages[1]}</div>} back={<div className="pl-rs-pg is-left">{pages[2]}</div>} />
+                        </div>
+                    )}
+                </div>
             </div>
         </section>
     );
@@ -366,28 +400,6 @@ function ProjectCard({ p, i, fold }) {
     const C = (
         <div className="pl-fp pl-fp-c" ref={c}><span className="pl-fp-cap mono">Proof</span><div className="pl-show-stats">{p.stats.map(([v, k]) => <div key={k}><b>{v}</b>{k}</div>)}</div><div className="pl-show-demo">{p.id === 1 ? <ArgusTry /> : <Preview id={p.id} />}</div><div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></div>
     );
-    if (p.id === 2) { // my research: a lab notebook instead of a blueprint
-        const res = EXPERIENCE[1];
-        return (
-            <article className="pl-fold is-lab" ref={fold} style={{ "--pc": p.color }}>
-                <div className="pl-fp pl-fp-a">
-                    <span className="pl-lab-tape" aria-hidden="true" /><span className="pl-lab-holes" aria-hidden="true" />
-                    <div className="pl-proj-top"><span className="pl-count mono">{String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span><span className="pl-lab-stamp mono">Research highlight</span></div>
-                    <span className="pl-lab-kick mono">Lab notebook · {res.company}</span>
-                    <h3 className="pl-lab-h">{p.title}</h3>
-                    <p className="pl-lab-sub">{p.sub}</p>
-                    <p className="pl-lab-meta mono">{res.date}</p>
-                    <p className="pl-lab-p">{p.desc}</p>
-                </div>
-                <div className="pl-fold-b">
-                    <div className="pl-fp pl-fp-b"><span className="pl-lab-kick mono">What I did</span><ul className="pl-lab-list">{p.points.map(t => <li key={t}><i aria-hidden="true">✓</i>{t}</li>)}</ul><div className="pl-lab-stickers">{p.tags.map((t, k) => <span key={t} style={{ "--r": `${(k % 3 - 1) * 3}deg` }}>{t}</span>)}</div></div>
-                    <div className="pl-fold-c">
-                        <div className="pl-fp pl-fp-c" ref={c}><span className="pl-lab-kick mono">Results</span><div className="pl-lab-notes">{p.stats.map(([v, k], n) => <div key={k} style={{ "--r": `${n % 2 ? 2 : -2}deg` }}><b>{v}</b>{k}</div>)}</div><div className="pl-show-demo"><Preview id={p.id} /></div><div className="pl-show-links">{p.links.map(([t, u], k) => <a key={u} className={`pl-btn ${k === 0 ? "is-main" : ""}`} href={u} target="_blank" rel="noreferrer">{t}</a>)}</div></div>
-                    </div>
-                </div>
-            </article>
-        );
-    }
     return (
         <article className="pl-fold" ref={fold} style={{ "--pc": p.color }}>
             {A}
@@ -415,7 +427,7 @@ export function Projects() {
     return (
         <section id="projects" ref={sec} className="pl-deck pl-proj-sec" style={{ height: `calc(${N} * 100svh + 100svh)` }} data-slot="1" data-keys={JSON.stringify(keys)}>
             <div className="pl-show-stage">
-                <div className="pl-proj-head"><Kick>Projects · {near + 1} of {N}</Kick><H text="Things I've built." accent={["built."]} /><p className="pl-edu-sub">From a live EU AI Act platform to my research and early NLP work. Scroll, or use the arrows.</p></div>
+                <div className="pl-proj-head"><Kick>Projects · {near + 1} of {N}</Kick><H text="Things I've built." accent={["built."]} /><p className="pl-edu-sub">From a live EU AI Act platform to real-time data pipelines and early NLP work. Scroll, or use the arrows.</p></div>
                 <div className="pl-blueprint" ref={board}>
                     <span className="pl-bp-grid" aria-hidden="true" />
                     {PROJECT_ORDER.map((id, k) => { const p = PROJECTS.find(x => x.id === id); return <div key={id} className="pl-bp-slot" ref={el => { slots.current[k] = el; }} inert={k !== near ? "" : undefined}>{Math.abs(k - near) <= 1 && <ProjectCard p={p} i={k} fold={el => { folds.current[k] = el; }} />}</div>; })}
@@ -704,8 +716,8 @@ function useScaleFit(ref) {
         const mq = matchMedia("(min-width: 861px) and (orientation: landscape)");
         const f = () => {
             if (!mq.matches) { el.style.removeProperty("--fs"); el.style.removeProperty("--fy"); return; }
-            const avail = innerHeight - 88 - 52, h = el.offsetHeight || 1, k = Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth));
-            el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.max(0, (avail - h * k) / 2).toFixed(1)}px`);
+            const top = (el.offsetParent?.offsetTop || 0) + el.offsetTop, avail = innerHeight - top - 56, h = el.offsetHeight || 1, k = Math.max(0.55, Math.min(1, avail / h, el.clientWidth / Math.max(el.clientWidth, el.scrollWidth)));
+            el.style.setProperty("--fs", k.toFixed(4)); el.style.setProperty("--fy", `${Math.min(70, Math.max(0, (avail - h * k) / 2)).toFixed(1)}px`);
         };
         const ro = new ResizeObserver(f); ro.observe(el); addEventListener("resize", f); mq.addEventListener("change", f); f();
         return () => { ro.disconnect(); removeEventListener("resize", f); mq.removeEventListener("change", f); };
@@ -765,13 +777,13 @@ export function Contact({ onCv, onQuick }) {
     ];
     return (
         <section id="contact" className="pl-sec pl-desk" data-angle={PLACES.contact.theta} data-sky="9">
-            <div className="pl-desk-left" ref={desk}>
+            <div className="pl-desk-left">
             <div className="pl-desk-copy">
                 <Kick>My desk · this is where I build</Kick>
                 <H text="Let's build AI you can trust." accent={["trust."]} />
                 <p className="pl-p" data-drop="1">Open to AI engineering roles: RAG and agents, AI platforms on Azure, AI governance and security. Write me a letter, it flies straight into my mailbox.</p>
             </div>
-            <div className="pl-desk-table">
+            <div className="pl-desk-table" ref={desk}>
                 <Letter />
                 <div className="pl-stamps"><span className="pl-sheet-cap mono">Postage · tap a stamp</span>{stamps.map(([label, mark, act, c], i) => { const inner = <><b style={{ color: c }}>{mark}</b><span>{label}</span></>; return typeof act === "string" ? <a key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} href={act} target="_blank" rel="noreferrer">{inner}</a> : <button key={label} className="pl-post" style={{ "--r": `${[-6, 4, -3, 5, -4, 3][i]}deg` }} onClick={act}>{inner}</button>; })}</div>
                 <div className="pl-trust pl-log">

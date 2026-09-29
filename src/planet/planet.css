@@ -1545,3 +1545,63 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
 :root[data-theme="light"] .pl-kick { color: #1f4f7a; text-shadow: 0 0 10px rgba(255,255,255,.85); }
 :root[data-theme="light"] .pl-proj-head .pl-edu-sub, :root[data-theme="light"] .pl-desk-copy .pl-p { color: #1f2a37; text-shadow: 0 0 12px rgba(255,255,255,.95), 0 0 4px rgba(255,255,255,.9); }
 .pl-proj-head .pl-edu-sub { text-shadow: 0 1px 12px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.5); }
+/* ── one heading size for every section ── */
+.pl-main .pl-h, .pl-lens .pl-h { font-size: clamp(30px, 2.9vw, 44px) !important; line-height: 1.04; }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) { .pl-main .pl-h, .pl-lens .pl-h { font-size: 26px !important; } }
+/* work experience: the heading stays on screen for the whole ride; the lift and the floor panel sit under it */
+.pl-exp-intro { top: 92px !important; width: min(620px, calc(var(--stand-x, 70vw) - 200px)) !important; gap: 6px !important; z-index: 4; }
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-exp-sec .pl-lift { top: 252px !important; }
+  .pl-exp-sec .pl-floor { top: 322px !important; max-height: calc(100svh - 360px); }
+}
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-exp-intro.is-riding { top: 70px !important; bottom: auto !important; } .pl-exp-intro.is-riding .pl-edu-sub { display: none; } .pl-exp-sec .pl-lift { display: none; }
+  .pl-exp-intro:not(.is-riding) { top: 70px !important; bottom: auto !important; }
+}
+:root[data-theme="light"] .pl-exp-intro { padding: 0 !important; background: none !important; backdrop-filter: none !important; }
+/* research: a lab notebook that turns its pages with the scroll */
+.pl-rs-sec .pl-stage { align-items: start; }
+.pl-rs { display: grid; gap: clamp(20px, 3.2vh, 34px); width: min(calc(var(--stand-x, 70vw) - 170px - var(--pl-gut)), 1060px) !important; padding-top: 4px; }
+.pl-rs-head { display: grid; gap: 6px; text-shadow: 0 2px 14px rgba(0,0,0,.35); } :root[data-theme="light"] .pl-rs-head { text-shadow: none; }
+.pl-rs-book { position: relative; width: 100%; height: min(560px, calc(100svh - 340px)); perspective: 2400px; }
+.pl-rs-pg { position: absolute; top: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; padding: clamp(18px, 2.4vh, 28px) clamp(20px, 2vw, 32px) clamp(18px, 2.4vh, 28px) clamp(40px, 3.4vw, 56px); overflow: hidden; color: #1f2a37;
+  background: linear-gradient(90deg, transparent 26px, rgba(208,135,112,.5) 26px 28px, transparent 28px), repeating-linear-gradient(#fbf8ef 0 29px, #dfe6ee 29px 30px); }
+.pl-rs-book > .pl-rs-pg.is-left { left: 0; width: 50%; border-radius: 16px 4px 4px 16px; box-shadow: 0 30px 60px -30px #000, inset -18px 0 22px -18px rgba(0,0,0,.3); }
+.pl-rs-book > .pl-rs-pg.is-right { left: 50%; width: 50%; border-radius: 4px 16px 16px 4px; box-shadow: 0 30px 60px -30px #000, inset 18px 0 22px -18px rgba(0,0,0,.3); }
+.pl-rs-book .pl-leaf .pl-rs-pg { inset: 0; } .pl-rs-book .pl-face { border-radius: 4px 16px 16px 4px; } .pl-rs-book .pl-face.is-back { border-radius: 16px 4px 4px 16px; }
+.pl-rs-book .pl-face .pl-rs-pg.is-right { box-shadow: inset 18px 0 22px -18px rgba(0,0,0,.3); } .pl-rs-book .pl-face .pl-rs-pg.is-left { box-shadow: inset -18px 0 22px -18px rgba(0,0,0,.3); }
+.pl-rs-holes { position: absolute; left: 8px; top: 20px; bottom: 20px; width: 12px; background: radial-gradient(circle at 6px 6px, #3b4252 4px, transparent 4.5px) 0 0 / 12px 30px repeat-y; }
+.pl-rs-stamp { align-self: flex-start; padding: 3px 9px; border: 2px solid #b48ead; border-radius: 6px; color: #8a5f86; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; rotate: -3deg; }
+.pl-rs-kick { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #9a4d2b; }
+.pl-rs-title { margin: 0; font: italic 700 clamp(26px, 2.3vw, 36px)/1.1 "Bradley Hand", "Segoe Script", "Comic Sans MS", cursive; color: #1f3b52; }
+.pl-rs-sub { margin: 0; font-size: 15px; font-weight: 600; color: #6b4f86; } .pl-rs-meta { margin: 0; font-size: 11px; letter-spacing: .06em; color: #6c7a80; }
+.pl-rs-p { margin: 0; font-size: clamp(14px, 1.05vw, 16px); line-height: 1.6; color: #33414f; }
+.pl-rs-list { display: grid; gap: 14px; margin: 4px 0 0; padding: 0; list-style: none; } .pl-rs-list li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; font-size: clamp(14px, 1.05vw, 16px); line-height: 1.55; }
+.pl-rs-list i { font: italic 700 20px/1.2 "Bradley Hand", "Segoe Script", cursive; color: #2f7a5a; }
+.pl-rs-stickers { display: flex; flex-wrap: wrap; gap: 8px; } .pl-rs-stickers span { padding: 5px 10px; border-radius: 6px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); font: 600 12px var(--pl-mono); color: #3b4252; rotate: var(--r); }
+.pl-rs-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .pl-rs-notes div { display: grid; padding: 12px 14px; background: #f6e7a8; box-shadow: 0 6px 12px -6px rgba(0,0,0,.35); rotate: var(--r); font-size: 13px; color: #4c566a; } .pl-rs-notes b { font: 700 24px var(--pl-display); color: #2e3440; }
+.pl-rs-demo { flex: 1 1 auto; min-height: 0; } .pl-rs-pg .pl-show-links .pl-btn.is-main { background: #6b4f86; border-color: #6b4f86; color: #fff; }
+:root:not([data-theme="light"]) .pl-rs-pg { filter: brightness(.95); }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-rs { width: 100% !important; } .pl-rs-head .pl-edu-sub { display: none; }
+  .pl-rs-stack { position: relative; height: min(440px, calc(100svh - 330px)); }
+  .pl-rs-stack .pl-rs-pg { inset: 0; border-radius: 14px; opacity: 0; transform: translateX(24px) rotate(1deg); transition: opacity .5s, transform .6s cubic-bezier(.2,.8,.2,1); box-shadow: 0 24px 50px -26px #000; }
+  .pl-rs-stack .pl-rs-pg.is-on { opacity: 1; transform: none; }
+}
+/* contact v10: the heading keeps its size; only the desk (letter | stamp sheet over the visit log) scales to fit */
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-desk-left { transform: none !important; width: min(calc(var(--stand-x) - 260px - var(--pl-gut)), 1180px) !important; }
+  .pl-desk-table { transform-origin: 0 0; transform: translateY(var(--fy, 0px)) scale(var(--fs, 1)); grid-template-columns: minmax(420px, 1fr) auto !important; grid-template-areas: "letter sheet" "letter log" !important; gap: 22px 36px !important; align-items: stretch !important; }
+  .pl-desk-table > .pl-mailform { align-self: stretch !important; max-width: 640px !important; padding: 26px 28px 22px; }
+  .pl-desk-table .pl-mailform textarea { min-height: 170px !important; font-size: 17px; }
+  .pl-desk-table > .pl-stamps { grid-template-columns: repeat(3, 108px) !important; align-self: start; }
+  .pl-desk-table .pl-post { width: 108px !important; height: 118px !important; } .pl-desk-table .pl-post b { font-size: 26px; } .pl-desk-table .pl-post span { font-size: 12px; }
+  .pl-desk-table > .pl-trust.pl-log { grid-area: log; width: calc(3 * 108px + 2 * 10px + 32px) !important; max-width: none !important; grid-template-columns: auto minmax(0, 1fr) !important; grid-template-areas: "cap cap" "dial list" "seal seal" !important; align-self: end; rotate: -.6deg; }
+  .pl-desk-table > .pl-trust.pl-log .pl-log-dial { width: 80px; } .pl-desk-table > .pl-trust.pl-log .pl-log-seal { justify-self: start; }
+}
+:root[data-theme="light"] .pl-kick { color: #123a5e !important; font-weight: 600; text-shadow: 0 0 8px rgba(255,255,255,.7); }
+@media (max-width: 860px), (max-width: 1180px) and (orientation: portrait) {
+  .pl-proj-head, .pl-exp-intro, .pl-rs-head { max-width: calc(100vw - 150px) !important; width: auto !important; }
+  .pl-proj-head { right: auto; }
+  .pl-main .pl-h, .pl-lens .pl-h { font-size: 24px !important; }
+}
