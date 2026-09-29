@@ -96,9 +96,11 @@ function useSnap(ref, points) {
 const TOOLS = [["search_notes", "search notes"], ["match_job", "match a job"], ["show_section", "scroll the page"], ["open_project", "open a project"], ["open_resume", "open résumé"], ["open_quick_read", "quick read"], ["draft_letter", "draft a letter"]];
 const PICKS = [["Show me Argus AI", "Show me Argus AI"], ["Help me write to Farhan", "I'd like to get in touch with Farhan about a role. Could you draft a short letter for me?"]];
 function AskMe() {
-    const { msgs, busy, tools } = useChat();
+    const { msgs, busy, tools, status } = useChat();
     const [q, setQ] = useState(""), asked = useRef(false);
-    const go = text => { if (!text.trim() || busy) return; asked.current = true; setQ(""); ask(text); World.scene?.once("emote-yes"); say("Hmm, let me think… 🤔", 30000); };
+    const go = text => { if (!text.trim() || busy) return; asked.current = true; setQ(""); ask(text); World.scene?.once("emote-yes"); };
+    // while the agent works, my bubble shows its real current step, streamed from the server
+    useEffect(() => { if (asked.current && busy && status) say(`${status}…`, 30000, { live: true }); }, [busy, status]);
     const last = [...msgs].reverse().find(m => m.r === "b");
     // my answer comes out of my own speech bubble
     useEffect(() => { if (asked.current && !busy && last?.t) { asked.current = false; say(last.t, Math.min(26000, 6000 + last.t.length * 45)); } }, [busy, last?.t]);
@@ -111,7 +113,7 @@ function AskMe() {
             <form onSubmit={e => { e.preventDefault(); go(q); }}>
                 <span className="pl-ask-dot" aria-hidden="true" />
                 <input id="ask-me" value={q} onChange={e => setQ(e.target.value)} placeholder="Ask me anything, or tell me what to show you…" aria-label="Ask my AI about Farhan" maxLength={300} />
-                <button disabled={busy || !q.trim()}>{busy ? "Thinking…" : "Ask"}</button>
+                <button disabled={busy || !q.trim()}>{busy ? "Working…" : "Ask"}</button>
             </form>
             <div className="pl-picks">
                 <button className="is-job" onClick={startJobFit}><b>Paste a job ad</b> see how I fit →</button>

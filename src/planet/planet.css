@@ -1902,3 +1902,16 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
 
 /* hero tool strip: easier to read on the night sky */
 .pl-tools > span { color: #c2ccd6; border-color: rgba(136,192,208,.4); } .pl-tools .pl-tools-k { color: #a9d8e6; }
+
+/* chat: the agent's live steps while it works */
+.agent-live { display: grid; gap: 6px; min-width: 220px; }
+.agent-live-now { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.agent-live-now i { width: 8px; height: 8px; border-radius: 50%; background: #88c0d0; box-shadow: 0 0 8px #88c0d0; animation: pl-tool-pulse .9s ease-in-out infinite; flex: none; }
+.agent-live ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 12px; opacity: .72; }
+:root[data-theme="light"] .agent-live-now i { background: #5e81ac; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .agent-live-now i { animation: none; } }
+
+/* my bubble while the agent works: the live step, shown at once, with a pulsing dot */
+.pl-bubble.is-live { font-family: var(--pl-body) !important; font-style: normal !important; font-size: 15px !important; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+.pl-bubble-dot { width: 8px; height: 8px; border-radius: 50%; background: #5e81ac; flex: none; animation: pl-tool-pulse .9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .pl-bubble-dot { animation: none; } }

@@ -14,7 +14,8 @@ export const World = { scene: null };
 export const Views = {};
 /* a line for me to say right now (overrides the chapter's line for a few seconds) */
 let sayTimer = 0;
-export function say(text, ms = 3200) { clearTimeout(sayTimer); setUI({ say: text }); sayTimer = setTimeout(() => setUI({ say: null }), ms); }
+/** my speech bubble; { live: true } shows a status line at once (the agent's current step) instead of typing it out */
+export function say(text, ms = 3200, { live = false } = {}) { clearTimeout(sayTimer); setUI({ say: text, sayLive: live }); sayTimer = setTimeout(() => setUI({ say: null, sayLive: false }), ms); }
 
 /* the education story, in slots of scroll: college → getting ready → the flight → Hamburg */
 export const JOURNEY = { spans: [1, 2.9, 1.4, 1], prep: [0.75, 3.75], takeoff: 3.95, land: 5.05 };
@@ -200,7 +201,7 @@ function Bubble({ ui }) {
     const el = useRef(null), gone = useRef(false), [shown, setShown] = useState(""), text = ui.say || (ui.chapter === "journey" ? JOURNEY_LINES[journeyStop(ui.journey ?? 0)] : LINES[ui.chapter]) || "";
     const flying = ui.chapter === "journey" && journeyStop(ui.journey ?? 0) === 2;
     useEffect(() => { // type it out
-        if (reducedMotion()) { setShown(text); return; }
+        if (reducedMotion() || (ui.say && ui.sayLive)) { setShown(text); gone.current = false; return; }
         setShown(""); gone.current = false; let i = 0, t = 0; const id = setInterval(() => { i += text.length > 90 ? 4 : 2; setShown(text.slice(0, i)); if (i >= text.length) { clearInterval(id); t = setTimeout(() => { gone.current = true; }, 6500 + text.length * 25); } }, 28); return () => { clearInterval(id); clearTimeout(t); };
     }, [text]);
     useEffect(() => {
@@ -220,7 +221,8 @@ function Bubble({ ui }) {
         };
         raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
     }, [flying, text]);
-    return <div ref={el} className={`pl-bubble ${text.length > 90 ? "is-long" : ""}`} aria-live="polite" role="status">{shown}<span className="pl-caret" aria-hidden="true" /></div>;
+    const live = ui.say && ui.sayLive;
+    return <div ref={el} className={`pl-bubble ${text.length > 90 ? "is-long" : ""} ${live ? "is-live" : ""}`} aria-live="polite" role="status">{live && <i className="pl-bubble-dot" aria-hidden="true" />}{shown}{!live && <span className="pl-caret" aria-hidden="true" />}</div>;
 }
 
 /* the first time someone visits: a short, honest hello */

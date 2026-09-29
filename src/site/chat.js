@@ -45,6 +45,7 @@ let state = {
     trace: freshTrace(),
     ledger: [],
     tools: [], // the agent tools used for the latest answer, from the server's real trace
+    status: "", steps: [], // what the agent is doing right now, streamed from the server
 };
 const subs = new Set();
 const set = p => { state = { ...state, ...p }; subs.forEach(f => f()); };
@@ -63,6 +64,32 @@ async function typeOut(text, src = [], extra = {}) {
     const n = text.length > 280 ? 6 : 3;
     for (let i = 1; i <= text.length; i += n) { set({ typing: text.slice(0, i) }); await sleep(14); }
     set({ typing: "", msgs: [...state.msgs, { r: "b", t: text, src, ...extra }] });
+}
+
+/* the agent's real steps, in plain words: what the visitor sees while it works (never a canned "let me think") */
+const VERB = { search_notes: "search my notes", match_job: "compare the job ad with my notes", show_section: "show you part of the site", open_project: "open a project", open_resume: "open my résumé", open_quick_read: "open the quick read", draft_letter: "write your letter" };
+const argsOf = d => [...String(d || "").matchAll(/([a-z_]+)\(([^)]*)\)/g)].map(m => [m[1], m[2]]);
+const DOING = { search_notes: a => `Searching my notes for “${a}”`, match_job: () => "Comparing the job ad with my notes", draft_letter: () => "Writing your letter", show_section: a => `Getting ${a} ready for you`, open_project: a => `Getting the ${a.replace(/-/g, " ")} project ready`, open_resume: () => "Getting my résumé", open_quick_read: () => "Getting the quick read" };
+export function humanStep(s) {
+    const d = String(s.detail || "");
+    switch (s.step) {
+        case "start": return "Reading your message";
+        case "guard": return /^blocked/.test(d) ? "That looks like an attack on my instructions, so I'll decline" : "Message checked: safe to answer";
+        case "agent-start": return s.turn > 1 ? "Reading what I found" : "Deciding which tools I need";
+        case "agent": if (/^decided:/.test(d)) { const n = d.slice(9).split(",").map(x => VERB[x.trim()] || x.trim()); return `Decided to ${n.join(" and ")}`; } if (/unavailable|no model key/.test(d)) return "Switching to my backup pipeline"; return "Writing the answer";
+        case "tools": return argsOf(d).map(([n, a]) => (DOING[n] || (() => n))(a.split(",")[0].trim())).join(" · ") || "Using my tools";
+        case "rewrite": return "Understanding your follow-up";
+        case "retrieve": return "Searching my notes";
+        case "generate": return "Writing the answer";
+        case "verify": return "Checking the answer against my safety policy";
+        case "refuse": return "Declining politely";
+        default: return "";
+    }
+}
+function live(s) {
+    const text = humanStep(s); if (!text) return;
+    set({ status: text, steps: [...state.steps, text].slice(-6) });
+    const id = SERVER_STEP[s.step]; if (id) step(id, "run", String(s.detail || "").slice(0, 80));
 }
 
 const SERVER_STEP = { guard: "intent", rewrite: "intent", agent: "intent", retrieve: "retrieve", tools: "retrieve", generate: "generate", refuse: "generate", verify: "policy" };
@@ -101,20 +128,34 @@ export const redo = a => ACTIONS[a?.type] && perform([a]);
 export async function ask(text) {
     text = text.trim();
     if (!text || state.busy) return;
-    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace(), tools: [] });
+    set({ busy: true, draft: "", msgs: [...state.msgs, { r: "u", t: text }], trace: freshTrace(), tools: [], status: "Reading your message", steps: ["Reading your message"] });
     history = [...history, { role: "user", content: text }].slice(-12);
     ["intent", "retrieve", "generate"].forEach(id => step(id, "run"));
 
     let reply = null, sources = [], server = [], actions = [], via = "fallback", why = "no connection";
     try {
-        const ac = new AbortController(), t = setTimeout(() => ac.abort(), 25000);
-        const res = await fetch("/api/chat", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history }) });
-        clearTimeout(t);
-        const j = await res.json().catch(() => ({}));
+        const ac = new AbortController(), t = setTimeout(() => ac.abort(), 30000);
+        const res = await fetch("/api/chat", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" }, body: JSON.stringify({ messages: history, stream: true }) });
         why = `server answered ${res.status}`;
-        if (res.ok && j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; actions = j.actions || []; via = j.model || "model"; }
+        let j = {};
+        if (res.ok && res.body && /ndjson/.test(res.headers.get("content-type") || "")) {
+            // the agent's real steps arrive one line at a time while it works
+            const rd = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+            for (;;) {
+                const { value, done } = await rd.read(); if (done) break;
+                buf += dec.decode(value, { stream: true });
+                for (let i; (i = buf.indexOf("\n")) >= 0;) {
+                    const ln = buf.slice(0, i); buf = buf.slice(i + 1);
+                    let o; try { o = JSON.parse(ln); } catch { continue; }
+                    if (o.type === "step") live(o); else if (o.type === "done") j = o; else if (o.type === "error") j = { error: o.error };
+                }
+            }
+        } else j = await res.json().catch(() => ({}));
+        clearTimeout(t);
+        if (j.answer) { reply = j.answer; sources = j.sources || []; server = j.trace || []; actions = j.actions || []; via = j.model || "model"; }
         else if (j.error) reply = j.error;
     } catch (e) { why = e?.name === "AbortError" ? "timed out" : "no connection"; }
+    set({ status: "", steps: [] });
     if (!reply) { console.warn("Ask my AI:", why); server = [{ step: "agent", detail: why }]; reply = `I can't reach my notes right now. Please try again in a moment, or email ${EMAIL} and the real Farhan will answer.`; }
 
     set({ tools: [...new Set(server.filter(s => s.step === "tools").flatMap(s => [...String(s.detail).matchAll(/\b([a-z_]+)\(/g)].map(m => m[1])))] });
