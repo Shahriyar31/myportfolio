@@ -23,6 +23,8 @@ export default function App() {
 
     useEffect(() => { addEventListener("quick-read", openQuick); return () => removeEventListener("quick-read", openQuick); }, [openQuick]);
     useEffect(() => { addEventListener("open-cv", openCv); return () => removeEventListener("open-cv", openCv); }, [openCv]);
+    // the page width without the scrollbar, so wide-screen headings can line up exactly with the page gutter
+    useEffect(() => { const f = () => document.documentElement.style.setProperty("--page-w", `${document.documentElement.clientWidth}px`); f(); addEventListener("resize", f); return () => removeEventListener("resize", f); }, []);
     // smooth scrolling (skipped for reduced-motion users)
     useEffect(() => {
         if (reducedMotion()) return;

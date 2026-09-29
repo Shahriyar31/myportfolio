@@ -268,7 +268,7 @@ body { background: #2e3440; }
 .pl-stage { position: sticky; top: 0; height: 100svh; display: grid; grid-template: 1fr / 1fr; align-items: center; padding: 88px calc(var(--pl-gut) + var(--rail, 84px)) 80px var(--pl-gut); box-sizing: border-box; }
 .pl-stage.pl-left { justify-items: start; } .pl-stage.pl-right { justify-items: end; }
 .pl-stage > * { width: min(560px, 100%); }
-/* wide screens keep the same left edge as every other section (no centred 1280px box), so all headings line up */
+@media (min-width: 1500px) { .pl-stage { padding-inline: calc((100% - 1280px) / 2) calc((100% - 1280px) / 2 + var(--rail, 84px)); } }
 .pl-slot { grid-area: 1 / 1; min-width: 0; }
 .pl-slot-in { transform-origin: 50% 50%; will-change: transform, opacity; }
 .pl-slot:not(.is-live) .pl-slot-in { pointer-events: none; } .pl-slot:not(.is-live) .pl-slot-in * { pointer-events: none !important; }
@@ -1921,16 +1921,18 @@ html.is-menu .rail, html.is-menu .pl-orbs, html.is-menu .pl-bubble { opacity: 0 
   .pl-desk-table { position: relative; grid-template-areas: "letter . log" !important; grid-template-rows: auto !important; }
   .pl-desk-table > .pl-stamps.is-row { position: absolute !important; left: var(--stamps-x, 50%) !important; bottom: 0; margin: 0 !important; grid-area: auto !important; justify-self: auto !important; }
 }
-
-/* every section heading starts on the same left edge (the page gutter), at every width */
-@media (min-width: 861px) and (orientation: landscape) {
-  .pl-skills-sec .pl-in { margin-inline: 0 !important; }
-  .pl-lens > section { margin-inline: calc(24px - var(--pl-gut)) auto !important; }
-  .pl-lens > section > .wrap { padding-left: calc(var(--pl-gut) - 24px) !important; }
-}
-/* projects, desktop: the card itself starts on the page gutter like every other section; the arrows sit just outside it */
-@media (min-width: 861px) and (orientation: landscape), (min-width: 1181px) {
-  .pl-blueprint { --slot-w: min(1080px, calc(var(--stand-x, 70vw) - 268px - var(--pl-gut))); left: calc(var(--pl-gut) - 58px) !important; right: auto !important; width: calc(var(--slot-w) + 116px); }
-}
 /* the handwritten accent word leans right and overhangs its box: keep a clear gap before the next word ("research project") */
 .pl-main .pl-w.is-accent, .pl-lens .pl-w.is-accent { margin-right: .2em !important; }
+/* no dead space between sections: the photography card drops the generic 372px act margins, skills is as tall as its content */
+.pl-lens > section.act { margin-block: 0 !important; }
+@media (min-width: 861px) and (orientation: landscape) { .pl-skills-sec { min-height: 0 !important; } }
+/*
+ * Headings only: on wide screens the content of Research, Education and Skills stays centred, and just the heading block
+ * steps left to the page gutter, so every section heading starts on the same line. Nothing else moves.
+ */
+@media (min-width: 1500px) {
+  .pl-rs-sec .pl-rs-head, .pl-journey-sec .pl-edu-cap { margin-left: min(0px, calc(var(--pl-gut) - (var(--page-w, 100vw) - 1280px) / 2)); }
+}
+@media (min-width: 861px) and (orientation: landscape) {
+  .pl-skills-sec .pl-net-head { margin-left: calc(-1 * max(0px, (var(--page-w, 100vw) - 2 * var(--pl-gut) - var(--rail, 84px) - 1240px) / 2)); }
+}
