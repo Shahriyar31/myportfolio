@@ -140,7 +140,7 @@ export default function Network() {
                     </div>
                     <form className="pl-st-input" onSubmit={run}><span>❯</span><input value={cmd} onChange={e => setCmd(e.target.value)} placeholder="farhan install --role data-engineer   ·   or a skill: rag" aria-label="Type a role or a skill" maxLength={60} /><button disabled={!cmd.trim()}>run</button></form>
                 </div>
-                <div className="pl-st-pkgs" aria-label="Installed skills">
+                <div className={`pl-st-pkgs ${lit.size ? "has-lit" : ""}`} aria-label="Installed skills">
                     {GROUPS.map(([g, a, b], gi) => (
                         <div key={g} className="pl-st-group"><span className="mono">{SKY[gi][0]} · {g}</span>
                             <div>{S.slice(a, b).map(sk => <button key={sk[0]} className={`pl-st-pkg ${lit.has(sk[0]) ? "is-on" : ""}`} style={{ "--c": tint(sk) }} onClick={() => info(sk[0])} title={sk[4] ? `Used at: ${sk[4]}` : "In my toolkit"}><span className="pl-st-ic"><Logo ic={sk[1]} color={sk[2]} /></span>{sk[0]}</button>)}</div>
